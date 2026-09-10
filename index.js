@@ -1,3 +1,6 @@
+const dns = require('dns');
+dns.setDefaultResultOrder('ipv4first'); // fuerza IPv4 antes que IPv6 en toda la app
+
 const mineflayer = require('mineflayer');
 const express = require('express');
 const { parseFlatSnbt } = require('./snbt');
@@ -6,9 +9,12 @@ const { preguntarIA } = require('./openrouter');
 // ---- Config por variables de entorno (se configuran en Render) ----
 const HOST = process.env.MC_HOST;              // ej: tuserver.aternos.me
 const PORT = parseInt(process.env.MC_PORT || '25565', 10);
-const BOT_USERNAME = process.env.MC_BOT_USERNAME || 'IA_Vigilante';
+const BOT_USERNAME = process.env.MC_BOT_USERNAME || 'ia_244jhytsewr5'; // username tecnico, no se muestra como "AM"
+const PERSONAJE = process.env.MC_PERSONAJE || 'AM';
 const OPENROUTER_KEY = process.env.OPENROUTER_API_KEY;
-const VERSION = process.env.MC_VERSION || '1.21.4';
+const VERSION = process.env.MC_VERSION && process.env.MC_VERSION !== 'false' && process.env.MC_VERSION !== 'auto'
+  ? process.env.MC_VERSION
+  : false; // false = auto-detectar version del server (mas confiable con Aternos, segun Slobos-AFK-Aternos-Bot)
 
 if (!HOST || !OPENROUTER_KEY) {
   console.error('Faltan variables de entorno: MC_HOST y/o OPENROUTER_API_KEY');
@@ -25,23 +31,101 @@ function esSituacionInteresante(ctx) {
   return ctx.cerca_lava === 1 || ctx.cerca_borde === 1 || (typeof ctx.vida === 'number' && ctx.vida <= 6);
 }
 
+// Distancia (bloques) bajo la cual se considera que un jugador es una amenaza cercana
+const DISTANCIA_PELIGRO = 4;
+const DURACION_HUIDA_MS = 1500;
+
+function iniciarHuida(bot) {
+  let huyendo = false;
+
+  function huirDe(entidadAmenaza) {
+    if (huyendo || !entidadAmenaza || !bot.entity) return;
+    huyendo = true;
+
+    // Calcula direccion opuesta a la amenaza y gira el bot hacia alla
+    const dx = bot.entity.position.x - entidadAmenaza.position.x;
+    const dz = bot.entity.position.z - entidadAmenaza.position.z;
+    const yaw = Math.atan2(-dx, -dz) + Math.PI; // mirar en direccion contraria
+
+    try {
+      bot.look(yaw, 0, true);
+      bot.setControlState('forward', true);
+      bot.setControlState('sprint', true);
+      bot.setControlState('jump', true); // ayuda a superar obstaculos bajos mientras huye
+    } catch (e) { /* el bot puede haberse desconectado justo en este instante */ }
+
+    setTimeout(() => {
+      try {
+        bot.setControlState('forward', false);
+        bot.setControlState('sprint', false);
+        bot.setControlState('jump', false);
+      } catch (e) { /* ignorar */ }
+      huyendo = false;
+    }, DURACION_HUIDA_MS);
+  }
+
+  // Huir al recibir daño (de cualquier fuente: jugador, mob, caida, etc.)
+  bot.on('entityHurt', (entity) => {
+    if (entity === bot.entity) {
+      const atacante = Object.values(bot.entities).find(e =>
+        e.type === 'player' && bot.entity && e.position.distanceTo(bot.entity.position) < DISTANCIA_PELIGRO + 2
+      );
+      huirDe(atacante || null);
+    }
+  });
+
+  // Revision periodica: si un jugador esta demasiado cerca, huir preventivamente
+  const chequeoInterval = setInterval(() => {
+    if (!bot.entity) {
+      clearInterval(chequeoInterval);
+      return;
+    }
+    const jugadorCercano = Object.values(bot.entities).find(e =>
+      e.type === 'player' &&
+      e.username !== BOT_USERNAME &&
+      e.position.distanceTo(bot.entity.position) < DISTANCIA_PELIGRO
+    );
+    if (jugadorCercano) huirDe(jugadorCercano);
+  }, 800);
+
+  bot.once('end', () => clearInterval(chequeoInterval));
+}
+
 function crearBot() {
+  console.log(`[bot] intentando conectar a ${HOST}:${PORT} (version ${VERSION === false ? 'auto' : VERSION}) como ${BOT_USERNAME}...`);
   const bot = mineflayer.createBot({
     host: HOST,
     port: PORT,
     username: BOT_USERNAME,
     version: VERSION,
     auth: 'offline', // server cracked / offline-mode
+    hideErrors: false,
+    // Aternos puede tardar 90-120s en terminar de spawnear un jugador (confirmado
+    // por el proyecto Slobos-AFK-Aternos-Bot, que documenta este mismo comportamiento).
+    // Un timeout corto aqui mata conexiones que solo estaban siendo lentas, no rotas.
+    checkTimeoutInterval: 600_000,
   });
+
+  // Failsafe: si createBot no emite login/error/end en 150s, forzamos el reintento.
+  // 150s porque Aternos puede tardar 90-120s en completar el spawn (no es un colgado real).
+  const failsafe = setTimeout(() => {
+    console.log('[bot] sin respuesta tras 150s, forzando reconexion...');
+    try { bot.end('timeout manual'); } catch (e) { /* ignorar */ }
+  }, 150_000);
+  bot.once('login', () => clearTimeout(failsafe));
+  bot.once('spawn', () => clearTimeout(failsafe));
+  bot.once('error', () => clearTimeout(failsafe));
+  bot.once('end', () => clearTimeout(failsafe));
 
   bot.on('login', () => {
     console.log(`[bot] conectado a ${HOST}:${PORT} como ${BOT_USERNAME}`);
   });
 
   bot.on('spawn', () => {
-    bot.chat('La vigilancia ha comenzado.');
+    bot.chat(`La vigilancia de ${PERSONAJE} ha comenzado.`);
     console.log('[bot] Recordatorio: para que las trampas (/function) funcionen, ' +
-      `dale OP a "${BOT_USERNAME}" desde la consola de Aternos: /op ${BOT_USERNAME}`);
+      `dale OP al usuario tecnico "${BOT_USERNAME}" desde la consola de Aternos: /op ${BOT_USERNAME}`);
+    iniciarHuida(bot);
   });
 
   bot.on('message', async (jsonMsg) => {
@@ -59,6 +143,7 @@ function crearBot() {
       return;
     }
     if (!ctx.nombre) return;
+    if (ctx.nombre === BOT_USERNAME) return; // ignora reportes sobre el propio bot
 
     if (!esSituacionInteresante(ctx)) return;
 
@@ -76,7 +161,7 @@ function crearBot() {
   });
 
   bot.on('kicked', (reason) => console.log('[bot] kicked:', reason));
-  bot.on('error', (err) => console.log('[bot] error de conexion:', err.message));
+  bot.on('error', (err) => console.log('[bot] error de conexion:', err.code || err.message, err));
   bot.on('end', () => {
     console.log('[bot] desconectado, reintentando en 15s...');
     setTimeout(crearBot, 15_000);
