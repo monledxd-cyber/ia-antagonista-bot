@@ -45,7 +45,7 @@ Comenta la situacion con tu personalidad. Decide si vale la pena activar una tra
       'Authorization': `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: 'anthropic/claude-3.5-haiku',
+      model: 'anthropic/claude-haiku-4.5',
       max_tokens: 120,
       messages: [
         { role: 'system', content: SYSTEM_PROMPT },
