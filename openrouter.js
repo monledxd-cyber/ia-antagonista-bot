@@ -23,13 +23,20 @@ Reglas de estilo:
   etiqueta exacta [TRAMPA:borde] o [TRAMPA:lava] segun corresponda. Si no, no pongas etiqueta.`;
 
 async function preguntarIA(apiKey, contextoJugador) {
-  const userMsg = `Estado actual del jugador ${contextoJugador.nombre}:
+  let userMsg;
+  if (contextoJugador.mensajeDirecto) {
+    userMsg = `El jugador ${contextoJugador.nombre} te dice directamente: "${contextoJugador.mensajeDirecto}"
+
+Respondele en personaje, con tu tono frio y de humor negro.`;
+  } else {
+    userMsg = `Estado actual del jugador ${contextoJugador.nombre}:
 - Vida: ${contextoJugador.vida}/20
 - Cerca de lava: ${contextoJugador.cerca_lava ? 'si' : 'no'}
 - Cerca de un borde/caida: ${contextoJugador.cerca_borde ? 'si' : 'no'}
 - Diamantes en inventario: ${contextoJugador.diamantes}
 
 Comenta la situacion con tu personalidad. Decide si vale la pena activar una trampa ahora.`;
+  }
 
   const resp = await fetch(OPENROUTER_URL, {
     method: 'POST',

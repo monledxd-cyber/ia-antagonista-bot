@@ -92,26 +92,20 @@ function iniciarHuida(bot) {
   bot.once('end', () => clearInterval(chequeoInterval));
 }
 
-async function crearBot() {
-  // Resuelve el hostname a IP EN CADA INTENTO, sin cache. Aternos asigna una IP
-  // nueva cada vez que el server se reinicia (host dinamico, confirmado en su
-  // propia documentacion), y Node/Render pueden quedarse con una IP vieja cacheada
-  // si solo le pasamos el hostname a mineflayer. Resolviendo nosotros mismos y
-  // pasando la IP literal, garantizamos que cada intento usa la IP actual real.
-  let ipActual;
-  try {
-    const { address } = await dns.promises.lookup(HOST, { family: 4 });
-    ipActual = address;
-    console.log(`[bot] DNS resuelto: ${HOST} -> ${ipActual}`);
-  } catch (e) {
-    console.error('[bot] error resolviendo DNS:', e.message);
-    setTimeout(crearBot, 15_000);
-    return;
-  }
+// Backoff exponencial: Aternos throttlea/rechaza reconexiones demasiado frecuentes.
+// Reintentar cada 15s sin parar dispara ese throttle en cadena. Vamos aumentando
+// el tiempo de espera con cada fallo consecutivo, y lo reseteamos al conectar bien.
+let intentosFallidos = 0;
+function proximoDelay() {
+  const base = 15_000;
+  const delay = Math.min(base * Math.pow(2, intentosFallidos), 5 * 60_000); // tope 5 min
+  return delay;
+}
 
-  console.log(`[bot] intentando conectar a ${ipActual}:${PORT} (version ${VERSION === false ? 'auto' : VERSION}) como ${BOT_USERNAME}...`);
+function crearBot() {
+  console.log(`[bot] intentando conectar a ${HOST}:${PORT} (version ${VERSION === false ? 'auto' : VERSION}) como ${BOT_USERNAME}...`);
   const bot = mineflayer.createBot({
-    host: ipActual,
+    host: HOST,
     port: PORT,
     username: BOT_USERNAME,
     version: VERSION,
@@ -136,6 +130,7 @@ async function crearBot() {
 
   bot.on('login', () => {
     console.log(`[bot] conectado a ${HOST}:${PORT} como ${BOT_USERNAME}`);
+    intentosFallidos = 0; // conexion exitosa: reseteamos el backoff
   });
 
   bot.on('spawn', () => {
@@ -143,6 +138,23 @@ async function crearBot() {
     console.log('[bot] Recordatorio: para que las trampas (/function) funcionen, ' +
       `dale OP al usuario tecnico "${BOT_USERNAME}" desde la consola de Aternos: /op ${BOT_USERNAME}`);
     iniciarHuida(bot);
+  });
+
+  // Responde cuando un jugador real escribe en el chat (no reportes del datapack)
+  bot.on('chat', async (username, mensaje) => {
+    if (username === BOT_USERNAME) return; // ignora sus propios mensajes
+    if (mensaje.includes('[IA_DATA]')) return; // por si acaso, nunca deberia pasar por aqui
+
+    try {
+      const respuesta = await preguntarIA(OPENROUTER_KEY, {
+        nombre: username,
+        vida: '', cerca_lava: 0, cerca_borde: 0, diamantes: '',
+        mensajeDirecto: mensaje,
+      });
+      await manejarRespuesta(bot, { nombre: username }, respuesta);
+    } catch (e) {
+      console.error('[bot] error respondiendo chat:', e.message);
+    }
   });
 
   bot.on('message', async (jsonMsg) => {
@@ -162,7 +174,8 @@ async function crearBot() {
     if (!ctx.nombre) return;
     if (ctx.nombre === BOT_USERNAME) return; // ignora reportes sobre el propio bot
 
-    if (!esSituacionInteresante(ctx)) return;
+    // El datapack ya filtra cuando reportar (peligro o cada ~15s); aqui solo
+    // aplicamos el cooldown para no llamar a la API mas seguido de lo debido.
 
     const ahora = Date.now();
     const ultima = lastCall.get(ctx.nombre) || 0;
@@ -177,11 +190,19 @@ async function crearBot() {
     }
   });
 
-  bot.on('kicked', (reason) => console.log('[bot] kicked:', reason));
+  bot.on('kicked', (reason) => {
+    console.log('[bot] kicked:', reason);
+    const texto = (typeof reason === 'object' ? JSON.stringify(reason) : String(reason)).toLowerCase();
+    if (texto.includes('throttl') || texto.includes('wait before') || texto.includes('too fast') || texto.includes('too many')) {
+      console.log('[bot] kick por throttling detectado, se aplicara backoff mas largo');
+    }
+  });
   bot.on('error', (err) => console.log('[bot] error de conexion:', err.code || err.message, err));
   bot.on('end', () => {
-    console.log('[bot] desconectado, reintentando en 15s...');
-    setTimeout(crearBot, 15_000);
+    intentosFallidos++;
+    const delay = proximoDelay();
+    console.log(`[bot] desconectado, reintentando en ${Math.round(delay / 1000)}s (intento fallido #${intentosFallidos})...`);
+    setTimeout(crearBot, delay);
   });
 
   return bot;
