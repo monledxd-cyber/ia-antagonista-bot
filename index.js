@@ -14,7 +14,8 @@ const PERSONAJE = process.env.MC_PERSONAJE || 'AM';
 const OPENROUTER_KEY = process.env.OPENROUTER_API_KEY;
 const VERSION = process.env.MC_VERSION && process.env.MC_VERSION !== 'false' && process.env.MC_VERSION !== 'auto'
   ? process.env.MC_VERSION
-  : false; // false = auto-detectar version del server (mas confiable con Aternos, segun Slobos-AFK-Aternos-Bot)
+  : '1.21.4'; // version fija: el ping de auto-deteccion (version:false) falla consistentemente
+             // contra este server, aunque el login directo con version fija si funciona.
 
 if (!HOST || !OPENROUTER_KEY) {
   console.error('Faltan variables de entorno: MC_HOST y/o OPENROUTER_API_KEY');
@@ -91,10 +92,26 @@ function iniciarHuida(bot) {
   bot.once('end', () => clearInterval(chequeoInterval));
 }
 
-function crearBot() {
-  console.log(`[bot] intentando conectar a ${HOST}:${PORT} (version ${VERSION === false ? 'auto' : VERSION}) como ${BOT_USERNAME}...`);
+async function crearBot() {
+  // Resuelve el hostname a IP EN CADA INTENTO, sin cache. Aternos asigna una IP
+  // nueva cada vez que el server se reinicia (host dinamico, confirmado en su
+  // propia documentacion), y Node/Render pueden quedarse con una IP vieja cacheada
+  // si solo le pasamos el hostname a mineflayer. Resolviendo nosotros mismos y
+  // pasando la IP literal, garantizamos que cada intento usa la IP actual real.
+  let ipActual;
+  try {
+    const { address } = await dns.promises.lookup(HOST, { family: 4 });
+    ipActual = address;
+    console.log(`[bot] DNS resuelto: ${HOST} -> ${ipActual}`);
+  } catch (e) {
+    console.error('[bot] error resolviendo DNS:', e.message);
+    setTimeout(crearBot, 15_000);
+    return;
+  }
+
+  console.log(`[bot] intentando conectar a ${ipActual}:${PORT} (version ${VERSION === false ? 'auto' : VERSION}) como ${BOT_USERNAME}...`);
   const bot = mineflayer.createBot({
-    host: HOST,
+    host: ipActual,
     port: PORT,
     username: BOT_USERNAME,
     version: VERSION,
