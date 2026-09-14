@@ -2,6 +2,7 @@ const dns = require('dns');
 dns.setDefaultResultOrder('ipv4first'); // fuerza IPv4 antes que IPv6 en toda la app
 
 const mineflayer = require('mineflayer');
+const { pathfinder, Movements, goals } = require('mineflayer-pathfinder');
 const express = require('express');
 const { parseFlatSnbt } = require('./snbt');
 const { preguntarIA } = require('./openrouter');
@@ -38,9 +39,28 @@ const DURACION_HUIDA_MS = 1500;
 
 function iniciarHuida(bot) {
   let huyendo = false;
+  let atacando = false;
+  const PROBABILIDAD_ATACAR = 0.4; // 40% de las veces ataca en vez de huir
+
+  function atacar(objetivo) {
+    if (atacando || !objetivo || !bot.entity) return;
+    atacando = true;
+    try {
+      bot.lookAt(objetivo.position.offset(0, objetivo.height || 1.6, 0), true);
+      bot.attack(objetivo);
+    } catch (e) { /* el objetivo puede haberse movido/desconectado */ }
+    setTimeout(() => { atacando = false; }, 600); // cooldown ~= tiempo de recarga de un golpe
+  }
 
   function huirDe(entidadAmenaza) {
     if (huyendo || !entidadAmenaza || !bot.entity) return;
+
+    // Decide arbitrariamente entre atacar o huir, no siempre lo mismo.
+    if (Math.random() < PROBABILIDAD_ATACAR) {
+      atacar(entidadAmenaza);
+      return;
+    }
+
     huyendo = true;
 
     // Calcula direccion opuesta a la amenaza y gira el bot hacia alla
@@ -202,18 +222,26 @@ async function crearBot() {
     bot.chat(`La vigilancia de ${PERSONAJE} ha comenzado.`);
     console.log('[bot] Recordatorio: para que las trampas (/function) funcionen, ' +
       `dale OP al usuario tecnico "${BOT_USERNAME}" desde la consola de Aternos: /op ${BOT_USERNAME}`);
+    if (!bot.pathfinder) bot.loadPlugin(pathfinder);
+    bot.pathfinder.setMovements(new Movements(bot));
     iniciarHuida(bot);
   });
 
   // Responde cuando un jugador real escribe en el chat (no reportes del datapack)
+  const ultimoContexto = new Map(); // nombre -> ultimo ctx real del datapack
+
   bot.on('chat', async (username, mensaje) => {
     if (username === BOT_USERNAME) return; // ignora sus propios mensajes
     if (mensaje.includes('[IA_DATA]')) return; // por si acaso, nunca deberia pasar por aqui
 
+    const real = ultimoContexto.get(username) || {};
     try {
       const respuesta = await preguntarIA(OPENROUTER_KEY, {
         nombre: username,
-        vida: '', cerca_lava: 0, cerca_borde: 0, diamantes: '',
+        vida: real.vida ?? 'desconocida',
+        cerca_lava: real.cerca_lava ?? 0,
+        cerca_borde: real.cerca_borde ?? 0,
+        diamantes: real.diamantes ?? 'desconocidos',
         mensajeDirecto: mensaje,
       });
       await manejarRespuesta(bot, { nombre: username }, respuesta);
@@ -238,6 +266,7 @@ async function crearBot() {
     }
     if (!ctx.nombre) return;
     if (ctx.nombre === BOT_USERNAME) return; // ignora reportes sobre el propio bot
+    ultimoContexto.set(ctx.nombre, ctx);
 
     // El datapack ya filtra cuando reportar (peligro o cada ~15s); aqui solo
     // aplicamos el cooldown para no llamar a la API mas seguido de lo debido.
@@ -284,22 +313,50 @@ async function crearBot() {
 
 async function manejarRespuesta(bot, ctx, respuestaCruda) {
   let texto = respuestaCruda;
-  let trampa = null;
 
-  const match = respuestaCruda.match(/\[TRAMPA:(borde|lava)\]/);
-  if (match) {
-    trampa = match[1];
-    texto = respuestaCruda.replace(match[0], '').trim();
+  const mTrampa = texto.match(/\[TRAMPA:(borde|lava)\]/);
+  if (mTrampa) texto = texto.replace(mTrampa[0], '').trim();
+
+  const mIr = texto.match(/\[IR:(-?\d+),(-?\d+),(-?\d+)\]/);
+  if (mIr) texto = texto.replace(mIr[0], '').trim();
+
+  const mAtacar = texto.match(/\[ATACAR\]/);
+  if (mAtacar) texto = texto.replace(mAtacar[0], '').trim();
+
+  const mCmd = texto.match(/\[CMD:([^\]]+)\]/);
+  if (mCmd) texto = texto.replace(mCmd[0], '').trim();
+
+  if (texto) bot.chat(texto);
+
+  if (mTrampa && mTrampa[1] === 'borde') bot.chat('/function ia:trampa_borde');
+  if (mTrampa && mTrampa[1] === 'lava') bot.chat('/function ia:trampa_lava');
+
+  if (mIr) {
+    const [, x, y, z] = mIr.map(Number);
+    try {
+      bot.pathfinder.setGoal(new goals.GoalNear(x, y, z, 1));
+    } catch (e) { console.error('[bot] error moviendose:', e.message); }
   }
 
-  if (texto) {
-    bot.chat(texto);
+  if (mAtacar) {
+    const objetivo = Object.values(bot.entities).find(e =>
+      e.type === 'player' && e.username !== BOT_USERNAME &&
+      bot.entity && e.position.distanceTo(bot.entity.position) < 4
+    );
+    if (objetivo) {
+      try { bot.attack(objetivo); } catch (e) { console.error('[bot] error atacando:', e.message); }
+    }
   }
 
-  if (trampa === 'borde') {
-    bot.chat(`/function ia:trampa_borde`);
-  } else if (trampa === 'lava') {
-    bot.chat(`/function ia:trampa_lava`);
+  if (mCmd) {
+    const comando = mCmd[1].trim();
+    const peligroso = /^(stop|ban|kick|whitelist|op\s|deop|save-off|difficulty|gamerule|worldborder)/i.test(comando);
+    if (peligroso) {
+      console.log(`[bot] comando bloqueado por seguridad: /${comando}`);
+    } else {
+      console.log(`[bot] ejecutando comando decidido por la IA: /${comando}`);
+      bot.chat(`/${comando}`);
+    }
   }
 }
 
