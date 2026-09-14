@@ -97,9 +97,10 @@ function iniciarHuida(bot) {
 // el tiempo de espera con cada fallo consecutivo, y lo reseteamos al conectar bien.
 let intentosFallidos = 0;
 function proximoDelay() {
-  const base = 15_000;
-  const delay = Math.min(base * Math.pow(2, intentosFallidos), 5 * 60_000); // tope 5 min
-  return delay;
+  const base = 3_000; // igual que Slobos: reintentos iniciales rapidos
+  const delay = Math.min(base * Math.pow(2, intentosFallidos), 5 * 60_000);
+  const jitter = Math.floor(Math.random() * 2000); // evita que todos los reintentos caigan en el mismo instante
+  return delay + jitter;
 }
 
 function crearBot() {
