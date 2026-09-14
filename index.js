@@ -26,6 +26,14 @@ if (!HOST || !OPENROUTER_KEY) {
 // Cooldown por jugador para no llamar a la API en cada linea de reporte (1/seg)
 const COOLDOWN_MS = 25_000;
 const lastCall = new Map(); // nombre -> timestamp
+const historialJugador = new Map(); // nombre -> { interacciones, ultimoTono }
+
+function registrarInteraccion(nombre) {
+  const h = historialJugador.get(nombre) || { interacciones: 0 };
+  h.interacciones++;
+  historialJugador.set(nombre, h);
+  return h;
+}
 
 // Solo reaccionamos si hay una situacion "interesante": cerca de lava, cerca de
 // un borde, o vida baja. Si no, ignoramos el reporte para no gastar API de balde.
@@ -38,9 +46,7 @@ const DISTANCIA_PELIGRO = 4;
 const DURACION_HUIDA_MS = 1500;
 
 function iniciarHuida(bot) {
-  let huyendo = false;
   let atacando = false;
-  const PROBABILIDAD_ATACAR = 0.4; // 40% de las veces ataca en vez de huir
 
   function atacar(objetivo) {
     if (atacando || !objetivo || !bot.entity) return;
@@ -49,65 +55,44 @@ function iniciarHuida(bot) {
       bot.lookAt(objetivo.position.offset(0, objetivo.height || 1.6, 0), true);
       bot.attack(objetivo);
     } catch (e) { /* el objetivo puede haberse movido/desconectado */ }
-    setTimeout(() => { atacando = false; }, 600); // cooldown ~= tiempo de recarga de un golpe
+    setTimeout(() => { atacando = false; }, 600);
   }
 
-  function huirDe(entidadAmenaza) {
-    if (huyendo || !entidadAmenaza || !bot.entity) return;
-
-    // Decide arbitrariamente entre atacar o huir, no siempre lo mismo.
-    if (Math.random() < PROBABILIDAD_ATACAR) {
-      atacar(entidadAmenaza);
-      return;
-    }
-
-    huyendo = true;
-
-    // Calcula direccion opuesta a la amenaza y gira el bot hacia alla
-    const dx = bot.entity.position.x - entidadAmenaza.position.x;
-    const dz = bot.entity.position.z - entidadAmenaza.position.z;
-    const yaw = Math.atan2(-dx, -dz) + Math.PI; // mirar en direccion contraria
-
+  function perseguir(objetivo) {
+    if (!objetivo || !bot.entity || !bot.pathfinder) return;
     try {
-      bot.look(yaw, 0, true);
-      bot.setControlState('forward', true);
-      bot.setControlState('sprint', true);
-      bot.setControlState('jump', true); // ayuda a superar obstaculos bajos mientras huye
-    } catch (e) { /* el bot puede haberse desconectado justo en este instante */ }
-
-    setTimeout(() => {
-      try {
-        bot.setControlState('forward', false);
-        bot.setControlState('sprint', false);
-        bot.setControlState('jump', false);
-      } catch (e) { /* ignorar */ }
-      huyendo = false;
-    }, DURACION_HUIDA_MS);
+      bot.pathfinder.setGoal(new goals.GoalFollow(objetivo, 2), true);
+    } catch (e) { /* ignorar */ }
   }
 
-  // Huir al recibir daño (de cualquier fuente: jugador, mob, caida, etc.)
+  // Al recibir daño: ataca si esta cerca, si no lo persigue.
   bot.on('entityHurt', (entity) => {
     if (entity === bot.entity) {
       const atacante = Object.values(bot.entities).find(e =>
         e.type === 'player' && bot.entity && e.position.distanceTo(bot.entity.position) < DISTANCIA_PELIGRO + 2
       );
-      huirDe(atacante || null);
+      if (atacante) {
+        if (atacante.position.distanceTo(bot.entity.position) < 3) atacar(atacante);
+        else perseguir(atacante);
+      }
     }
   });
 
-  // Revision periodica: si un jugador esta demasiado cerca, huir preventivamente
+  // Revision periodica: persigue al jugador mas cercano dentro de rango de vigilancia.
+  // Si esta muy lejos, busca terreno alto (high ground) en vez de perseguir a ciegas.
+  const RANGO_VIGILANCIA = 20;
   const chequeoInterval = setInterval(() => {
-    if (!bot.entity) {
-      clearInterval(chequeoInterval);
-      return;
-    }
+    if (!bot.entity) { clearInterval(chequeoInterval); return; }
     const jugadorCercano = Object.values(bot.entities).find(e =>
-      e.type === 'player' &&
-      e.username !== BOT_USERNAME &&
-      e.position.distanceTo(bot.entity.position) < DISTANCIA_PELIGRO
+      e.type === 'player' && e.username !== BOT_USERNAME &&
+      e.position.distanceTo(bot.entity.position) < RANGO_VIGILANCIA
     );
-    if (jugadorCercano) huirDe(jugadorCercano);
-  }, 800);
+    if (jugadorCercano) {
+      const dist = jugadorCercano.position.distanceTo(bot.entity.position);
+      if (dist < 3) atacar(jugadorCercano);
+      else perseguir(jugadorCercano);
+    }
+  }, 1000);
 
   bot.once('end', () => clearInterval(chequeoInterval));
 }
@@ -235,6 +220,7 @@ async function crearBot() {
     if (mensaje.includes('[IA_DATA]')) return; // por si acaso, nunca deberia pasar por aqui
 
     const real = ultimoContexto.get(username) || {};
+    const hist = registrarInteraccion(username);
     try {
       const respuesta = await preguntarIA(OPENROUTER_KEY, {
         nombre: username,
@@ -243,6 +229,7 @@ async function crearBot() {
         cerca_borde: real.cerca_borde ?? 0,
         diamantes: real.diamantes ?? 'desconocidos',
         mensajeDirecto: mensaje,
+        interacciones: hist.interacciones,
       });
       await manejarRespuesta(bot, { nombre: username }, respuesta);
     } catch (e) {
@@ -277,7 +264,8 @@ async function crearBot() {
     lastCall.set(ctx.nombre, ahora);
 
     try {
-      const respuesta = await preguntarIA(OPENROUTER_KEY, ctx);
+      const hist = registrarInteraccion(ctx.nombre);
+      const respuesta = await preguntarIA(OPENROUTER_KEY, { ...ctx, interacciones: hist.interacciones });
       await manejarRespuesta(bot, ctx, respuesta);
     } catch (e) {
       console.error('[bot] error llamando a OpenRouter:', e.message);
@@ -320,8 +308,14 @@ async function manejarRespuesta(bot, ctx, respuestaCruda) {
   const mIr = texto.match(/\[IR:(-?\d+),(-?\d+),(-?\d+)\]/);
   if (mIr) texto = texto.replace(mIr[0], '').trim();
 
+  const mPerseguir = texto.match(/\[PERSEGUIR:(\w+)\]/);
+  if (mPerseguir) texto = texto.replace(mPerseguir[0], '').trim();
+
   const mAtacar = texto.match(/\[ATACAR\]/);
   if (mAtacar) texto = texto.replace(mAtacar[0], '').trim();
+
+  const mHigh = texto.match(/\[HIGHGROUND\]/);
+  if (mHigh) texto = texto.replace(mHigh[0], '').trim();
 
   const mCmd = texto.match(/\[CMD:([^\]]+)\]/);
   if (mCmd) texto = texto.replace(mCmd[0], '').trim();
@@ -330,6 +324,14 @@ async function manejarRespuesta(bot, ctx, respuestaCruda) {
 
   if (mTrampa && mTrampa[1] === 'borde') bot.chat('/function ia:trampa_borde');
   if (mTrampa && mTrampa[1] === 'lava') bot.chat('/function ia:trampa_lava');
+
+  if (mPerseguir) {
+    const objetivoNombre = mPerseguir[1];
+    const entidad = Object.values(bot.entities).find(e => e.type === 'player' && e.username === objetivoNombre);
+    if (entidad && bot.pathfinder) {
+      try { bot.pathfinder.setGoal(new goals.GoalFollow(entidad, 2), true); } catch (e) { /* ignorar */ }
+    }
+  }
 
   if (mIr) {
     const [, x, y, z] = mIr.map(Number);
@@ -346,6 +348,13 @@ async function manejarRespuesta(bot, ctx, respuestaCruda) {
     if (objetivo) {
       try { bot.attack(objetivo); } catch (e) { console.error('[bot] error atacando:', e.message); }
     }
+  }
+
+  if (mHigh && bot.entity && bot.pathfinder) {
+    const pos = bot.entity.position;
+    try {
+      bot.pathfinder.setGoal(new goals.GoalNear(pos.x, pos.y + 8, pos.z, 2));
+    } catch (e) { /* ignorar */ }
   }
 
   if (mCmd) {
