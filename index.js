@@ -92,6 +92,60 @@ function iniciarHuida(bot) {
   bot.once('end', () => clearInterval(chequeoInterval));
 }
 
+// ---- Diagnostico: estadisticas acumuladas de todos los intentos ----
+const net = require('net');
+const stats = {
+  intentos: 0,
+  exitos: 0,
+  fallos: {},          // { 'ETIMEDOUT': 3, 'kicked_vacio': 5, ... }
+  tcpOk: 0,            // veces que el socket TCP crudo SI conecto
+  tcpFallo: 0,          // veces que el socket TCP crudo NO conecto
+  ultimoIntento: null,
+  ultimoExito: null,
+};
+
+// Prueba un socket TCP crudo, sin protocolo de Minecraft encima. Si esto falla,
+// el problema es de red pura (firewall/routing), no de mineflayer ni del protocolo.
+// Si esto SIEMPRE funciona pero mineflayer a veces falla, el problema esta en la
+// capa de protocolo/aplicacion, no en la red.
+function probarSocketCrudo(host, port) {
+  return new Promise((resolve) => {
+    const socket = new net.Socket();
+    const inicio = Date.now();
+    let resuelto = false;
+    socket.setTimeout(10_000);
+    socket.once('connect', () => {
+      if (resuelto) return;
+      resuelto = true;
+      const ms = Date.now() - inicio;
+      stats.tcpOk++;
+      console.log(`[diag] socket TCP crudo OK en ${ms}ms`);
+      socket.destroy();
+      resolve(true);
+    });
+    socket.once('timeout', () => {
+      if (resuelto) return;
+      resuelto = true;
+      stats.tcpFallo++;
+      console.log('[diag] socket TCP crudo: TIMEOUT (10s)');
+      socket.destroy();
+      resolve(false);
+    });
+    socket.once('error', (e) => {
+      if (resuelto) return;
+      resuelto = true;
+      stats.tcpFallo++;
+      console.log(`[diag] socket TCP crudo: ERROR ${e.code || e.message}`);
+      resolve(false);
+    });
+    socket.connect(port, host);
+  });
+}
+
+function registrarFallo(tipo) {
+  stats.fallos[tipo] = (stats.fallos[tipo] || 0) + 1;
+}
+
 // Backoff exponencial: Aternos throttlea/rechaza reconexiones demasiado frecuentes.
 // Reintentar cada 15s sin parar dispara ese throttle en cadena. Vamos aumentando
 // el tiempo de espera con cada fallo consecutivo, y lo reseteamos al conectar bien.
@@ -103,8 +157,15 @@ function proximoDelay() {
   return delay + jitter;
 }
 
-function crearBot() {
-  console.log(`[bot] intentando conectar a ${HOST}:${PORT} (version ${VERSION === false ? 'auto' : VERSION}) como ${BOT_USERNAME}...`);
+async function crearBot() {
+  stats.intentos++;
+  stats.ultimoIntento = new Date().toISOString();
+
+  // Diagnostico previo: probamos TCP crudo antes de meter mineflayer en la ecuacion.
+  const tcpOk = await probarSocketCrudo(HOST, PORT);
+  console.log(`[diag] resumen hasta ahora: intentos=${stats.intentos} exitos=${stats.exitos} tcpOk=${stats.tcpOk} tcpFallo=${stats.tcpFallo} fallos=${JSON.stringify(stats.fallos)}`);
+
+  console.log(`[bot] intentando conectar a ${HOST}:${PORT} (version ${VERSION === false ? 'auto' : VERSION}) como ${BOT_USERNAME}... (TCP crudo: ${tcpOk ? 'OK' : 'FALLO'})`);
   const bot = mineflayer.createBot({
     host: HOST,
     port: PORT,
@@ -122,6 +183,7 @@ function crearBot() {
   // 150s porque Aternos puede tardar 90-120s en completar el spawn (no es un colgado real).
   const failsafe = setTimeout(() => {
     console.log('[bot] sin respuesta tras 150s, forzando reconexion...');
+    registrarFallo('failsafe_150s');
     try { bot.end('timeout manual'); } catch (e) { /* ignorar */ }
   }, 150_000);
   bot.once('login', () => clearTimeout(failsafe));
@@ -131,6 +193,8 @@ function crearBot() {
 
   bot.on('login', () => {
     console.log(`[bot] conectado a ${HOST}:${PORT} como ${BOT_USERNAME}`);
+    stats.exitos++;
+    stats.ultimoExito = new Date().toISOString();
     intentosFallidos = 0; // conexion exitosa: reseteamos el backoff
   });
 
@@ -194,15 +258,24 @@ function crearBot() {
   bot.on('kicked', (reason) => {
     console.log('[bot] kicked:', reason);
     const texto = (typeof reason === 'object' ? JSON.stringify(reason) : String(reason)).toLowerCase();
-    if (texto.includes('throttl') || texto.includes('wait before') || texto.includes('too fast') || texto.includes('too many')) {
+    if (texto === '{"text":""}' || texto === '""' || texto === '') {
+      registrarFallo('kicked_vacio');
+    } else if (texto.includes('throttl') || texto.includes('wait before') || texto.includes('too fast') || texto.includes('too many')) {
       console.log('[bot] kick por throttling detectado, se aplicara backoff mas largo');
+      registrarFallo('kicked_throttle');
+    } else {
+      registrarFallo('kicked_otro');
     }
   });
-  bot.on('error', (err) => console.log('[bot] error de conexion:', err.code || err.message, err));
+  bot.on('error', (err) => {
+    console.log('[bot] error de conexion:', err.code || err.message, err);
+    registrarFallo(err.code || 'error_desconocido');
+  });
   bot.on('end', () => {
     intentosFallidos++;
     const delay = proximoDelay();
     console.log(`[bot] desconectado, reintentando en ${Math.round(delay / 1000)}s (intento fallido #${intentosFallidos})...`);
+    console.log(`[diag] estadisticas totales: ${JSON.stringify(stats)}`);
     setTimeout(crearBot, delay);
   });
 
@@ -233,7 +306,7 @@ async function manejarRespuesta(bot, ctx, respuestaCruda) {
 // ---- Servidor HTTP minimo para que Render mantenga el proceso vivo y para el ping externo ----
 const app = express();
 app.get('/', (_req, res) => res.send('IA antagonista activa'));
-app.get('/health', (_req, res) => res.json({ status: 'ok', uptime: process.uptime() }));
+app.get('/health', (_req, res) => res.json({ status: 'ok', uptime: process.uptime(), diagnostico: stats }));
 app.listen(process.env.PORT || 3000, () => console.log('[http] servidor de salud escuchando'));
 
 crearBot();
