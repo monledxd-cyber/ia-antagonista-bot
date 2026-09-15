@@ -176,19 +176,6 @@ async function crearBot() {
   const tcpOk = await probarSocketCrudo(HOST, PORT);
   console.log(`[diag] resumen hasta ahora: intentos=${stats.intentos} exitos=${stats.exitos} tcpOk=${stats.tcpOk} tcpFallo=${stats.tcpFallo} fallos=${JSON.stringify(stats.fallos)}`);
 
-  // Chequeo previo: un status ping liviano (sin login completo) confirma si
-  // el server ya esta listo para aceptar jugadores. Si falla, evitamos gastar
-  // un intento de login completo (que cuenta como fallo y dispara backoff)
-  // contra un server que ni siquiera responde al ping basico todavia.
-  try {
-    await statusPing(HOST, PORT, { timeout: 5000 });
-    console.log('[diag] ping de status OK, el server esta listo');
-  } catch (e) {
-    console.log(`[diag] ping de status fallo (${e.message}), reintentando en breve sin contar como fallo de login...`);
-    setTimeout(crearBot, 5_000);
-    return;
-  }
-
   console.log(`[bot] intentando conectar a ${HOST}:${PORT} (version ${VERSION === false ? 'auto' : VERSION}) como ${BOT_USERNAME}... (TCP crudo: ${tcpOk ? 'OK' : 'FALLO'})`);
   const bot = mineflayer.createBot({
     host: HOST,
@@ -197,10 +184,10 @@ async function crearBot() {
     version: VERSION,
     auth: 'offline', // server cracked / offline-mode
     hideErrors: false,
-    // Aternos puede tardar 90-120s en terminar de spawnear un jugador (confirmado
-    // por el proyecto Slobos-AFK-Aternos-Bot, que documenta este mismo comportamiento).
-    // Un timeout corto aqui mata conexiones que solo estaban siendo lentas, no rotas.
-    checkTimeoutInterval: 600_000,
+    // NOTA: checkTimeoutInterval se probo en 30s y luego en 600s -- ninguno
+    // arreglo el kicked_vacio. Un mantenedor de mineflayer sugirio quitarlo
+    // por completo para este mismo sintoma (kick sin razon util, tarda en
+    // aparecer): https://github.com/PrismarineJS/mineflayer/issues/1762
   });
 
   // Failsafe: si createBot no emite login/error/end en 150s, forzamos el reintento.
