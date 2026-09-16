@@ -3,6 +3,7 @@ dns.setDefaultResultOrder('ipv4first'); // fuerza IPv4 antes que IPv6 en toda la
 
 const mineflayer = require('mineflayer');
 const { pathfinder, Movements, goals } = require('mineflayer-pathfinder');
+const pvpPlugin = require('mineflayer-pvp').plugin;
 const { status: statusPing } = require('minecraft-server-util');
 const express = require('express');
 const { parseFlatSnbt } = require('./snbt');
@@ -27,6 +28,7 @@ if (!HOST || !OPENROUTER_KEY) {
 // Cooldown por jugador para no llamar a la API en cada linea de reporte (1/seg)
 const COOLDOWN_MS = 25_000;
 const lastCall = new Map(); // nombre -> timestamp
+const trampaLastUse = new Map(); // nombre -> timestamp de la ultima trampa activada
 const historialJugador = new Map(); // nombre -> { interacciones, ultimasRespuestas: [] }
 
 function registrarInteraccion(nombre) {
@@ -54,22 +56,16 @@ const DISTANCIA_PELIGRO = 4;
 const DURACION_HUIDA_MS = 1500;
 
 function iniciarHuida(bot) {
-  let atacando = false;
-
   function atacar(objetivo) {
-    if (atacando || !objetivo || !bot.entity) return;
-    // Validacion: el objetivo debe seguir existiendo en el mundo (no
-    // desaparecio/desconecto) y no estar en creative/spectator (atacar esos
-    // modos causa el kick invalid_entity_attacked).
+    if (!objetivo || !bot.entity || !bot.pvp) return;
+    // Validacion: el objetivo debe seguir existiendo en el mundo y no estar
+    // en creative/spectator (atacar esos modos causa invalid_entity_attacked).
     const sigueValido = bot.entities[objetivo.id];
     const gm = objetivo.gameMode;
     if (!sigueValido || gm === 'creative' || gm === 'spectator') return;
-    atacando = true;
-    try {
-      bot.lookAt(objetivo.position.offset(0, objetivo.height || 1.6, 0), true);
-      bot.attack(objetivo);
-    } catch (e) { /* el objetivo puede haberse movido/desconectado */ }
-    setTimeout(() => { atacando = false; }, 1000);
+    // mineflayer-pvp maneja persecucion, timing de golpe y reintentos solo;
+    // llamar attack() de nuevo contra el mismo objetivo no reinicia nada.
+    bot.pvp.attack(objetivo);
   }
 
   let objetivoActual = null;
@@ -110,10 +106,19 @@ function iniciarHuida(bot) {
       else perseguir(jugadorCercano);
     } else {
       objetivoActual = null;
+      if (bot.pvp) bot.pvp.stop();
     }
   }, 1000);
 
   bot.once('end', () => clearInterval(chequeoInterval));
+
+  // Re-equipar cada 10s por si consigue armadura/espada nueva durante la partida
+  // (ej. la mina, o la saca de un cofre via CMD).
+  const equipoInterval = setInterval(() => {
+    if (!bot.entity) { clearInterval(equipoInterval); return; }
+    equiparAutomatico(bot);
+  }, 10_000);
+  bot.once('end', () => clearInterval(equipoInterval));
 }
 
 // ---- Diagnostico: estadisticas acumuladas de todos los intentos ----
@@ -189,6 +194,7 @@ async function crearBot() {
     return;
   }
   botConectadoOEnCurso = true;
+  const ultimoContexto = new Map(); // nombre -> ultimo ctx real del datapack, disponible en toda la funcion
 
   stats.intentos++;
   stats.ultimoIntento = new Date().toISOString();
@@ -235,6 +241,7 @@ async function crearBot() {
     console.log('[bot] Recordatorio: para que las trampas (/function) funcionen, ' +
       `dale OP al usuario tecnico "${BOT_USERNAME}" desde la consola de Aternos: /op ${BOT_USERNAME}`);
     if (!bot.pathfinder) bot.loadPlugin(pathfinder);
+    if (!bot.pvp) bot.loadPlugin(pvpPlugin);
     const movimientos = new Movements(bot);
     movimientos.allowSprinting = true;
     movimientos.canDig = false; // no rompe bloques al perseguir, evita destrozar el mundo
@@ -244,10 +251,39 @@ async function crearBot() {
     bot.on('death', () => {
       console.log('[bot] murio, respawneando en el mismo server (sin reconectar)');
     });
+
+    // Habla espontanea: cada ~90s, si hay un jugador cerca, comenta sin que
+    // haya pasado nada en particular (no depende de un reporte del datapack).
+    const HABLA_ESPONTANEA_MS = 90_000;
+    setInterval(async () => {
+      if (!bot.entity) return;
+      const candidato = Object.values(bot.entities).find(e =>
+        e.type === 'player' && e.username !== BOT_USERNAME &&
+        e.position.distanceTo(bot.entity.position) < 30
+      );
+      if (!candidato) return;
+      const real = ultimoContexto.get(candidato.username) || {};
+      const hist = registrarInteraccion(candidato.username);
+      try {
+        const respuesta = await preguntarIA(OPENROUTER_KEY, {
+          nombre: candidato.username,
+          vida: real.vida ?? 'desconocida',
+          x: real.x, y: real.y, z: real.z,
+          inventario: real.inventario ?? [],
+          cerca_lava: 0, cerca_borde: 0, diamantes: real.diamantes ?? 'desconocidos',
+          interacciones: hist.interacciones,
+          ultimasRespuestas: hist.ultimasRespuestas,
+          espontaneo: true,
+        });
+        registrarRespuesta(candidato.username, respuesta);
+        await manejarRespuesta(bot, { nombre: candidato.username }, respuesta);
+      } catch (e) {
+        console.error('[bot] error en habla espontanea:', e.message);
+      }
+    }, HABLA_ESPONTANEA_MS);
   });
 
   // Responde cuando un jugador real escribe en el chat (no reportes del datapack)
-  const ultimoContexto = new Map(); // nombre -> ultimo ctx real del datapack
 
   bot.on('chat', async (username, mensaje) => {
     if (username === BOT_USERNAME) return; // ignora sus propios mensajes
@@ -262,6 +298,8 @@ async function crearBot() {
         cerca_lava: real.cerca_lava ?? 0,
         cerca_borde: real.cerca_borde ?? 0,
         diamantes: real.diamantes ?? 'desconocidos',
+        inventario: real.inventario ?? [],
+        x: real.x, y: real.y, z: real.z,
         mensajeDirecto: mensaje,
         interacciones: hist.interacciones,
         ultimasRespuestas: hist.ultimasRespuestas,
@@ -379,11 +417,21 @@ async function manejarRespuesta(bot, ctx, respuestaCruda) {
 
   if (texto) bot.chat(texto);
 
-  if (mTrampa && mTrampa[1] === 'borde') bot.chat('/function ia:trampa_borde');
-  if (mTrampa && mTrampa[1] === 'lava') bot.chat('/function ia:trampa_lava');
-  if (mTrampa && mTrampa[1] === 'jaula') bot.chat('/function ia:trampa_jaula');
-  if (mTrampa && mTrampa[1] === 'oscuridad') bot.chat('/function ia:trampa_oscuridad');
-  if (mTrampa && mTrampa[1] === 'desarme') bot.chat('/function ia:trampa_desarme');
+  const COOLDOWN_TRAMPA_MS = 20_000;
+  const ahoraTrampa = Date.now();
+  const ultimaTrampa = trampaLastUse.get(ctx.nombre) || 0;
+  const puedeActivarTrampa = (ahoraTrampa - ultimaTrampa) >= COOLDOWN_TRAMPA_MS;
+
+  if (mTrampa && puedeActivarTrampa) {
+    trampaLastUse.set(ctx.nombre, ahoraTrampa);
+    if (mTrampa[1] === 'borde') bot.chat('/function ia:trampa_borde');
+    if (mTrampa[1] === 'lava') bot.chat('/function ia:trampa_lava');
+    if (mTrampa[1] === 'jaula') bot.chat('/function ia:trampa_jaula');
+    if (mTrampa[1] === 'oscuridad') bot.chat('/function ia:trampa_oscuridad');
+    if (mTrampa[1] === 'desarme') bot.chat('/function ia:trampa_desarme');
+  } else if (mTrampa) {
+    console.log(`[bot] trampa omitida por cooldown para ${ctx.nombre}`);
+  }
 
   if (mPerseguir) {
     const objetivoNombre = mPerseguir[1];
