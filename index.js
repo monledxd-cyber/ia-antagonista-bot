@@ -176,12 +176,20 @@ function registrarFallo(tipo) {
 let intentosFallidos = 0;
 function proximoDelay() {
   const base = 3_000; // igual que Slobos: reintentos iniciales rapidos
-  const delay = Math.min(base * Math.pow(2, intentosFallidos), 5 * 60_000);
+  const delay = Math.min(base * Math.pow(2, intentosFallidos), 90_000); // tope 90s, no 5 min: mas persistente
   const jitter = Math.floor(Math.random() * 2000); // evita que todos los reintentos caigan en el mismo instante
   return delay + jitter;
 }
 
+let botConectadoOEnCurso = false;
+
 async function crearBot() {
+  if (botConectadoOEnCurso) {
+    console.log('[bot] ya hay un intento en curso o bot conectado, se omite este disparo duplicado');
+    return;
+  }
+  botConectadoOEnCurso = true;
+
   stats.intentos++;
   stats.ultimoIntento = new Date().toISOString();
 
@@ -227,8 +235,15 @@ async function crearBot() {
     console.log('[bot] Recordatorio: para que las trampas (/function) funcionen, ' +
       `dale OP al usuario tecnico "${BOT_USERNAME}" desde la consola de Aternos: /op ${BOT_USERNAME}`);
     if (!bot.pathfinder) bot.loadPlugin(pathfinder);
-    bot.pathfinder.setMovements(new Movements(bot));
+    const movimientos = new Movements(bot);
+    movimientos.allowSprinting = true;
+    movimientos.canDig = false; // no rompe bloques al perseguir, evita destrozar el mundo
+    bot.pathfinder.setMovements(movimientos);
+    equiparAutomatico(bot);
     iniciarHuida(bot);
+    bot.on('death', () => {
+      console.log('[bot] murio, respawneando en el mismo server (sin reconectar)');
+    });
   });
 
   // Responde cuando un jugador real escribe en el chat (no reportes del datapack)
@@ -311,6 +326,7 @@ async function crearBot() {
     registrarFallo(err.code || 'error_desconocido');
   });
   bot.on('end', () => {
+    botConectadoOEnCurso = false;
     intentosFallidos++;
     const delay = proximoDelay();
     console.log(`[bot] desconectado, reintentando en ${Math.round(delay / 1000)}s (intento fallido #${intentosFallidos})...`);
@@ -319,6 +335,22 @@ async function crearBot() {
   });
 
   return bot;
+}
+
+function equiparAutomatico(bot) {
+  try {
+    const piezas = [
+      { match: /helmet$/, dest: 'head' },
+      { match: /chestplate$/, dest: 'torso' },
+      { match: /leggings$/, dest: 'legs' },
+      { match: /boots$/, dest: 'feet' },
+      { match: /sword$/, dest: 'hand' },
+    ];
+    for (const p of piezas) {
+      const item = bot.inventory.items().find(i => p.match.test(i.name));
+      if (item) bot.equip(item, p.dest).catch(() => {});
+    }
+  } catch (e) { console.error('[bot] error equipando:', e.message); }
 }
 
 async function manejarRespuesta(bot, ctx, respuestaCruda) {
@@ -385,21 +417,7 @@ async function manejarRespuesta(bot, ctx, respuestaCruda) {
     } catch (e) { /* ignorar */ }
   }
 
-  if (mEquipar) {
-    try {
-      const piezas = [
-        { match: /helmet$/, dest: 'head' },
-        { match: /chestplate$/, dest: 'torso' },
-        { match: /leggings$/, dest: 'legs' },
-        { match: /boots$/, dest: 'feet' },
-        { match: /sword$/, dest: 'hand' },
-      ];
-      for (const p of piezas) {
-        const item = bot.inventory.items().find(i => p.match.test(i.name));
-        if (item) bot.equip(item, p.dest).catch(() => {});
-      }
-    } catch (e) { console.error('[bot] error equipando:', e.message); }
-  }
+  if (mEquipar) equiparAutomatico(bot);
 
   if (mCmd) {
     const comando = mCmd[1].trim();
