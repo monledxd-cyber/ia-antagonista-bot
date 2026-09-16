@@ -27,13 +27,20 @@ if (!HOST || !OPENROUTER_KEY) {
 // Cooldown por jugador para no llamar a la API en cada linea de reporte (1/seg)
 const COOLDOWN_MS = 25_000;
 const lastCall = new Map(); // nombre -> timestamp
-const historialJugador = new Map(); // nombre -> { interacciones, ultimoTono }
+const historialJugador = new Map(); // nombre -> { interacciones, ultimasRespuestas: [] }
 
 function registrarInteraccion(nombre) {
-  const h = historialJugador.get(nombre) || { interacciones: 0 };
+  const h = historialJugador.get(nombre) || { interacciones: 0, ultimasRespuestas: [] };
   h.interacciones++;
   historialJugador.set(nombre, h);
   return h;
+}
+
+function registrarRespuesta(nombre, texto) {
+  const h = historialJugador.get(nombre) || { interacciones: 0, ultimasRespuestas: [] };
+  h.ultimasRespuestas.push(texto);
+  if (h.ultimasRespuestas.length > 5) h.ultimasRespuestas.shift(); // solo las ultimas 5
+  historialJugador.set(nombre, h);
 }
 
 // Solo reaccionamos si hay una situacion "interesante": cerca de lava, cerca de
@@ -51,12 +58,18 @@ function iniciarHuida(bot) {
 
   function atacar(objetivo) {
     if (atacando || !objetivo || !bot.entity) return;
+    // Validacion: el objetivo debe seguir existiendo en el mundo (no
+    // desaparecio/desconecto) y no estar en creative/spectator (atacar esos
+    // modos causa el kick invalid_entity_attacked).
+    const sigueValido = bot.entities[objetivo.id];
+    const gm = objetivo.gameMode;
+    if (!sigueValido || gm === 'creative' || gm === 'spectator') return;
     atacando = true;
     try {
       bot.lookAt(objetivo.position.offset(0, objetivo.height || 1.6, 0), true);
       bot.attack(objetivo);
     } catch (e) { /* el objetivo puede haberse movido/desconectado */ }
-    setTimeout(() => { atacando = false; }, 600);
+    setTimeout(() => { atacando = false; }, 1000);
   }
 
   let objetivoActual = null;
@@ -236,7 +249,9 @@ async function crearBot() {
         diamantes: real.diamantes ?? 'desconocidos',
         mensajeDirecto: mensaje,
         interacciones: hist.interacciones,
+        ultimasRespuestas: hist.ultimasRespuestas,
       });
+      registrarRespuesta(username, respuesta);
       await manejarRespuesta(bot, { nombre: username }, respuesta);
     } catch (e) {
       console.error('[bot] error respondiendo chat:', e.message);
@@ -271,7 +286,8 @@ async function crearBot() {
 
     try {
       const hist = registrarInteraccion(ctx.nombre);
-      const respuesta = await preguntarIA(OPENROUTER_KEY, { ...ctx, interacciones: hist.interacciones });
+      const respuesta = await preguntarIA(OPENROUTER_KEY, { ...ctx, interacciones: hist.interacciones, ultimasRespuestas: hist.ultimasRespuestas });
+      registrarRespuesta(ctx.nombre, respuesta);
       await manejarRespuesta(bot, ctx, respuesta);
     } catch (e) {
       console.error('[bot] error llamando a OpenRouter:', e.message);
@@ -308,7 +324,7 @@ async function crearBot() {
 async function manejarRespuesta(bot, ctx, respuestaCruda) {
   let texto = respuestaCruda;
 
-  const mTrampa = texto.match(/\[TRAMPA:(borde|lava)\]/);
+  const mTrampa = texto.match(/\[TRAMPA:(borde|lava|jaula|oscuridad|desarme)\]/);
   if (mTrampa) texto = texto.replace(mTrampa[0], '').trim();
 
   const mIr = texto.match(/\[IR:(-?\d+),(-?\d+),(-?\d+)\]/);
@@ -323,6 +339,9 @@ async function manejarRespuesta(bot, ctx, respuestaCruda) {
   const mHigh = texto.match(/\[HIGHGROUND\]/);
   if (mHigh) texto = texto.replace(mHigh[0], '').trim();
 
+  const mEquipar = texto.match(/\[EQUIPAR\]/);
+  if (mEquipar) texto = texto.replace(mEquipar[0], '').trim();
+
   const mCmd = texto.match(/\[CMD:([^\]]+)\]/);
   if (mCmd) texto = texto.replace(mCmd[0], '').trim();
 
@@ -330,6 +349,9 @@ async function manejarRespuesta(bot, ctx, respuestaCruda) {
 
   if (mTrampa && mTrampa[1] === 'borde') bot.chat('/function ia:trampa_borde');
   if (mTrampa && mTrampa[1] === 'lava') bot.chat('/function ia:trampa_lava');
+  if (mTrampa && mTrampa[1] === 'jaula') bot.chat('/function ia:trampa_jaula');
+  if (mTrampa && mTrampa[1] === 'oscuridad') bot.chat('/function ia:trampa_oscuridad');
+  if (mTrampa && mTrampa[1] === 'desarme') bot.chat('/function ia:trampa_desarme');
 
   if (mPerseguir) {
     const objetivoNombre = mPerseguir[1];
@@ -361,6 +383,22 @@ async function manejarRespuesta(bot, ctx, respuestaCruda) {
     try {
       bot.pathfinder.setGoal(new goals.GoalNear(pos.x, pos.y + 8, pos.z, 2));
     } catch (e) { /* ignorar */ }
+  }
+
+  if (mEquipar) {
+    try {
+      const piezas = [
+        { match: /helmet$/, dest: 'head' },
+        { match: /chestplate$/, dest: 'torso' },
+        { match: /leggings$/, dest: 'legs' },
+        { match: /boots$/, dest: 'feet' },
+        { match: /sword$/, dest: 'hand' },
+      ];
+      for (const p of piezas) {
+        const item = bot.inventory.items().find(i => p.match.test(i.name));
+        if (item) bot.equip(item, p.dest).catch(() => {});
+      }
+    } catch (e) { console.error('[bot] error equipando:', e.message); }
   }
 
   if (mCmd) {
