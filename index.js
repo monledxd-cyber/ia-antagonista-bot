@@ -264,40 +264,48 @@ async function crearBot() {
     movimientos.canDig = false; // no rompe bloques al perseguir, evita destrozar el mundo
     bot.pathfinder.setMovements(movimientos);
     equiparAutomatico(bot);
-    iniciarHuida(bot);
+    if (!bot._huidaActiva) {
+      bot._huidaActiva = true;
+      iniciarHuida(bot);
+    }
     bot.on('death', () => {
       console.log('[bot] murio, respawneando en el mismo server (sin reconectar)');
     });
 
     // Habla espontanea: cada ~90s, si hay un jugador cerca, comenta sin que
-    // haya pasado nada en particular (no depende de un reporte del datapack).
-    const HABLA_ESPONTANEA_MS = 90_000;
-    setInterval(async () => {
-      if (!bot.entity) return;
-      const candidato = Object.values(bot.entities).find(e =>
-        e.type === 'player' && e.username !== BOT_USERNAME &&
-        e.position.distanceTo(bot.entity.position) < 30
-      );
-      if (!candidato) return;
-      const real = ultimoContexto.get(candidato.username) || {};
-      const hist = registrarInteraccion(candidato.username);
-      try {
-        const respuesta = await preguntarIA(OPENROUTER_KEY, {
-          nombre: candidato.username,
-          vida: real.vida ?? 'desconocida',
-          x: real.x, y: real.y, z: real.z,
-          inventario: real.inventario ?? [],
-          cerca_lava: 0, cerca_borde: 0, diamantes: real.diamantes ?? 'desconocidos',
-          interacciones: hist.interacciones,
-          ultimasRespuestas: hist.ultimasRespuestas,
-          espontaneo: true,
-        });
-        registrarRespuesta(candidato.username, respuesta);
-        await manejarRespuesta(bot, { nombre: candidato.username }, respuesta);
-      } catch (e) {
-        console.error('[bot] error en habla espontanea:', e.message);
-      }
-    }, HABLA_ESPONTANEA_MS);
+    // haya pasado nada en particular. Se crea UNA sola vez por conexion (no
+    // en cada respawn, que tambien dispara 'spawn' y duplicaria el interval).
+    if (!bot._habladorEspontaneoActivo) {
+      bot._habladorEspontaneoActivo = true;
+      const HABLA_ESPONTANEA_MS = 90_000;
+      const habladorInterval = setInterval(async () => {
+        if (!bot.entity) return;
+        const candidato = Object.values(bot.entities).find(e =>
+          e.type === 'player' && e.username !== BOT_USERNAME &&
+          e.position.distanceTo(bot.entity.position) < 30
+        );
+        if (!candidato) return;
+        const real = ultimoContexto.get(candidato.username) || {};
+        const hist = registrarInteraccion(candidato.username);
+        try {
+          const respuesta = await preguntarIA(OPENROUTER_KEY, {
+            nombre: candidato.username,
+            vida: real.vida ?? 'desconocida',
+            x: real.x, y: real.y, z: real.z,
+            inventario: real.inventario ?? [],
+            cerca_lava: 0, cerca_borde: 0, diamantes: real.diamantes ?? 'desconocidos',
+            interacciones: hist.interacciones,
+            ultimasRespuestas: hist.ultimasRespuestas,
+            espontaneo: true,
+          });
+          registrarRespuesta(candidato.username, respuesta);
+          await manejarRespuesta(bot, { nombre: candidato.username }, respuesta);
+        } catch (e) {
+          console.error('[bot] error en habla espontanea:', e.message);
+        }
+      }, HABLA_ESPONTANEA_MS);
+      bot.once('end', () => clearInterval(habladorInterval));
+    }
   });
 
   // Responde cuando un jugador real escribe en el chat (no reportes del datapack)
