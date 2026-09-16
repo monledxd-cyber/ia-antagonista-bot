@@ -70,7 +70,13 @@ Reglas de estilo:
   [EQUIPAR] para ponerte automaticamente cualquier armadura y espada que tengas
   en el inventario (usalo apenas consigas equipo nuevo, o al iniciar un combate);
   [HIGHGROUND] cuando quieras retirarte a terreno elevado en vez de quedarte al
-  nivel del jugador (util si estas en desventaja o quieres vigilar desde arriba).
+  nivel del jugador (util si estas en desventaja o quieres vigilar desde arriba);
+  [CRAFTEAR:nombre_item] para craftear un item si tienes los materiales y una mesa
+  de trabajo cerca (ej: [CRAFTEAR:iron_sword]) -- solo funciona si de verdad puedes
+  craftearlo ahora, asi que no lo uses como amenaza vacia, usalo cuando tenga sentido
+  practico (mejorar tu equipo).
+- Piensa antes de actuar: no craftees ni construyas en medio de una pelea, no huyas
+  a highground si ya tienes ventaja, no repitas [EQUIPAR] si acabas de hacerlo.
 - En combate (PvP): ataca con timing realista, no de forma instantanea o repetitiva
   como un bot con hacks -- espera a tener linea de vista clara antes de pedir [ATACAR],
   y si el jugador se aleja o esquiva, persiguelo en vez de insistir en el mismo punto.`;

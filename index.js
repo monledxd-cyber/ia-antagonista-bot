@@ -98,6 +98,7 @@ function iniciarHuida(bot) {
     if (!bot.entity) { clearInterval(chequeoInterval); return; }
     const jugadorCercano = Object.values(bot.entities).find(e =>
       e.type === 'player' && e.username !== BOT_USERNAME &&
+      e.gameMode !== 'spectator' && e.gameMode !== 'creative' &&
       e.position.distanceTo(bot.entity.position) < RANGO_VIGILANCIA
     );
     if (jugadorCercano) {
@@ -119,6 +120,22 @@ function iniciarHuida(bot) {
     equiparAutomatico(bot);
   }, 10_000);
   bot.once('end', () => clearInterval(equipoInterval));
+
+  // Auto-comer: si el hambre baja de 14/20, come algo del inventario.
+  const comidaInterval = setInterval(async () => {
+    if (!bot.entity) { clearInterval(comidaInterval); return; }
+    if (bot.food === undefined || bot.food >= 14) return;
+    const comida = bot.inventory.items().find(i =>
+      /bread|apple|beef|porkchop|chicken|carrot|potato|stew|cod|salmon/.test(i.name) &&
+      !/rotten|poisonous/.test(i.name)
+    );
+    if (!comida) return;
+    try {
+      await bot.equip(comida, 'hand');
+      await bot.consume();
+    } catch (e) { /* puede fallar si lo interrumpen, no es critico */ }
+  }, 5_000);
+  bot.once('end', () => clearInterval(comidaInterval));
 }
 
 // ---- Diagnostico: estadisticas acumuladas de todos los intentos ----
@@ -412,6 +429,9 @@ async function manejarRespuesta(bot, ctx, respuestaCruda) {
   const mEquipar = texto.match(/\[EQUIPAR\]/);
   if (mEquipar) texto = texto.replace(mEquipar[0], '').trim();
 
+  const mCraft = texto.match(/\[CRAFTEAR:([a-z_:]+)\]/);
+  if (mCraft) texto = texto.replace(mCraft[0], '').trim();
+
   const mCmd = texto.match(/\[CMD:([^\]]+)\]/);
   if (mCmd) texto = texto.replace(mCmd[0], '').trim();
 
@@ -466,6 +486,21 @@ async function manejarRespuesta(bot, ctx, respuestaCruda) {
   }
 
   if (mEquipar) equiparAutomatico(bot);
+
+  if (mCraft) {
+    try {
+      const mcData = require('minecraft-data')(bot.version);
+      const item = mcData.itemsByName[mCraft[1]];
+      if (item) {
+        const recetas = bot.recipesFor(item.id, null, 1, null);
+        if (recetas.length) {
+          bot.craft(recetas[0], 1, null).catch(e => console.log('[bot] craft fallo:', e.message));
+        } else {
+          console.log(`[bot] sin receta disponible (falta mesa de trabajo o materiales) para ${mCraft[1]}`);
+        }
+      }
+    } catch (e) { console.error('[bot] error crafteando:', e.message); }
+  }
 
   if (mCmd) {
     const comando = mCmd[1].trim();
