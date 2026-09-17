@@ -63,6 +63,22 @@ function iniciarHuida(bot) {
     const sigueValido = bot.entities[objetivo.id];
     const gm = objetivo.gameMode;
     if (!sigueValido || gm === 'creative' || gm === 'spectator') return;
+
+    // Reach real: usa el attribute del bot si esta disponible (varia por
+    // encantamientos/version), con 3 bloques como fallback conservador.
+    const attrReach = bot.entity.attributes && bot.entity.attributes['minecraft:generic.attack_range'];
+    const reach = attrReach ? attrReach.value : 3;
+    const distancia = objetivo.position.distanceTo(bot.entity.position);
+    if (distancia > reach) return; // fuera de alcance real, no intentar golpear
+
+    // Linea de vision: raycast desde los ojos del bot hasta el objetivo. Si
+    // un bloque solido (con hitbox) intercepta el rayo, no ataca -- evita
+    // golpear "a traves de paredes" como haria un cliente con hacks.
+    const origen = bot.entity.position.offset(0, bot.entity.height, 0);
+    const destino = objetivo.position.offset(0, objetivo.height ? objetivo.height / 2 : 0.9, 0);
+    const bloqueEnMedio = bot.world.raycast(origen, destino.minus(origen).normalize(), distancia);
+    if (bloqueEnMedio && bloqueEnMedio.position.distanceTo(destino) > 0.5) return; // hay pared de por medio
+
     // mineflayer-pvp maneja persecucion, timing de golpe y reintentos solo;
     // llamar attack() de nuevo contra el mismo objetivo no reinicia nada.
     bot.pvp.attack(objetivo);
@@ -437,6 +453,9 @@ async function manejarRespuesta(bot, ctx, respuestaCruda) {
   const mEquipar = texto.match(/\[EQUIPAR\]/);
   if (mEquipar) texto = texto.replace(mEquipar[0], '').trim();
 
+  const mOffhand = texto.match(/\[OFFHAND:([a-z_:]+)\]/);
+  if (mOffhand) texto = texto.replace(mOffhand[0], '').trim();
+
   const mCraft = texto.match(/\[CRAFTEAR:([a-z_:]+)\]/);
   if (mCraft) texto = texto.replace(mCraft[0], '').trim();
 
@@ -494,6 +513,13 @@ async function manejarRespuesta(bot, ctx, respuestaCruda) {
   }
 
   if (mEquipar) equiparAutomatico(bot);
+
+  if (mOffhand) {
+    try {
+      const item = bot.inventory.items().find(i => i.name === mOffhand[1]);
+      if (item) bot.equip(item, 'off-hand').catch(() => {});
+    } catch (e) { console.error('[bot] error equipando offhand:', e.message); }
+  }
 
   if (mCraft) {
     try {
