@@ -97,6 +97,13 @@ function iniciarHuida(bot) {
   // Al recibir daño: ataca si esta cerca, si no lo persigue.
   bot.on('entityHurt', (entity) => {
     if (entity === bot.entity) {
+      // Bloqueo con escudo: si lo tiene en la mano secundaria, lo activa
+      // brevemente al recibir daño -- reduce el golpe recibido.
+      const offhand = bot.inventory.slots[45];
+      if (offhand && offhand.name === 'shield') {
+        bot.activateItem(true);
+        setTimeout(() => bot.deactivateItem(), 800);
+      }
       const atacante = Object.values(bot.entities).find(e =>
         e.type === 'player' && bot.entity && e.position.distanceTo(bot.entity.position) < DISTANCIA_PELIGRO + 2
       );
@@ -110,6 +117,7 @@ function iniciarHuida(bot) {
   // Revision periodica: persigue al jugador mas cercano dentro de rango de vigilancia.
   // Si esta muy lejos, busca terreno alto (high ground) en vez de perseguir a ciegas.
   const RANGO_VIGILANCIA = 20;
+  const MOBS_HOSTILES = /zombie|skeleton|creeper|spider|enderman|witch|drowned|husk|stray|phantom|pillager|vindicator/i;
   const chequeoInterval = setInterval(() => {
     if (!bot.entity) { clearInterval(chequeoInterval); return; }
     const jugadorCercano = Object.values(bot.entities).find(e =>
@@ -117,10 +125,32 @@ function iniciarHuida(bot) {
       e.gameMode !== 'spectator' && e.gameMode !== 'creative' &&
       e.position.distanceTo(bot.entity.position) < RANGO_VIGILANCIA
     );
-    if (jugadorCercano) {
-      const dist = jugadorCercano.position.distanceTo(bot.entity.position);
-      if (dist < 3) atacar(jugadorCercano);
-      else perseguir(jugadorCercano);
+    const mobCercano = !jugadorCercano && Object.values(bot.entities).find(e =>
+      e.type === 'mob' && MOBS_HOSTILES.test(e.name || '') &&
+      e.position.distanceTo(bot.entity.position) < 8
+    );
+    const objetivo = jugadorCercano || mobCercano;
+
+    // Retirada calculada: con vida baja y un enemigo real cerca, se retira a
+    // vez de seguir peleando -- control frio de la situacion, no panico.
+    if (bot.health !== undefined && bot.health <= 6 && objetivo) {
+      if (objetivoActual !== null) { objetivoActual = null; if (bot.pvp) bot.pvp.stop(); }
+      const dx = bot.entity.position.x - objetivo.position.x;
+      const dz = bot.entity.position.z - objetivo.position.z;
+      const yaw = Math.atan2(-dx, -dz) + Math.PI;
+      try {
+        bot.look(yaw, 0, true);
+        bot.pathfinder.setGoal(new goals.GoalNear(
+          bot.entity.position.x + Math.sin(yaw) * 10, bot.entity.position.y, bot.entity.position.z + Math.cos(yaw) * 10, 2
+        ));
+      } catch (e) { /* ignorar */ }
+      return;
+    }
+
+    if (objetivo) {
+      const dist = objetivo.position.distanceTo(bot.entity.position);
+      if (dist < 3) atacar(objetivo);
+      else perseguir(objetivo);
     } else {
       objetivoActual = null;
       if (bot.pvp) bot.pvp.stop();
