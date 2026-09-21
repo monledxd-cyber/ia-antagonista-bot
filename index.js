@@ -4,6 +4,7 @@ dns.setDefaultResultOrder('ipv4first'); // fuerza IPv4 antes que IPv6 en toda la
 const mineflayer = require('mineflayer');
 const { pathfinder, Movements, goals } = require('mineflayer-pathfinder');
 const pvpPlugin = require('mineflayer-pvp').plugin;
+const autoWeapon = require('mineflayer-auto-weapon');
 const { status: statusPing } = require('minecraft-server-util');
 const express = require('express');
 const { parseFlatSnbt } = require('./snbt');
@@ -29,20 +30,60 @@ if (!HOST || !OPENROUTER_KEY) {
 const COOLDOWN_MS = 25_000;
 const lastCall = new Map(); // nombre -> timestamp
 const trampaLastUse = new Map(); // nombre -> timestamp de la ultima trampa activada
-const historialJugador = new Map(); // nombre -> { interacciones, ultimasRespuestas: [] }
+const historialJugador = new Map(); // nombre -> { interacciones, ultimasRespuestas: [], eventos: [] }
 
 function registrarInteraccion(nombre) {
-  const h = historialJugador.get(nombre) || { interacciones: 0, ultimasRespuestas: [] };
+  const h = historialJugador.get(nombre) || { interacciones: 0, ultimasRespuestas: [], eventos: [] };
   h.interacciones++;
   historialJugador.set(nombre, h);
   return h;
 }
 
 function registrarRespuesta(nombre, texto) {
-  const h = historialJugador.get(nombre) || { interacciones: 0, ultimasRespuestas: [] };
+  const h = historialJugador.get(nombre) || { interacciones: 0, ultimasRespuestas: [], eventos: [] };
   h.ultimasRespuestas.push(texto);
   if (h.ultimasRespuestas.length > 5) h.ultimasRespuestas.shift(); // solo las ultimas 5
   historialJugador.set(nombre, h);
+}
+
+// Compara el contexto anterior con el nuevo y registra eventos notables (no
+// solo el estado actual, sino "que paso" desde el ultimo reporte). Guarda los
+// ultimos 4 eventos por jugador, con timestamp relativo para que el prompt
+// pueda decir "hace un momento" en vez de solo el estado presente.
+function detectarYRegistrarEventos(nombre, anterior, nuevo) {
+  const h = historialJugador.get(nombre) || { interacciones: 0, ultimasRespuestas: [], eventos: [] };
+  const ahora = Date.now();
+  const agregar = (texto) => {
+    h.eventos.push({ texto, ts: ahora });
+    if (h.eventos.length > 4) h.eventos.shift();
+  };
+
+  if (anterior) {
+    const diamAntes = typeof anterior.diamantes === 'number' ? anterior.diamantes : 0;
+    const diamAhora = typeof nuevo.diamantes === 'number' ? nuevo.diamantes : 0;
+    if (diamAhora > diamAntes) agregar(`mino ${diamAhora - diamAntes} diamante(s)`);
+
+    const vidaAntes = typeof anterior.vida === 'number' ? anterior.vida : 20;
+    const vidaAhora = typeof nuevo.vida === 'number' ? nuevo.vida : 20;
+    if (vidaAhora <= 6 && vidaAntes > 6) agregar('estuvo a punto de morir');
+    if (vidaAhora > vidaAntes + 4) agregar('se curo o comio para recuperar vida');
+
+    if (nuevo.cerca_borde === 1 && anterior.cerca_borde !== 1) agregar('estuvo al borde de un precipicio');
+    if (nuevo.cerca_lava === 1 && anterior.cerca_lava !== 1) agregar('se acerco peligrosamente a lava');
+  }
+  historialJugador.set(nombre, h);
+}
+
+// Formatea los eventos guardados como texto con antiguedad relativa, para el prompt.
+function formatearEventos(nombre) {
+  const h = historialJugador.get(nombre);
+  if (!h || !h.eventos.length) return null;
+  const ahora = Date.now();
+  return h.eventos.map(e => {
+    const segs = Math.round((ahora - e.ts) / 1000);
+    const cuando = segs < 10 ? 'justo ahora' : segs < 90 ? `hace ~${segs}s` : `hace ~${Math.round(segs / 60)}min`;
+    return `${e.texto} (${cuando})`;
+  }).join('; ');
 }
 
 // Solo reaccionamos si hay una situacion "interesante": cerca de lava, cerca de
@@ -120,6 +161,26 @@ function iniciarHuida(bot) {
   const MOBS_HOSTILES = /zombie|skeleton|creeper|spider|enderman|witch|drowned|husk|stray|phantom|pillager|vindicator/i;
   const chequeoInterval = setInterval(() => {
     if (!bot.entity) { clearInterval(chequeoInterval); return; }
+
+    // Prioridad maxima: TNT encendida cerca. Es una entidad (primed_tnt),
+    // no un bloque -- se detecta igual que un mob. Huye antes que cualquier
+    // otra decision de combate.
+    const tntCerca = Object.values(bot.entities).find(e =>
+      (e.name === 'tnt' || e.displayName === 'Primed TNT') &&
+      e.position.distanceTo(bot.entity.position) < 6
+    );
+    if (tntCerca) {
+      const dx = bot.entity.position.x - tntCerca.position.x;
+      const dz = bot.entity.position.z - tntCerca.position.z;
+      const yaw = Math.atan2(-dx, -dz) + Math.PI;
+      try {
+        bot.look(yaw, 0, true);
+        bot.pathfinder.setGoal(new goals.GoalNear(
+          bot.entity.position.x + Math.sin(yaw) * 8, bot.entity.position.y, bot.entity.position.z + Math.cos(yaw) * 8, 2
+        ));
+      } catch (e) { /* ignorar */ }
+      return;
+    }
     const jugadorCercano = Object.values(bot.entities).find(e =>
       e.type === 'player' && e.username !== BOT_USERNAME &&
       e.gameMode !== 'spectator' && e.gameMode !== 'creative' &&
@@ -182,6 +243,19 @@ function iniciarHuida(bot) {
     } catch (e) { /* puede fallar si lo interrumpen, no es critico */ }
   }, 5_000);
   bot.once('end', () => clearInterval(comidaInterval));
+
+  // Totem de emergencia: si la vida baja de 8 y tiene un totem en el
+  // inventario pero no en la mano secundaria, lo equipa de inmediato.
+  const totemInterval = setInterval(async () => {
+    if (!bot.entity) { clearInterval(totemInterval); return; }
+    if (bot.health === undefined || bot.health > 8) return;
+    const offhandActual = bot.inventory.slots[45];
+    if (offhandActual && offhandActual.name === 'totem_of_undying') return;
+    const totem = bot.inventory.items().find(i => i.name === 'totem_of_undying');
+    if (!totem) return;
+    try { await bot.equip(totem, 'off-hand'); } catch (e) { /* ignorar */ }
+  }, 2_000);
+  bot.once('end', () => clearInterval(totemInterval));
 }
 
 // ---- Diagnostico: estadisticas acumuladas de todos los intentos ----
@@ -305,6 +379,8 @@ async function crearBot() {
       `dale OP al usuario tecnico "${BOT_USERNAME}" desde la consola de Aternos: /op ${BOT_USERNAME}`);
     if (!bot.pathfinder) bot.loadPlugin(pathfinder);
     if (!bot.pvp) bot.loadPlugin(pvpPlugin);
+    if (!bot.enableAutoWeapon) bot.loadPlugin(autoWeapon);
+    if (bot.enableAutoWeapon) bot.enableAutoWeapon(); // siempre equipa la mejor arma disponible, no lo ultimo usado
     const movimientos = new Movements(bot);
     movimientos.allowSprinting = true;
     movimientos.canDig = false; // no rompe bloques al perseguir, evita destrozar el mundo
@@ -342,6 +418,7 @@ async function crearBot() {
             cerca_lava: 0, cerca_borde: 0, diamantes: real.diamantes ?? 'desconocidos',
             interacciones: hist.interacciones,
             ultimasRespuestas: hist.ultimasRespuestas,
+            eventosRecientes: formatearEventos(candidato.username),
             espontaneo: true,
           });
           registrarRespuesta(candidato.username, respuesta);
@@ -370,10 +447,12 @@ async function crearBot() {
         cerca_borde: real.cerca_borde ?? 0,
         diamantes: real.diamantes ?? 'desconocidos',
         inventario: real.inventario ?? [],
+        dimension: real.dimension,
         x: real.x, y: real.y, z: real.z,
         mensajeDirecto: mensaje,
         interacciones: hist.interacciones,
         ultimasRespuestas: hist.ultimasRespuestas,
+        eventosRecientes: formatearEventos(username),
       });
       registrarRespuesta(username, respuesta);
       await manejarRespuesta(bot, { nombre: username }, respuesta);
@@ -398,6 +477,8 @@ async function crearBot() {
     }
     if (!ctx.nombre) return;
     if (ctx.nombre === BOT_USERNAME) return; // ignora reportes sobre el propio bot
+    const contextoAnterior = ultimoContexto.get(ctx.nombre);
+    detectarYRegistrarEventos(ctx.nombre, contextoAnterior, ctx);
     ultimoContexto.set(ctx.nombre, ctx);
 
     // El datapack ya filtra cuando reportar (peligro o cada ~15s); aqui solo
@@ -410,7 +491,7 @@ async function crearBot() {
 
     try {
       const hist = registrarInteraccion(ctx.nombre);
-      const respuesta = await preguntarIA(OPENROUTER_KEY, { ...ctx, interacciones: hist.interacciones, ultimasRespuestas: hist.ultimasRespuestas });
+      const respuesta = await preguntarIA(OPENROUTER_KEY, { ...ctx, interacciones: hist.interacciones, ultimasRespuestas: hist.ultimasRespuestas, eventosRecientes: formatearEventos(ctx.nombre) });
       registrarRespuesta(ctx.nombre, respuesta);
       await manejarRespuesta(bot, ctx, respuesta);
     } catch (e) {
@@ -486,8 +567,17 @@ async function manejarRespuesta(bot, ctx, respuestaCruda) {
   const mOffhand = texto.match(/\[OFFHAND:([a-z_:]+)\]/);
   if (mOffhand) texto = texto.replace(mOffhand[0], '').trim();
 
+  const mUsar = texto.match(/\[USAR:(ender_pearl|wind_charge)\]/);
+  if (mUsar) texto = texto.replace(mUsar[0], '').trim();
+
+  const mArma = texto.match(/\[ARMA:([a-z_:]+)\]/);
+  if (mArma) texto = texto.replace(mArma[0], '').trim();
+
   const mCraft = texto.match(/\[CRAFTEAR:([a-z_:]+)\]/);
   if (mCraft) texto = texto.replace(mCraft[0], '').trim();
+
+  const mConstruir = texto.match(/\[CONSTRUIR:([a-z_:]+):(-?\d+),(-?\d+),(-?\d+)\]/);
+  if (mConstruir) texto = texto.replace(mConstruir[0], '').trim();
 
   const mCmd = texto.match(/\[CMD:([^\]]+)\]/);
   if (mCmd) texto = texto.replace(mCmd[0], '').trim();
@@ -549,6 +639,38 @@ async function manejarRespuesta(bot, ctx, respuestaCruda) {
       const item = bot.inventory.items().find(i => i.name === mOffhand[1]);
       if (item) bot.equip(item, 'off-hand').catch(() => {});
     } catch (e) { console.error('[bot] error equipando offhand:', e.message); }
+  }
+
+  if (mUsar) {
+    try {
+      const item = bot.inventory.items().find(i => i.name === mUsar[1]);
+      if (item) {
+        await bot.equip(item, 'hand');
+        bot.activateItem(); // lanza el ender pearl / wind charge
+      }
+    } catch (e) { console.error('[bot] error usando item:', e.message); }
+  }
+
+  if (mArma) {
+    try {
+      const item = bot.inventory.items().find(i => i.name === mArma[1]);
+      if (item) bot.equip(item, 'hand').catch(() => {});
+    } catch (e) { console.error('[bot] error cambiando de arma:', e.message); }
+  }
+
+  if (mConstruir) {
+    try {
+      const [, materialNombre, x, y, z] = mConstruir;
+      const material = bot.inventory.items().find(i => i.name === materialNombre);
+      if (material) {
+        await bot.equip(material, 'hand');
+        const pos = new (require('vec3').Vec3)(Number(x), Number(y) - 1, Number(z));
+        const refBlock = bot.blockAt(pos);
+        if (refBlock) await bot.placeBlock(refBlock, new (require('vec3').Vec3)(0, 1, 0));
+      } else {
+        console.log(`[bot] no tiene ${materialNombre} para construir`);
+      }
+    } catch (e) { console.error('[bot] error construyendo:', e.message); }
   }
 
   if (mCraft) {
