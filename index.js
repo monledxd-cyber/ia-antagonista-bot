@@ -4,7 +4,6 @@ dns.setDefaultResultOrder('ipv4first'); // fuerza IPv4 antes que IPv6 en toda la
 const mineflayer = require('mineflayer');
 const { pathfinder, Movements, goals } = require('mineflayer-pathfinder');
 const pvpPlugin = require('mineflayer-pvp').plugin;
-const autoWeapon = require('mineflayer-auto-weapon');
 const { status: statusPing } = require('minecraft-server-util');
 const express = require('express');
 const { parseFlatSnbt } = require('./snbt');
@@ -379,8 +378,6 @@ async function crearBot() {
       `dale OP al usuario tecnico "${BOT_USERNAME}" desde la consola de Aternos: /op ${BOT_USERNAME}`);
     if (!bot.pathfinder) bot.loadPlugin(pathfinder);
     if (!bot.pvp) bot.loadPlugin(pvpPlugin);
-    if (!bot.enableAutoWeapon) bot.loadPlugin(autoWeapon);
-    if (bot.enableAutoWeapon) bot.enableAutoWeapon(); // siempre equipa la mejor arma disponible, no lo ultimo usado
     const movimientos = new Movements(bot);
     movimientos.allowSprinting = true;
     movimientos.canDig = false; // no rompe bloques al perseguir, evita destrozar el mundo
