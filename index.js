@@ -4,6 +4,7 @@ dns.setDefaultResultOrder('ipv4first'); // fuerza IPv4 antes que IPv6 en toda la
 const mineflayer = require('mineflayer');
 const { pathfinder, Movements, goals } = require('mineflayer-pathfinder');
 const pvpPlugin = require('mineflayer-pvp').plugin;
+const { autoCrystal } = require('mineflayer-autocrystal');
 const { status: statusPing } = require('minecraft-server-util');
 const express = require('express');
 const { parseFlatSnbt } = require('./snbt');
@@ -91,6 +92,16 @@ function esSituacionInteresante(ctx) {
   return ctx.cerca_lava === 1 || ctx.cerca_borde === 1 || (typeof ctx.vida === 'number' && ctx.vida <= 6);
 }
 
+// Bloque que el bot tiene justo enfrente (donde esta mirando), con coordenadas
+// exactas -- asi el LLM puede pedir [MINAR:x,y,z] con datos reales, no inventados.
+function obtenerBloqueEnfrente(bot) {
+  try {
+    const bloque = bot.blockAtCursor(4);
+    if (!bloque || bloque.name === 'air') return null;
+    return { nombre: bloque.name, x: bloque.position.x, y: bloque.position.y, z: bloque.position.z };
+  } catch (e) { return null; }
+}
+
 // Distancia (bloques) bajo la cual se considera que un jugador es una amenaza cercana
 const DISTANCIA_PELIGRO = 4;
 const DURACION_HUIDA_MS = 1500;
@@ -111,13 +122,15 @@ function iniciarHuida(bot) {
     const distancia = objetivo.position.distanceTo(bot.entity.position);
     if (distancia > reach) return; // fuera de alcance real, no intentar golpear
 
-    // Linea de vision: raycast desde los ojos del bot hasta el objetivo. Si
-    // un bloque solido (con hitbox) intercepta el rayo, no ataca -- evita
-    // golpear "a traves de paredes" como haria un cliente con hacks.
+    // Linea de vision: raycast desde los ojos del bot hasta el objetivo, usando
+    // el patron oficial de mineflayer (canSeeBlock) que compara la posicion del
+    // bloque encontrado, no solo su existencia -- world.raycast sin esto puede
+    // fallar en bloques con collision box distinta a la visual.
     const origen = bot.entity.position.offset(0, bot.entity.height, 0);
     const destino = objetivo.position.offset(0, objetivo.height ? objetivo.height / 2 : 0.9, 0);
-    const bloqueEnMedio = bot.world.raycast(origen, destino.minus(origen).normalize(), distancia);
-    if (bloqueEnMedio && bloqueEnMedio.position.distanceTo(destino) > 0.5) return; // hay pared de por medio
+    const direccion = destino.minus(origen).normalize();
+    const bloqueEnMedio = bot.world.raycast(origen, direccion, distancia - 0.3); // -0.3: no cuenta el bloque justo en el objetivo
+    if (bloqueEnMedio) return; // hay un bloque solido de por medio, no ataca a traves de el
 
     // mineflayer-pvp maneja persecucion, timing de golpe y reintentos solo;
     // llamar attack() de nuevo contra el mismo objetivo no reinicia nada.
@@ -378,6 +391,7 @@ async function crearBot() {
       `dale OP al usuario tecnico "${BOT_USERNAME}" desde la consola de Aternos: /op ${BOT_USERNAME}`);
     if (!bot.pathfinder) bot.loadPlugin(pathfinder);
     if (!bot.pvp) bot.loadPlugin(pvpPlugin);
+    if (!bot.autoCrystal) bot.loadPlugin(autoCrystal);
     const movimientos = new Movements(bot);
     movimientos.allowSprinting = true;
     movimientos.canDig = false; // no rompe bloques al perseguir, evita destrozar el mundo
@@ -446,10 +460,13 @@ async function crearBot() {
         diamantes: real.diamantes ?? 'desconocidos',
         inventario: real.inventario ?? [],
         dimension: real.dimension,
+        hora_dia: real.hora_dia,
+        mobs_cerca: real.mobs_cerca ?? [],
         x: real.x, y: real.y, z: real.z,
         mensajeDirecto: mensaje,
         interacciones: hist.interacciones,
         ultimasRespuestas: hist.ultimasRespuestas,
+        bloqueEnfrente: obtenerBloqueEnfrente(bot),
         eventosRecientes: formatearEventos(username),
       });
       registrarRespuesta(username, respuesta);
@@ -489,7 +506,7 @@ async function crearBot() {
 
     try {
       const hist = registrarInteraccion(ctx.nombre);
-      const respuesta = await preguntarIA(OPENROUTER_KEY, { ...ctx, interacciones: hist.interacciones, ultimasRespuestas: hist.ultimasRespuestas, eventosRecientes: formatearEventos(ctx.nombre) });
+      const respuesta = await preguntarIA(OPENROUTER_KEY, { ...ctx, interacciones: hist.interacciones, ultimasRespuestas: hist.ultimasRespuestas, eventosRecientes: formatearEventos(ctx.nombre), bloqueEnfrente: obtenerBloqueEnfrente(bot) });
       registrarRespuesta(ctx.nombre, respuesta);
       await manejarRespuesta(bot, ctx, respuesta);
     } catch (e) {
@@ -571,11 +588,20 @@ async function manejarRespuesta(bot, ctx, respuestaCruda) {
   const mArma = texto.match(/\[ARMA:([a-z_:]+)\]/);
   if (mArma) texto = texto.replace(mArma[0], '').trim();
 
+  const mCrystal = texto.match(/\[CRYSTALPVP\]/);
+  if (mCrystal) texto = texto.replace(mCrystal[0], '').trim();
+
   const mCraft = texto.match(/\[CRAFTEAR:([a-z_:]+)\]/);
   if (mCraft) texto = texto.replace(mCraft[0], '').trim();
 
   const mConstruir = texto.match(/\[CONSTRUIR:([a-z_:]+):(-?\d+),(-?\d+),(-?\d+)\]/);
   if (mConstruir) texto = texto.replace(mConstruir[0], '').trim();
+
+  const mMinar = texto.match(/\[MINAR:(-?\d+),(-?\d+),(-?\d+)\]/);
+  if (mMinar) texto = texto.replace(mMinar[0], '').trim();
+
+  const mDatapack = texto.match(/\[DATAPACK:([a-z_]+):([^\]]+)\]/);
+  if (mDatapack) texto = texto.replace(mDatapack[0], '').trim();
 
   const mCmd = texto.match(/\[CMD:([^\]]+)\]/);
   if (mCmd) texto = texto.replace(mCmd[0], '').trim();
@@ -656,6 +682,19 @@ async function manejarRespuesta(bot, ctx, respuestaCruda) {
     } catch (e) { console.error('[bot] error cambiando de arma:', e.message); }
   }
 
+  if (mCrystal && bot.autoCrystal) {
+    try {
+      const objetivo = Object.values(bot.entities).find(e =>
+        e.type === 'player' && e.username !== BOT_USERNAME &&
+        bot.entity && e.position.distanceTo(bot.entity.position) < 10
+      );
+      if (objetivo && bot.inventory.items().some(i => i.name === 'end_crystal')) {
+        await bot.autoCrystal.enable();
+        setTimeout(() => bot.autoCrystal.disable().catch(() => {}), 10_000); // se apaga solo, no queda activo indefinidamente
+      }
+    } catch (e) { console.error('[bot] error con crystal pvp:', e.message); }
+  }
+
   if (mConstruir) {
     try {
       const [, materialNombre, x, y, z] = mConstruir;
@@ -669,6 +708,27 @@ async function manejarRespuesta(bot, ctx, respuestaCruda) {
         console.log(`[bot] no tiene ${materialNombre} para construir`);
       }
     } catch (e) { console.error('[bot] error construyendo:', e.message); }
+  }
+
+  if (mMinar) {
+    try {
+      const [, x, y, z] = mMinar;
+      const pos = new (require('vec3').Vec3)(Number(x), Number(y), Number(z));
+      const bloque = bot.blockAt(pos);
+      if (bloque && bloque.name !== 'air' && bot.canDigBlock(bloque)) {
+        await bot.dig(bloque);
+      } else {
+        console.log(`[bot] no puede minar ese bloque (inexistente, aire, o irrompible)`);
+      }
+    } catch (e) { console.error('[bot] error minando:', e.message); }
+  }
+
+  if (mDatapack) {
+    try {
+      const [, id, descripcion] = mDatapack;
+      console.log(`[bot] creando datapack: ${id} - ${descripcion}`);
+      bot.chat(`/datapack create ${id} "${descripcion.replace(/"/g, "'")}"`);
+    } catch (e) { console.error('[bot] error creando datapack:', e.message); }
   }
 
   if (mCraft) {
