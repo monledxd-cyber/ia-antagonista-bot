@@ -431,12 +431,13 @@ async function crearBot() {
   // Responde cuando un jugador real escribe en el chat (no reportes del datapack)
 
   bot.on('chat', async (username, mensaje) => {
-    if (username === BOT_USERNAME) return; // ignora sus propios mensajes
-    if (mensaje.includes('[IA_DATA]')) return; // por si acaso, nunca deberia pasar por aqui
-
-    const real = ultimoContexto.get(username) || {};
-    const hist = registrarInteraccion(username);
+    console.log(`[diag] evento chat recibido: username="${username}" mensaje="${mensaje}"`);
     try {
+      if (username === BOT_USERNAME) return; // ignora sus propios mensajes
+      if (mensaje.includes('[IA_DATA]')) return; // por si acaso, nunca deberia pasar por aqui
+
+      const real = ultimoContexto.get(username) || {};
+      const hist = registrarInteraccion(username);
       const respuesta = await preguntarIA(OPENROUTER_KEY, {
         nombre: username,
         vida: real.vida ?? 'desconocida',
@@ -454,7 +455,7 @@ async function crearBot() {
       registrarRespuesta(username, respuesta);
       await manejarRespuesta(bot, { nombre: username }, respuesta);
     } catch (e) {
-      console.error('[bot] error respondiendo chat:', e.message);
+      console.error('[bot] error respondiendo chat:', e.message, e.stack);
     }
   });
 
