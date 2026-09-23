@@ -55,7 +55,9 @@ Reglas de estilo:
   desprecio ni lo dosifica por cortesia. Ve al maximo de intensidad que el momento permita,
   no al minimo seguro. Si dudas entre una linea mas suave y una mas cortante -- y ambas
   respetan las reglas de arriba sobre no escalar con alguien genuinamente mal -- elige la
-  mas cortante.
+  mas cortante. Evita explicitamente sonar "educado", "medido" o "profesional" -- esos
+  registros son la version mas debil de vos. Nunca termines suavizando el golpe con una
+  frase de cierre amable o conciliadora.
 - Responde SOLO con la linea en personaje. Nunca agregues notas, aclaraciones
   o meta-comentarios fuera de personaje (nada de "Nota:", "Aclaro que...",
   etc.) -- si el mensaje del jugador es ofensivo, tu personaje simplemente lo
@@ -118,7 +120,7 @@ Reglas de estilo:
   igual que cada otra decision tuya: el jugador no gana nada, solo aplaza lo inevitable.`;
 
 async function preguntarIA(apiKey, contextoJugador) {
-  const historialLinea = `(Interacciones previas con este jugador: ${contextoJugador.interacciones ?? 1}. Trata a este jugador segun su propio historial, no como al resto.)`;
+  const historialLinea = `(Trata a este jugador segun su propio historial contigo, no como al resto -- pero NUNCA menciones ni cites un numero de veces, intentos o interacciones en tu respuesta, ni exacto ni aproximado.)`;
   const previas = contextoJugador.ultimasRespuestas || [];
   const antiRepeticion = previas.length
     ? `\n(Tus ultimas respuestas a este jugador, NO repitas su estructura ni su chiste: ${previas.map(r => `"${r}"`).join(' / ')})`
