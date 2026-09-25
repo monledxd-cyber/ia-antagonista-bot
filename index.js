@@ -138,6 +138,7 @@ function iniciarHuida(bot) {
   }
 
   let objetivoActual = null;
+  let huyendoDeTnt = false;
   function perseguir(objetivo) {
     if (!objetivo || !bot.entity || !bot.pathfinder) return;
     if (objetivoActual === objetivo.id) return; // ya lo esta persiguiendo, no resetear
@@ -178,7 +179,8 @@ function iniciarHuida(bot) {
     // no un bloque -- se detecta igual que un mob. Huye antes que cualquier
     // otra decision de combate.
     const tntCerca = Object.values(bot.entities).find(e =>
-      (e.name === 'tnt' || e.displayName === 'Primed TNT') &&
+      /tnt/i.test(e.name || '') || /tnt/i.test(e.displayName || '') ||
+      (e.kind && /tnt/i.test(e.kind)) &&
       e.position.distanceTo(bot.entity.position) < 6
     );
     if (tntCerca) {
@@ -191,7 +193,13 @@ function iniciarHuida(bot) {
           bot.entity.position.x + Math.sin(yaw) * 8, bot.entity.position.y, bot.entity.position.z + Math.cos(yaw) * 8, 2
         ));
       } catch (e) { /* ignorar */ }
+      huyendoDeTnt = true;
       return;
+    } else if (huyendoDeTnt) {
+      // La TNT ya no esta (detono o se alejo) -- limpiamos el goal de huida
+      // para que el bot no quede plantado en el ultimo punto al que corria.
+      huyendoDeTnt = false;
+      try { bot.pathfinder.setGoal(null); } catch (e) { /* ignorar */ }
     }
     const jugadorCercano = Object.values(bot.entities).find(e =>
       e.type === 'player' && e.username !== BOT_USERNAME &&
@@ -425,7 +433,7 @@ async function crearBot() {
             nombre: candidato.username,
             vida: real.vida ?? 'desconocida',
             x: real.x, y: real.y, z: real.z,
-            inventario: real.inventario ?? [],
+            inventario: real.inventario,
             cerca_lava: 0, cerca_borde: 0, diamantes: real.diamantes ?? 'desconocidos',
             interacciones: hist.interacciones,
             ultimasRespuestas: hist.ultimasRespuestas,
@@ -458,7 +466,7 @@ async function crearBot() {
         cerca_lava: real.cerca_lava ?? 0,
         cerca_borde: real.cerca_borde ?? 0,
         diamantes: real.diamantes ?? 'desconocidos',
-        inventario: real.inventario ?? [],
+        inventario: real.inventario,
         dimension: real.dimension,
         hora_dia: real.hora_dia,
         mobs_cerca: real.mobs_cerca ?? [],
@@ -582,7 +590,7 @@ async function manejarRespuesta(bot, ctx, respuestaCruda) {
   const mOffhand = texto.match(/\[OFFHAND:([a-z_:]+)\]/);
   if (mOffhand) texto = texto.replace(mOffhand[0], '').trim();
 
-  const mUsar = texto.match(/\[USAR:(ender_pearl|wind_charge)\]/);
+  const mUsar = texto.match(/\[USAR:(ender_pearl|wind_charge|golden_apple|enchanted_golden_apple|trident|bow|crossbow)\]/);
   if (mUsar) texto = texto.replace(mUsar[0], '').trim();
 
   const mArma = texto.match(/\[ARMA:([a-z_:]+)\]/);
@@ -670,7 +678,18 @@ async function manejarRespuesta(bot, ctx, respuestaCruda) {
       const item = bot.inventory.items().find(i => i.name === mUsar[1]);
       if (item) {
         await bot.equip(item, 'hand');
-        bot.activateItem(); // lanza el ender pearl / wind charge
+        const esArma_distancia = mUsar[1] === 'bow' || mUsar[1] === 'crossbow';
+        if (esArma_distancia) {
+          const objetivo = Object.values(bot.entities).find(e =>
+            e.type === 'player' && e.username !== BOT_USERNAME &&
+            bot.entity && e.position.distanceTo(bot.entity.position) < 25
+          );
+          if (objetivo) bot.lookAt(objetivo.position.offset(0, objetivo.height ? objetivo.height / 2 : 0.9, 0), true);
+          bot.activateItem();
+          setTimeout(() => bot.deactivateItem(), mUsar[1] === 'bow' ? 1000 : 1300); // tiempo real de carga
+        } else {
+          bot.activateItem(); // manzanas/tridente/ender pearl se usan de un golpe
+        }
       }
     } catch (e) { console.error('[bot] error usando item:', e.message); }
   }
