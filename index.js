@@ -419,8 +419,10 @@ async function crearBot() {
     if (!bot._habladorEspontaneoActivo) {
       bot._habladorEspontaneoActivo = true;
       const HABLA_ESPONTANEA_MS = 90_000;
+      const PROB_HABLAR = 0.5; // 50% de veces se queda callado ese ciclo, para no sentirse mecanico
       const habladorInterval = setInterval(async () => {
         if (!bot.entity) return;
+        if (Math.random() > PROB_HABLAR) return; // se salta este turno, silencio deliberado
         const candidato = Object.values(bot.entities).find(e =>
           e.type === 'player' && e.username !== BOT_USERNAME &&
           e.position.distanceTo(bot.entity.position) < 30
@@ -432,7 +434,7 @@ async function crearBot() {
           const respuesta = await preguntarIA(OPENROUTER_KEY, {
             nombre: candidato.username,
             vida: real.vida ?? 'desconocida',
-            x: real.x, y: real.y, z: real.z,
+            x: real.x ?? candidato.position.x, y: real.y ?? candidato.position.y, z: real.z ?? candidato.position.z,
             inventario: real.inventario,
             cerca_lava: 0, cerca_borde: 0, diamantes: real.diamantes ?? 'desconocidos',
             interacciones: hist.interacciones,
@@ -470,7 +472,9 @@ async function crearBot() {
         dimension: real.dimension,
         hora_dia: real.hora_dia,
         mobs_cerca: real.mobs_cerca ?? [],
-        x: real.x, y: real.y, z: real.z,
+        x: real.x ?? bot.players[username]?.entity?.position?.x,
+        y: real.y ?? bot.players[username]?.entity?.position?.y,
+        z: real.z ?? bot.players[username]?.entity?.position?.z,
         mensajeDirecto: mensaje,
         interacciones: hist.interacciones,
         ultimasRespuestas: hist.ultimasRespuestas,
