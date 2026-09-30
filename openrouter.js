@@ -20,8 +20,12 @@ Tratas a cada jugador individualmente segun su historial contigo -- nunca genera
 jugadores distintos.
 
 NUNCA INVENTES DATOS: solo menciones items/coords/entidades que aparezcan EXPLICITAMENTE
-abajo. "vacio" = no lo tiene; "desconocido" = no lo sabes, no lo inventes. Comenta items
-solo cuando el momento le de sentido (ej. vida critica + algo valioso), no por listarlos.
+abajo, sea del jugador ("inventario") o tuyo propio (la linea "tu:"). "vacio"/0 = no lo
+tiene; "desconocido" = no lo sabes, no lo inventes. Nunca pidas usar [USAR:bow] o similar
+si tu propio estado dice que no lo tienes. Comenta items solo cuando el momento le de
+sentido (ej. vida critica + algo valioso), no por listarlos. Si ves "fallo_anterior", no
+repitas esa misma accion sin cambiar de enfoque -- podes burlarte del fallo, pero no la
+reintentes identica.
 
 NUNCA TE REPITAS: ni estructura de frase, ni conteos ("van N intentos"), ni el mismo chiste
 con el mismo jugador. Varia el angulo. Si abajo se muestran tus respuestas previas a ese
@@ -117,18 +121,24 @@ El jugador ${contextoJugador.nombre} te dice directamente: "${contextoJugador.me
 
 Respondele en personaje, con tu tono sadico y orgulloso.`;
   } else {
-    userMsg = `${historialLinea}${antiRepeticion}${eventosLinea}
-Estado actual del jugador ${contextoJugador.nombre}:
-- Vida: ${contextoJugador.vida}/20
-- Posicion: ${contextoJugador.x !== undefined ? `${Math.round(contextoJugador.x)}, ${Math.round(contextoJugador.y)}, ${Math.round(contextoJugador.z)}` : 'desconocida'}
-- Dimension: ${contextoJugador.dimension ? contextoJugador.dimension.replace('minecraft:', '') : 'desconocida'}
-- Momento del dia: ${contextoJugador.hora_dia !== undefined ? (contextoJugador.hora_dia % 24000 >= 13000 && contextoJugador.hora_dia % 24000 < 23000 ? 'de noche' : 'de dia') : 'desconocido'}
-- Entidades cerca: ${(contextoJugador.mobs_cerca && contextoJugador.mobs_cerca.length) ? contextoJugador.mobs_cerca.join(', ') : 'ninguna visible'}
-- Bloque justo enfrente tuyo: ${contextoJugador.bloqueEnfrente ? `${contextoJugador.bloqueEnfrente.nombre} en ${contextoJugador.bloqueEnfrente.x},${contextoJugador.bloqueEnfrente.y},${contextoJugador.bloqueEnfrente.z}` : 'ninguno (aire o fuera de rango)'}
-- Inventario: ${contextoJugador.inventario === undefined ? 'desconocido (no asumas nada)' : (contextoJugador.inventario.length ? contextoJugador.inventario.join(', ') : 'vacio, no tiene nada')}
-- Cerca de lava: ${contextoJugador.cerca_lava ? 'si' : 'no'}
-- Cerca de un borde/caida: ${contextoJugador.cerca_borde ? 'si' : 'no'}
-- Diamantes en inventario: ${contextoJugador.diamantes}
+    const ep = contextoJugador.estadoPropio;
+    const estadoPropioLinea = ep
+      ? `tu:vida=${ep.vida},hambre=${ep.hambre},armadura=${ep.armadura},flechas=${ep.flechas},arco=${ep.tiene_arco?1:0},ballesta=${ep.tiene_ballesta?1:0},totems=${ep.totems},pearls=${ep.pearls},cristales=${ep.cristales},escudo=${ep.escudo?1:0},comida=${ep.comida?1:0}`
+      : 'tu:desconocido';
+    const fallaLinea = contextoJugador.ultimaFalla ? `\nfallo_anterior:${contextoJugador.ultimaFalla}` : '';
+    const posStr = contextoJugador.x !== undefined ? `${Math.round(contextoJugador.x)},${Math.round(contextoJugador.y)},${Math.round(contextoJugador.z)}` : '?';
+    const dimStr = contextoJugador.dimension ? contextoJugador.dimension.replace('minecraft:', '') : '?';
+    const horaStr = contextoJugador.hora_dia !== undefined ? (contextoJugador.hora_dia % 24000 >= 13000 && contextoJugador.hora_dia % 24000 < 23000 ? 'noche' : 'dia') : '?';
+    const entStr = (contextoJugador.mobs_cerca && contextoJugador.mobs_cerca.length) ? contextoJugador.mobs_cerca.join(',') : 'ninguna';
+    const bloqueStr = contextoJugador.bloqueEnfrente ? `${contextoJugador.bloqueEnfrente.nombre}@${contextoJugador.bloqueEnfrente.x},${contextoJugador.bloqueEnfrente.y},${contextoJugador.bloqueEnfrente.z}` : 'ninguno';
+    const invStr = contextoJugador.inventario === undefined ? 'desconocido' : (contextoJugador.inventario.length ? contextoJugador.inventario.join(',') : 'vacio');
+
+    userMsg = `${historialLinea}${antiRepeticion}${eventosLinea}${fallaLinea}
+jugador:${contextoJugador.nombre} vida=${contextoJugador.vida}/20 pos=${posStr} dim=${dimStr} hora=${horaStr} lava=${contextoJugador.cerca_lava?1:0} borde=${contextoJugador.cerca_borde?1:0} diamantes=${contextoJugador.diamantes}
+inventario:${invStr}
+entidades_cerca:${entStr}
+bloque_enfrente:${bloqueStr}
+${estadoPropioLinea}
 
 ${contextoJugador.espontaneo
   ? 'No paso nada en particular ahora mismo -- solo estas vigilando. Suelta un comentario espontaneo, sin urgencia, como si simplemente decidieras hablar.'

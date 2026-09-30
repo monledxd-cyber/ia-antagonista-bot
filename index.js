@@ -8,7 +8,25 @@ const { autoCrystal } = require('mineflayer-autocrystal');
 const { status: statusPing } = require('minecraft-server-util');
 const express = require('express');
 const { parseFlatSnbt } = require('./snbt');
-const { preguntarIA } = require('./openrouter');
+const { preguntarIA: preguntarIA_real } = require('./openrouter');
+
+// Cola de llamadas al LLM: 1 a la vez, con un minimo entre llamadas. Evita el
+// error 402 in_flight_budget_exhausted de OpenRouter (varias llamadas
+// simultaneas chocando) y reduce el gasto de tokens. El combate cuerpo a
+// cuerpo (atacar/bot.pvp) NO pasa por aqui, asi que esto no frena reflejos.
+const COOLDOWN_ENTRE_LLAMADAS_MS = 1_500;
+let colaLlamadas = Promise.resolve();
+let ultimaLlamadaTs = 0;
+function preguntarIA(...args) {
+  const miTurno = colaLlamadas.then(async () => {
+    const espera = Math.max(0, COOLDOWN_ENTRE_LLAMADAS_MS - (Date.now() - ultimaLlamadaTs));
+    if (espera > 0) await new Promise(r => setTimeout(r, espera));
+    ultimaLlamadaTs = Date.now();
+    return preguntarIA_real(...args);
+  });
+  colaLlamadas = miTurno.catch(() => {}); // si esta falla, no traba la cola para la siguiente
+  return miTurno;
+}
 
 // ---- Config por variables de entorno (se configuran en Render) ----
 const HOST = process.env.MC_HOST;              // ej: tuserver.aternos.me
@@ -31,6 +49,7 @@ const COOLDOWN_MS = 25_000;
 const lastCall = new Map(); // nombre -> timestamp
 const trampaLastUse = new Map(); // nombre -> timestamp de la ultima trampa activada
 const historialJugador = new Map(); // nombre -> { interacciones, ultimasRespuestas: [], eventos: [] }
+const ultimaFallaJugador = new Map(); // nombre -> texto describiendo la ultima accion fallida
 
 function registrarInteraccion(nombre) {
   const h = historialJugador.get(nombre) || { interacciones: 0, ultimasRespuestas: [], eventos: [] };
@@ -99,6 +118,28 @@ function obtenerBloqueEnfrente(bot) {
     const bloque = bot.blockAtCursor(4);
     if (!bloque || bloque.name === 'air') return null;
     return { nombre: bloque.name, x: bloque.position.x, y: bloque.position.y, z: bloque.position.z };
+  } catch (e) { return null; }
+}
+
+// Estado real del propio bot: vida, hambre, armadura puesta, y si tiene items
+// clave (flechas, totem, pearls, comida) -- para que el LLM no pida [USAR:bow]
+// o [CRAFTEAR:...] sin tener nada, ni invente que tiene equipo que no tiene.
+function obtenerEstadoPropio(bot) {
+  try {
+    const inv = bot.inventory.items();
+    const tiene = (nombre) => inv.some(i => i.name === nombre);
+    const cont = (nombre) => inv.filter(i => i.name === nombre).reduce((a, i) => a + i.count, 0);
+    const armadura = [5, 6, 7, 8]
+      .map(slot => bot.inventory.slots[slot])
+      .filter(Boolean).map(i => i.name);
+    return {
+      vida: bot.health, hambre: bot.food,
+      armadura: armadura.length ? armadura.join(',') : 'ninguna',
+      flechas: cont('arrow'), tiene_arco: tiene('bow'), tiene_ballesta: tiene('crossbow'),
+      totems: cont('totem_of_undying'), pearls: cont('ender_pearl'),
+      cristales: cont('end_crystal'), escudo: tiene('shield'),
+      comida: inv.filter(i => /bread|apple|beef|porkchop|chicken|carrot|potato|stew|cod|salmon/.test(i.name)).length > 0,
+    };
   } catch (e) { return null; }
 }
 
@@ -440,6 +481,8 @@ async function crearBot() {
             interacciones: hist.interacciones,
             ultimasRespuestas: hist.ultimasRespuestas,
             eventosRecientes: formatearEventos(candidato.username),
+            estadoPropio: obtenerEstadoPropio(bot),
+            ultimaFalla: (() => { const f = ultimaFallaJugador.get(candidato.username); if (f) ultimaFallaJugador.delete(candidato.username); return f; })(),
             espontaneo: true,
           });
           registrarRespuesta(candidato.username, respuesta);
@@ -480,6 +523,8 @@ async function crearBot() {
         ultimasRespuestas: hist.ultimasRespuestas,
         bloqueEnfrente: obtenerBloqueEnfrente(bot),
         eventosRecientes: formatearEventos(username),
+        estadoPropio: obtenerEstadoPropio(bot),
+        ultimaFalla: (() => { const f = ultimaFallaJugador.get(username); if (f) ultimaFallaJugador.delete(username); return f; })(),
       });
       registrarRespuesta(username, respuesta);
       await manejarRespuesta(bot, { nombre: username }, respuesta);
@@ -518,7 +563,9 @@ async function crearBot() {
 
     try {
       const hist = registrarInteraccion(ctx.nombre);
-      const respuesta = await preguntarIA(OPENROUTER_KEY, { ...ctx, interacciones: hist.interacciones, ultimasRespuestas: hist.ultimasRespuestas, eventosRecientes: formatearEventos(ctx.nombre), bloqueEnfrente: obtenerBloqueEnfrente(bot) });
+      const falla = ultimaFallaJugador.get(ctx.nombre);
+      if (falla) ultimaFallaJugador.delete(ctx.nombre);
+      const respuesta = await preguntarIA(OPENROUTER_KEY, { ...ctx, interacciones: hist.interacciones, ultimasRespuestas: hist.ultimasRespuestas, eventosRecientes: formatearEventos(ctx.nombre), bloqueEnfrente: obtenerBloqueEnfrente(bot), estadoPropio: obtenerEstadoPropio(bot), ultimaFalla: falla });
       registrarRespuesta(ctx.nombre, respuesta);
       await manejarRespuesta(bot, ctx, respuesta);
     } catch (e) {
@@ -712,8 +759,8 @@ async function manejarRespuesta(bot, ctx, respuestaCruda) {
         bot.entity && e.position.distanceTo(bot.entity.position) < 10
       );
       if (objetivo && bot.inventory.items().some(i => i.name === 'end_crystal')) {
-        await bot.autoCrystal.enable();
-        setTimeout(() => bot.autoCrystal.disable().catch(() => {}), 10_000); // se apaga solo, no queda activo indefinidamente
+        bot.autoCrystal.enable(); // sincrona, no devuelve promesa
+        setTimeout(() => { try { bot.autoCrystal.disable(); } catch (e) { /* ignorar */ } }, 10_000);
       }
     } catch (e) { console.error('[bot] error con crystal pvp:', e.message); }
   }
@@ -729,6 +776,7 @@ async function manejarRespuesta(bot, ctx, respuestaCruda) {
         if (refBlock) await bot.placeBlock(refBlock, new (require('vec3').Vec3)(0, 1, 0));
       } else {
         console.log(`[bot] no tiene ${materialNombre} para construir`);
+        ultimaFallaJugador.set(ctx.nombre, `CONSTRUIR:${materialNombre} fallo, no tenias ese material`);
       }
     } catch (e) { console.error('[bot] error construyendo:', e.message); }
   }
@@ -742,6 +790,7 @@ async function manejarRespuesta(bot, ctx, respuestaCruda) {
         await bot.dig(bloque);
       } else {
         console.log(`[bot] no puede minar ese bloque (inexistente, aire, o irrompible)`);
+        ultimaFallaJugador.set(ctx.nombre, 'MINAR fallo, esa posicion no tenia un bloque minable');
       }
     } catch (e) { console.error('[bot] error minando:', e.message); }
   }
@@ -764,6 +813,7 @@ async function manejarRespuesta(bot, ctx, respuestaCruda) {
           bot.craft(recetas[0], 1, null).catch(e => console.log('[bot] craft fallo:', e.message));
         } else {
           console.log(`[bot] sin receta disponible (falta mesa de trabajo o materiales) para ${mCraft[1]}`);
+          ultimaFallaJugador.set(ctx.nombre, `CRAFTEAR:${mCraft[1]} fallo, faltan materiales o mesa de trabajo cerca`);
         }
       }
     } catch (e) { console.error('[bot] error crafteando:', e.message); }
