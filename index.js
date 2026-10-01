@@ -242,16 +242,27 @@ function iniciarHuida(bot) {
       huyendoDeTnt = false;
       try { bot.pathfinder.setGoal(null); } catch (e) { /* ignorar */ }
     }
-    const jugadorCercano = Object.values(bot.entities).find(e =>
+    const jugadoresCercanos = Object.values(bot.entities).filter(e =>
       e.type === 'player' && e.username !== BOT_USERNAME &&
       e.gameMode !== 'spectator' && e.gameMode !== 'creative' &&
       e.position.distanceTo(bot.entity.position) < RANGO_VIGILANCIA
     );
-    const mobCercano = !jugadorCercano && Object.values(bot.entities).find(e =>
+    const mobsCercanos = Object.values(bot.entities).filter(e =>
       e.type === 'mob' && MOBS_HOSTILES.test(e.name || '') &&
       e.position.distanceTo(bot.entity.position) < 8
     );
-    const objetivo = jugadorCercano || mobCercano;
+    // Prioridad real por cercania efectiva: un mob pegado al bot no se ignora
+    // solo porque haya un jugador lejano en rango -- pero si un jugador esta
+    // en rango de ataque directo (3 bloques), ese gana siempre (desprecio a
+    // los humanos por sobre los mobs, salvo amenaza inmediata).
+    const jugadorEnAtaque = jugadoresCercanos.find(j => j.position.distanceTo(bot.entity.position) < 3);
+    let objetivo = jugadorEnAtaque;
+    if (!objetivo) {
+      const candidatos = [...jugadoresCercanos, ...mobsCercanos];
+      objetivo = candidatos.sort((a, b) =>
+        a.position.distanceTo(bot.entity.position) - b.position.distanceTo(bot.entity.position)
+      )[0];
+    }
 
     // Retirada calculada: con vida baja y un enemigo real cerca, se retira a
     // vez de seguir peleando -- control frio de la situacion, no panico.
@@ -280,6 +291,29 @@ function iniciarHuida(bot) {
   }, 1000);
 
   bot.once('end', () => clearInterval(chequeoInterval));
+
+  // Esquiva de proyectiles: chequeo rapido (200ms, no 1000ms) porque una
+  // flecha cruza el espacio mucho mas rapido que el ciclo de combate normal.
+  // Si una flecha esta cerca y se acerca (no alejandose), hace un strafe
+  // lateral corto -- no cancela lo que estaba haciendo, solo da un paso.
+  let ultimoStrafeTs = 0;
+  const esquivaInterval = setInterval(() => {
+    if (!bot.entity) { clearInterval(esquivaInterval); return; }
+    if (Date.now() - ultimoStrafeTs < 600) return; // cooldown corto entre esquivas
+    const flecha = Object.values(bot.entities).find(e =>
+      e.name === 'arrow' && e.velocity &&
+      e.position.distanceTo(bot.entity.position) < 6 &&
+      e.position.plus(e.velocity).distanceTo(bot.entity.position) < e.position.distanceTo(bot.entity.position)
+    );
+    if (!flecha) return;
+    ultimoStrafeTs = Date.now();
+    try {
+      const lado = Math.random() < 0.5 ? 'left' : 'right';
+      bot.setControlState(lado, true);
+      setTimeout(() => bot.setControlState(lado, false), 300);
+    } catch (e) { /* ignorar */ }
+  }, 200);
+  bot.once('end', () => clearInterval(esquivaInterval));
 
   // Re-equipar cada 10s por si consigue armadura/espada nueva durante la partida
   // (ej. la mina, o la saca de un cofre via CMD).
