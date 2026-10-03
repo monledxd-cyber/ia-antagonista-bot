@@ -148,6 +148,9 @@ const DISTANCIA_PELIGRO = 4;
 const DURACION_HUIDA_MS = 1500;
 
 function iniciarHuida(bot) {
+  // Un solo listener 'end' para todos los timers (varios bot.once('end') superaban el limite de 10 y avisaban de posible leak).
+  const intervalos = [];
+  bot.once('end', () => intervalos.forEach(clearInterval));
   function atacar(objetivo) {
     if (!objetivo || !bot.entity || !bot.pvp) return;
     // Validacion: el objetivo debe seguir existiendo en el mundo y no estar
@@ -303,7 +306,7 @@ function iniciarHuida(bot) {
     }
   }, 1000);
 
-  bot.once('end', () => clearInterval(chequeoInterval));
+  intervalos.push(chequeoInterval);
 
   // Esquiva de proyectiles: chequeo rapido (200ms, no 1000ms) porque una
   // flecha cruza el espacio mucho mas rapido que el ciclo de combate normal.
@@ -326,7 +329,7 @@ function iniciarHuida(bot) {
       setTimeout(() => bot.setControlState(lado, false), 300);
     } catch (e) { /* ignorar */ }
   }, 200);
-  bot.once('end', () => clearInterval(esquivaInterval));
+  intervalos.push(esquivaInterval);
 
   // Re-equipar cada 10s por si consigue armadura/espada nueva durante la partida
   // (ej. la mina, o la saca de un cofre via CMD).
@@ -334,7 +337,7 @@ function iniciarHuida(bot) {
     if (!bot.entity) { clearInterval(equipoInterval); return; }
     equiparAutomatico(bot);
   }, 10_000);
-  bot.once('end', () => clearInterval(equipoInterval));
+  intervalos.push(equipoInterval);
 
   // Auto-comer: si el hambre baja de 14/20, come lo mas nutritivo que tenga.
   // No gasta manzanas doradas ni comida mala, y no se pone a comer en medio
@@ -345,7 +348,7 @@ function iniciarHuida(bot) {
     if (bot.food > 6 && enemigoCerca(6)) return;
     await comerAlgo(bot, null);
   }, 5_000);
-  bot.once('end', () => clearInterval(comidaInterval));
+  intervalos.push(comidaInterval);
 
   // Manzana dorada de emergencia: vida <= 8 y sin totem que lo salve, se cura
   // como lo haria un jugador real (si hay enemigo encima, solo con vida <= 5).
@@ -356,7 +359,7 @@ function iniciarHuida(bot) {
     const dorada = bot.inventory.items().find(i => i.name === 'golden_apple' || i.name === 'enchanted_golden_apple');
     if (dorada) await comerAlgo(bot, dorada);
   }, 2_500);
-  bot.once('end', () => clearInterval(gappleInterval));
+  intervalos.push(gappleInterval);
 
   // Mejora de equipo craftenando: si tiene materiales para una pieza de mejor
   // tier que la que posee y hay una mesa de trabajo a la vista, la fabrica.
@@ -366,7 +369,7 @@ function iniciarHuida(bot) {
     if (enemigoCerca(14) || (bot.health !== undefined && bot.health <= 10)) return;
     mejorarEquipoCrafteando(bot).catch(() => {});
   }, 30_000);
-  bot.once('end', () => clearInterval(mejoraInterval));
+  intervalos.push(mejoraInterval);
 
   // Totem de emergencia: si la vida baja de 8 y tiene un totem en el
   // inventario pero no en la mano secundaria, lo equipa de inmediato.
@@ -379,7 +382,7 @@ function iniciarHuida(bot) {
     if (!totem) return;
     try { await bot.equip(totem, 'off-hand'); } catch (e) { /* ignorar */ }
   }, 2_000);
-  bot.once('end', () => clearInterval(totemInterval));
+  intervalos.push(totemInterval);
 }
 
 // ---- Diagnostico: estadisticas acumuladas de todos los intentos ----
