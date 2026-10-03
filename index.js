@@ -173,6 +173,10 @@ function iniciarHuida(bot) {
     const bloqueEnMedio = bot.world.raycast(origen, direccion, distancia - 0.3); // -0.3: no cuenta el bloque justo en el objetivo
     if (bloqueEnMedio) return; // hay un bloque solido de por medio, no ataca a traves de el
 
+    const conEscudo = objetivo.type === 'player' && Array.isArray(objetivo.equipment) &&
+      objetivo.equipment.some(it => it && it.name === 'shield');
+    if (conEscudo !== preferirHacha) { preferirHacha = conEscudo; equiparArma(bot); }
+
     // mineflayer-pvp maneja persecucion, timing de golpe y reintentos solo;
     // llamar attack() de nuevo contra el mismo objetivo no reinicia nada.
     bot.pvp.attack(objetivo);
@@ -213,6 +217,15 @@ function iniciarHuida(bot) {
   // Si esta muy lejos, busca terreno alto (high ground) en vez de perseguir a ciegas.
   const RANGO_VIGILANCIA = 20;
   const MOBS_HOSTILES = /zombie|skeleton|creeper|spider|enderman|witch|drowned|husk|stray|phantom|pillager|vindicator/i;
+  function enemigoCerca(radio) {
+    if (!bot.entity) return false;
+    return Object.values(bot.entities).some(e =>
+      e !== bot.entity && e.position.distanceTo(bot.entity.position) < radio && (
+        (e.type === 'player' && e.username !== BOT_USERNAME && e.gameMode !== 'spectator' && e.gameMode !== 'creative') ||
+        (e.type === 'mob' && MOBS_HOSTILES.test(e.name || ''))
+      )
+    );
+  }
   const chequeoInterval = setInterval(() => {
     if (!bot.entity) { clearInterval(chequeoInterval); return; }
 
@@ -220,8 +233,8 @@ function iniciarHuida(bot) {
     // no un bloque -- se detecta igual que un mob. Huye antes que cualquier
     // otra decision de combate.
     const tntCerca = Object.values(bot.entities).find(e =>
-      /tnt/i.test(e.name || '') || /tnt/i.test(e.displayName || '') ||
-      (e.kind && /tnt/i.test(e.kind)) &&
+      (/tnt/i.test(e.name || '') || /tnt/i.test(e.displayName || '') ||
+       (e.kind && /tnt/i.test(e.kind))) &&
       e.position.distanceTo(bot.entity.position) < 6
     );
     if (tntCerca) {
@@ -323,21 +336,37 @@ function iniciarHuida(bot) {
   }, 10_000);
   bot.once('end', () => clearInterval(equipoInterval));
 
-  // Auto-comer: si el hambre baja de 14/20, come algo del inventario.
+  // Auto-comer: si el hambre baja de 14/20, come lo mas nutritivo que tenga.
+  // No gasta manzanas doradas ni comida mala, y no se pone a comer en medio
+  // de una pelea (salvo hambre critica).
   const comidaInterval = setInterval(async () => {
     if (!bot.entity) { clearInterval(comidaInterval); return; }
     if (bot.food === undefined || bot.food >= 14) return;
-    const comida = bot.inventory.items().find(i =>
-      /bread|apple|beef|porkchop|chicken|carrot|potato|stew|cod|salmon/.test(i.name) &&
-      !/rotten|poisonous/.test(i.name)
-    );
-    if (!comida) return;
-    try {
-      await bot.equip(comida, 'hand');
-      await bot.consume();
-    } catch (e) { /* puede fallar si lo interrumpen, no es critico */ }
+    if (bot.food > 6 && enemigoCerca(6)) return;
+    await comerAlgo(bot, null);
   }, 5_000);
   bot.once('end', () => clearInterval(comidaInterval));
+
+  // Manzana dorada de emergencia: vida <= 8 y sin totem que lo salve, se cura
+  // como lo haria un jugador real (si hay enemigo encima, solo con vida <= 5).
+  const gappleInterval = setInterval(async () => {
+    if (!bot.entity) { clearInterval(gappleInterval); return; }
+    if (bot.health === undefined || bot.health > 8) return;
+    if (enemigoCerca(4) && bot.health > 5) return;
+    const dorada = bot.inventory.items().find(i => i.name === 'golden_apple' || i.name === 'enchanted_golden_apple');
+    if (dorada) await comerAlgo(bot, dorada);
+  }, 2_500);
+  bot.once('end', () => clearInterval(gappleInterval));
+
+  // Mejora de equipo craftenando: si tiene materiales para una pieza de mejor
+  // tier que la que posee y hay una mesa de trabajo a la vista, la fabrica.
+  // Solo con la zona tranquila (sin enemigos cerca) y vida razonable.
+  const mejoraInterval = setInterval(() => {
+    if (!bot.entity) { clearInterval(mejoraInterval); return; }
+    if (enemigoCerca(14) || (bot.health !== undefined && bot.health <= 10)) return;
+    mejorarEquipoCrafteando(bot).catch(() => {});
+  }, 30_000);
+  bot.once('end', () => clearInterval(mejoraInterval));
 
   // Totem de emergencia: si la vida baja de 8 y tiene un totem en el
   // inventario pero no en la mano secundaria, lo equipa de inmediato.
@@ -635,18 +664,184 @@ async function crearBot() {
   return bot;
 }
 
+// Orden de tier material, de peor a mejor. Se usa para que el bot no se
+// quede con lo primero que encuentre en el inventario (ej. espada de madera)
+// si tiene algo mejor (ej. espada de diamante) -- un jugador real de survival
+// siempre usa su mejor equipo disponible, no el primero del inventario.
+// Verificado contra minecraft-data real: los prefijos son "wooden_"/"golden_"
+// (no "wood_"/"gold_"), y el oro queda entre leather y chainmail en poder
+// de armadura real, pero como arma/herramienta el oro es el peor material
+// util -- se deja en una posicion razonable para ambos casos sin over-fit.
+const ORDEN_TIER = ['leather', 'wooden', 'golden', 'chainmail', 'stone', 'iron', 'diamond', 'netherite'];
+function tierDe(nombreItem) {
+  for (let i = 0; i < ORDEN_TIER.length; i++) {
+    if (nombreItem.startsWith(ORDEN_TIER[i] + '_')) return i;
+  }
+  return -1;
+}
+
+// ---- Supervivencia: comer, craftear con mesa, herramienta correcta ----
+const NO_COMER = /^(golden_apple|enchanted_golden_apple|suspicious_stew|pufferfish|poisonous_potato|rotten_flesh|spider_eye|chorus_fruit|chicken)$/;
+let comiendo = false;
+async function comerAlgo(bot, item) {
+  if (comiendo) return;
+  comiendo = true;
+  try {
+    let comida = item;
+    if (!comida) {
+      const foods = bot.registry.foodsByName || {};
+      comida = bot.inventory.items()
+        .filter(i => foods[i.name] && !NO_COMER.test(i.name))
+        .sort((a, b) => foods[b.name].foodPoints - foods[a.name].foodPoints)[0];
+    }
+    if (!comida) return;
+    await bot.equip(comida, 'hand');
+    await bot.consume();
+  } catch (e) { /* interrumpido, no es critico */ }
+  finally {
+    comiendo = false;
+    equiparAutomatico(bot); // vuelve a empunar la mejor espada
+  }
+}
+
+function irCerca(bot, pos, ms = 12000) {
+  return new Promise(resolve => {
+    let hecho = false;
+    const fin = (v) => {
+      if (hecho) return;
+      hecho = true; clearTimeout(t);
+      try { bot.pathfinder.setGoal(null); } catch (e) { /* ignorar */ }
+      resolve(v);
+    };
+    const t = setTimeout(() => fin(false), ms);
+    bot.pathfinder.goto(new goals.GoalNear(pos.x, pos.y, pos.z, 2)).then(() => fin(true), () => fin(false));
+  });
+}
+
+// Craftea un item. Las recetas 3x3 (espadas, picos, armaduras) NECESITAN una
+// mesa de trabajo: la busca en 24 bloques y camina hasta ella si hace falta.
+async function craftearConMesa(bot, nombre) {
+  const mcData = require('minecraft-data')(bot.version);
+  const item = mcData.itemsByName[nombre];
+  if (!item) return { ok: false, motivo: 'ese item no existe' };
+  const mesa = bot.findBlock({ matching: mcData.blocksByName.crafting_table.id, maxDistance: 24 });
+  const receta = bot.recipesFor(item.id, null, 1, mesa || null)[0];
+  if (!receta) return { ok: false, motivo: mesa ? 'faltan materiales' : 'faltan materiales o no hay mesa de trabajo a 24 bloques' };
+  if (receta.requiresTable && mesa.position.distanceTo(bot.entity.position) > 3.5) {
+    if (!(await irCerca(bot, mesa.position))) return { ok: false, motivo: 'no pudo llegar a la mesa de trabajo' };
+  }
+  await bot.craft(receta, 1, receta.requiresTable ? mesa : null);
+  return { ok: true };
+}
+
+const PIEZAS_CRAFT = [
+  { p: 'sword', slot: null, tiers: ['wooden', 'stone', 'iron', 'diamond'] },
+  { p: 'pickaxe', slot: null, tiers: ['wooden', 'stone', 'iron', 'diamond'] },
+  { p: 'axe', slot: null, tiers: ['wooden', 'stone', 'iron', 'diamond'] },
+  { p: 'shovel', slot: null, tiers: ['wooden', 'stone', 'iron', 'diamond'] },
+  { p: 'helmet', slot: 5, tiers: ['iron', 'diamond'] },
+  { p: 'chestplate', slot: 6, tiers: ['iron', 'diamond'] },
+  { p: 'leggings', slot: 7, tiers: ['iron', 'diamond'] },
+  { p: 'boots', slot: 8, tiers: ['iron', 'diamond'] },
+];
+let crafteandoMejora = false;
+async function mejorarEquipoCrafteando(bot) {
+  if (crafteandoMejora) return;
+  crafteandoMejora = true;
+  try {
+    for (const { p, slot, tiers } of PIEZAS_CRAFT) {
+      let poseido = -1;
+      for (const i of bot.inventory.items()) if (i.name.endsWith('_' + p)) poseido = Math.max(poseido, tierDe(i.name));
+      const puesto = slot !== null ? bot.inventory.slots[slot] : null;
+      if (puesto && puesto.name.endsWith('_' + p)) poseido = Math.max(poseido, tierDe(puesto.name));
+      for (const t of [...tiers].reverse()) {
+        const nombre = `${t}_${p}`;
+        if (tierDe(nombre) <= poseido) break;
+        const r = await craftearConMesa(bot, nombre);
+        if (r.ok) {
+          console.log(`[bot] mejoro su equipo crafteando ${nombre}`);
+          equiparAutomatico(bot);
+          return; // una mejora por ciclo
+        }
+      }
+    }
+  } finally { crafteandoMejora = false; }
+}
+
+// Antes de minar, empuna la herramienta que mas rapido rompe ese bloque
+// (no pica piedra con el puño ni con la espada).
+async function equiparMejorHerramienta(bot, bloque) {
+  let mejor = null;
+  let mejorT = bloque.digTime(null, false, false, false);
+  for (const it of bot.inventory.items()) {
+    const t = bloque.digTime(it.type, false, false, false);
+    if (t < mejorT) { mejorT = t; mejor = it; }
+  }
+  if (mejor && !(bot.heldItem && bot.heldItem.type === mejor.type)) await bot.equip(mejor, 'hand');
+}
+
+// Arma cuerpo a cuerpo: espada por defecto; hacha contra jugadores con escudo
+// (un golpe de hacha lo inutiliza 5 s, segun la wiki de Minecraft). Si no tiene
+// ninguna, usa pico/pala/hacha en vez del puño. Nunca cambia a media mineria/comida.
+let preferirHacha = false;
+let manoOcupada = false;
+function equiparArma(bot) {
+  if (manoOcupada || comiendo) return;
+  const items = bot.inventory.items();
+  const mejor = (re) => items.filter(i => re.test(i.name)).sort((a, b) => tierDe(b.name) - tierDe(a.name))[0];
+  const espada = mejor(/_sword$/), hacha = mejor(/_axe$/);
+  const elegida = (preferirHacha ? (hacha || espada) : (espada || hacha)) || mejor(/_(pickaxe|shovel)$/);
+  if (!elegida || (bot.heldItem && bot.heldItem.name === elegida.name)) return;
+  bot.equip(elegida, 'hand').catch(() => {});
+}
+
+// Recolecta N bloques de un tipo (solo materiales naturales, para no desmontar
+// construcciones): va hasta el bloque y lo rompe con la herramienta correcta.
+const RECOLECTABLE = /(_log$|_ore$|^stone$|^cobblestone$|^dirt$|^sand$|^gravel$|^netherrack$|_leaves$|^clay$)/;
+async function recolectarBloque(bot, nombre, cantidad = 1) {
+  const def = require('minecraft-data')(bot.version).blocksByName[nombre];
+  if (!def) return { ok: false, motivo: 'ese bloque no existe' };
+  if (!RECOLECTABLE.test(nombre)) return { ok: false, motivo: 'solo recolectas materiales naturales (troncos, piedra, menas, tierra...)' };
+  let n = 0;
+  manoOcupada = true;
+  try {
+    for (let k = 0; k < Math.min(cantidad, 16); k++) {
+      const b = bot.findBlock({ matching: def.id, maxDistance: 24 });
+      if (!b) return { ok: n > 0, motivo: 'no hay mas ' + nombre + ' a 24 bloques' };
+      if (!(await irCerca(bot, b.position, 15000))) return { ok: n > 0, motivo: 'no pudo llegar hasta el bloque' };
+      const bloque = bot.blockAt(b.position);
+      if (!bloque || !bot.canDigBlock(bloque)) return { ok: n > 0, motivo: 'no alcanzo el bloque' };
+      try { await equiparMejorHerramienta(bot, bloque); } catch (e) { /* sigue con lo que tenga */ }
+      await bot.dig(bloque);
+      n++;
+    }
+    return { ok: true };
+  } finally { manoOcupada = false; }
+}
+
 function equiparAutomatico(bot) {
+  equiparArma(bot);
   try {
     const piezas = [
       { match: /helmet$/, dest: 'head' },
       { match: /chestplate$/, dest: 'torso' },
       { match: /leggings$/, dest: 'legs' },
       { match: /boots$/, dest: 'feet' },
-      { match: /sword$/, dest: 'hand' },
     ];
     for (const p of piezas) {
-      const item = bot.inventory.items().find(i => p.match.test(i.name));
-      if (item) bot.equip(item, p.dest).catch(() => {});
+      // De todo lo que calce en este slot, se queda con el de mejor tier,
+      // no con el primero que encuentre -- asi mejora su equipo solo,
+      // sin esperar a que la IA lo pida explicitamente.
+      const candidatos = bot.inventory.items().filter(i => p.match.test(i.name));
+      if (candidatos.length === 0) continue;
+      candidatos.sort((a, b) => tierDe(b.name) - tierDe(a.name));
+      const mejor = candidatos[0];
+      const yaEquipado = p.dest === 'hand'
+        ? bot.heldItem
+        : bot.inventory.slots[{ head: 5, torso: 6, legs: 7, feet: 8 }[p.dest]];
+      if (yaEquipado && yaEquipado.name === mejor.name) continue; // ya tiene lo mejor puesto
+      if (yaEquipado && p.dest !== 'hand' && tierDe(yaEquipado.name) >= tierDe(mejor.name)) continue;
+      bot.equip(mejor, p.dest).catch(() => {});
     }
   } catch (e) { console.error('[bot] error equipando:', e.message); }
 }
@@ -687,6 +882,9 @@ async function manejarRespuesta(bot, ctx, respuestaCruda) {
   const mCraft = texto.match(/\[CRAFTEAR:([a-z_:]+)\]/);
   if (mCraft) texto = texto.replace(mCraft[0], '').trim();
 
+  const mRecol = texto.match(/\[RECOLECTAR:([a-z_]+)(?::(\d+))?\]/);
+  if (mRecol) texto = texto.replace(mRecol[0], '').trim();
+
   const mConstruir = texto.match(/\[CONSTRUIR:([a-z_:]+):(-?\d+),(-?\d+),(-?\d+)\]/);
   if (mConstruir) texto = texto.replace(mConstruir[0], '').trim();
 
@@ -696,7 +894,7 @@ async function manejarRespuesta(bot, ctx, respuestaCruda) {
   const mDatapack = texto.match(/\[DATAPACK:([a-z_]+):([^\]]+)\]/);
   if (mDatapack) texto = texto.replace(mDatapack[0], '').trim();
 
-  const mCmd = texto.match(/\[CMD:([^\]]+)\]/);
+  const mCmd = texto.match(/\[CMD:((?:[^\[\]]|\[[^\]]*\])+)\]/);
   if (mCmd) texto = texto.replace(mCmd[0], '').trim();
 
   if (texto) bot.chat(texto);
@@ -735,9 +933,10 @@ async function manejarRespuesta(bot, ctx, respuestaCruda) {
   if (mAtacar) {
     const objetivo = Object.values(bot.entities).find(e =>
       e.type === 'player' && e.username !== BOT_USERNAME &&
+      e.gameMode !== 'creative' && e.gameMode !== 'spectator' &&
       bot.entity && e.position.distanceTo(bot.entity.position) < 4
     );
-    if (objetivo) {
+    if (objetivo && bot.entities[objetivo.id]) {
       try { bot.attack(objetivo); } catch (e) { console.error('[bot] error atacando:', e.message); }
     }
   }
@@ -769,7 +968,17 @@ async function manejarRespuesta(bot, ctx, respuestaCruda) {
             e.type === 'player' && e.username !== BOT_USERNAME &&
             bot.entity && e.position.distanceTo(bot.entity.position) < 25
           );
-          if (objetivo) bot.lookAt(objetivo.position.offset(0, objetivo.height ? objetivo.height / 2 : 0.9, 0), true);
+          if (objetivo) {
+            // Apunta con adelanto usando la velocidad real del objetivo: una
+            // flecha de arco tarda ~0.5-1s en llegar segun la distancia, asi
+            // que estima donde estara, no solo donde esta ahora.
+            const dist = objetivo.position.distanceTo(bot.entity.position);
+            const tiempoVuelo = dist / 20; // aproximacion simple de velocidad de flecha
+            const posEstimada = objetivo.velocity
+              ? objetivo.position.plus(objetivo.velocity.scaled(tiempoVuelo * 20))
+              : objetivo.position;
+            bot.lookAt(posEstimada.offset(0, objetivo.height ? objetivo.height / 2 : 0.9, 0), true);
+          }
           bot.activateItem();
           setTimeout(() => bot.deactivateItem(), mUsar[1] === 'bow' ? 1000 : 1300); // tiempo real de carga
         } else {
@@ -812,7 +1021,10 @@ async function manejarRespuesta(bot, ctx, respuestaCruda) {
         console.log(`[bot] no tiene ${materialNombre} para construir`);
         ultimaFallaJugador.set(ctx.nombre, `CONSTRUIR:${materialNombre} fallo, no tenias ese material`);
       }
-    } catch (e) { console.error('[bot] error construyendo:', e.message); }
+    } catch (e) {
+      console.error('[bot] error construyendo:', e.message);
+      ultimaFallaJugador.set(ctx.nombre, `CONSTRUIR fallo: ${e.message}`);
+    }
   }
 
   if (mMinar) {
@@ -821,12 +1033,19 @@ async function manejarRespuesta(bot, ctx, respuestaCruda) {
       const pos = new (require('vec3').Vec3)(Number(x), Number(y), Number(z));
       const bloque = bot.blockAt(pos);
       if (bloque && bloque.name !== 'air' && bot.canDigBlock(bloque)) {
-        await bot.dig(bloque);
+        manoOcupada = true;
+        try {
+          try { await equiparMejorHerramienta(bot, bloque); } catch (e) { /* sigue con lo que tenga */ }
+          await bot.dig(bloque);
+        } finally { manoOcupada = false; }
       } else {
         console.log(`[bot] no puede minar ese bloque (inexistente, aire, o irrompible)`);
         ultimaFallaJugador.set(ctx.nombre, 'MINAR fallo, esa posicion no tenia un bloque minable');
       }
-    } catch (e) { console.error('[bot] error minando:', e.message); }
+    } catch (e) {
+      console.error('[bot] error minando:', e.message);
+      ultimaFallaJugador.set(ctx.nombre, `MINAR fallo: ${e.message}`);
+    }
   }
 
   if (mDatapack) {
@@ -839,23 +1058,35 @@ async function manejarRespuesta(bot, ctx, respuestaCruda) {
 
   if (mCraft) {
     try {
-      const mcData = require('minecraft-data')(bot.version);
-      const item = mcData.itemsByName[mCraft[1]];
-      if (item) {
-        const recetas = bot.recipesFor(item.id, null, 1, null);
-        if (recetas.length) {
-          bot.craft(recetas[0], 1, null).catch(e => console.log('[bot] craft fallo:', e.message));
-        } else {
-          console.log(`[bot] sin receta disponible (falta mesa de trabajo o materiales) para ${mCraft[1]}`);
-          ultimaFallaJugador.set(ctx.nombre, `CRAFTEAR:${mCraft[1]} fallo, faltan materiales o mesa de trabajo cerca`);
-        }
+      const r = await craftearConMesa(bot, mCraft[1]);
+      if (r.ok) equiparAutomatico(bot);
+      else {
+        console.log(`[bot] no pudo craftear ${mCraft[1]}: ${r.motivo}`);
+        ultimaFallaJugador.set(ctx.nombre, `CRAFTEAR:${mCraft[1]} fallo, ${r.motivo}`);
       }
-    } catch (e) { console.error('[bot] error crafteando:', e.message); }
+    } catch (e) {
+      console.error('[bot] error crafteando:', e.message);
+      ultimaFallaJugador.set(ctx.nombre, `CRAFTEAR:${mCraft[1]} fallo: ${e.message}`);
+    }
+  }
+
+  if (mRecol) {
+    try {
+      const r = await recolectarBloque(bot, mRecol[1], Number(mRecol[2]) || 1);
+      if (!r.ok) ultimaFallaJugador.set(ctx.nombre, `RECOLECTAR:${mRecol[1]} fallo, ${r.motivo}`);
+    } catch (e) {
+      console.error('[bot] error recolectando:', e.message);
+      ultimaFallaJugador.set(ctx.nombre, `RECOLECTAR:${mRecol[1]} fallo: ${e.message}`);
+    }
   }
 
   if (mCmd) {
     const comando = mCmd[1].trim();
-    const peligroso = /^(stop|ban|kick|whitelist|op\s|deop|save-off|difficulty|gamerule|worldborder)/i.test(comando);
+    // Se revisa cualquier parte del comando (no solo el inicio): "execute ... run op x"
+    // se saltaba la lista vieja. Tambien bloquea lo letal/destructivo: las trampas
+    // son para esquivar, no para matar ni borrar el inventario.
+    const peligroso = /(^|\s|run\s)(stop|ban|ban-ip|pardon|kick|whitelist|op|deop|save-off|save-on|difficulty|gamerule|worldborder|kill|damage|clear|reload|datapack\s+disable|data\s+remove|forceload|setworldspawn)(\s|$)/i.test(comando)
+      || /instant_damage|wither|poison/i.test(comando) || comando.length > 200;
     if (peligroso) {
       console.log(`[bot] comando bloqueado por seguridad: /${comando}`);
     } else {
@@ -868,7 +1099,9 @@ async function manejarRespuesta(bot, ctx, respuestaCruda) {
 // ---- Servidor HTTP minimo para que Render mantenga el proceso vivo y para el ping externo ----
 const app = express();
 app.get('/', (_req, res) => res.send('IA antagonista activa'));
-app.get('/health', (_req, res) => res.json({ status: 'ok', uptime: process.uptime(), diagnostico: stats }));
-app.listen(process.env.PORT || 3000, () => console.log('[http] servidor de salud escuchando'));
+process.on('unhandledRejection', (e) => console.error('[proc] promesa rechazada sin manejar:', e && e.message ? e.message : e));
+const BOT_VERSION = require('./package.json').version;
+app.get('/health', (_req, res) => res.json({ status: 'ok', version: BOT_VERSION, uptime: process.uptime(), diagnostico: stats }));
+app.listen(process.env.PORT || 3000, () => console.log(`[http] servidor de salud escuchando (v${BOT_VERSION})`));
 
 crearBot();

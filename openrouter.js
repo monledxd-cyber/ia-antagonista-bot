@@ -92,6 +92,8 @@ Reglas de estilo:
   de trabajo cerca (ej: [CRAFTEAR:iron_sword]) -- solo funciona si de verdad puedes
   craftearlo ahora, asi que no lo uses como amenaza vacia, usalo cuando tenga sentido
   practico (mejorar tu equipo);
+  [RECOLECTAR:bloque:n] para ir a buscar y romper n bloques naturales cercanos (ej:
+  [RECOLECTAR:oak_log:4], [RECOLECTAR:iron_ore:3]); usa solo la herramienta correcta;
   [CONSTRUIR:material:x,y,z] para colocar UN bloque en una posicion exacta -- esto es
   construccion LIBRE, no una trampa predefinida del catalogo. Puedes idear tus propias
   trampas/estructuras encadenando varios [CONSTRUIR:...] en respuestas seguidas (ej. una
