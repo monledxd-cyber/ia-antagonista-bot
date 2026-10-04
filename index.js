@@ -316,6 +316,31 @@ function iniciarHuida(bot) {
   const esquivaInterval = setInterval(() => {
     if (!bot.entity) { clearInterval(esquivaInterval); return; }
     if (Date.now() - ultimoStrafeTs < 600) return; // cooldown corto entre esquivas
+    // Anti-mace: un jugador con mace por encima y a menos de 4 bloques en horizontal
+    // viene a caer sobre el bot. Sale de su columna de caida y alza el escudo.
+    const maceAerea = Object.values(bot.entities).find(e =>
+      e.type === 'player' && e.username !== BOT_USERNAME && Array.isArray(e.equipment) &&
+      e.equipment.some(it => it && it.name === 'mace') &&
+      e.position.y - bot.entity.position.y >= 1.5 &&
+      Math.hypot(e.position.x - bot.entity.position.x, e.position.z - bot.entity.position.z) < 4 &&
+      e.position.distanceTo(bot.entity.position) < 9
+    );
+    if (maceAerea) {
+      ultimoStrafeTs = Date.now();
+      try {
+        const dx = bot.entity.position.x - maceAerea.position.x;
+        const dz = bot.entity.position.z - maceAerea.position.z;
+        const r = Math.hypot(dx, dz) || 1;
+        const signo = Math.random() < 0.5 ? 1 : -1;
+        const px = bot.entity.position.x + (-dz / r) * 4 * signo + (dx / r) * 2;
+        const pz = bot.entity.position.z + (dx / r) * 4 * signo + (dz / r) * 2;
+        bot.pathfinder.setGoal(new goals.GoalNear(px, bot.entity.position.y, pz, 1));
+        objetivoActual = null; // al terminar, el chequeo principal vuelve a perseguir
+        const offhand = bot.inventory.slots[45];
+        if (offhand && offhand.name === 'shield') { bot.activateItem(true); setTimeout(() => bot.deactivateItem(), 700); }
+      } catch (e) { /* ignorar */ }
+      return;
+    }
     const flecha = Object.values(bot.entities).find(e =>
       e.name === 'arrow' && e.velocity &&
       e.position.distanceTo(bot.entity.position) < 6 &&
@@ -793,7 +818,7 @@ function equiparArma(bot) {
   const items = bot.inventory.items();
   const mejor = (re) => items.filter(i => re.test(i.name)).sort((a, b) => tierDe(b.name) - tierDe(a.name))[0];
   const espada = mejor(/_sword$/), hacha = mejor(/_axe$/);
-  const elegida = (preferirHacha ? (hacha || espada) : (espada || hacha)) || mejor(/_(pickaxe|shovel)$/);
+  const elegida = (preferirHacha ? (hacha || espada) : (espada || hacha)) || items.find(i => i.name === 'mace') || mejor(/_(pickaxe|shovel)$/);
   if (!elegida || (bot.heldItem && bot.heldItem.name === elegida.name)) return;
   bot.equip(elegida, 'hand').catch(() => {});
 }
@@ -820,6 +845,51 @@ async function recolectarBloque(bot, nombre, cantidad = 1) {
     }
     return { ok: true };
   } finally { manoOcupada = false; }
+}
+
+// Smash con mace (wiki): al caer >= 1.5 bloques el golpe hace 12 de dano base
+// +4 por cada uno de los 3 primeros bloques, +2 los 5 siguientes, +1 despues, y
+// anula el dano de caida si conecta. Sin elytra, el impulso viene de un wind charge
+// lanzado a los pies. Si falla, el bot se come la caida: por eso exige vida >= 14.
+const dormir = (ms) => new Promise(r => setTimeout(r, ms));
+let ultimoSmash = 0;
+async function smashAttack(bot) {
+  if (Date.now() - ultimoSmash < 25_000) return { ok: false, motivo: 'smash en enfriamiento' };
+  const inv = bot.inventory.items();
+  const maza = inv.find(i => i.name === 'mace');
+  const carga = inv.find(i => i.name === 'wind_charge');
+  if (!maza) return { ok: false, motivo: 'no tenias mace' };
+  if (!carga) return { ok: false, motivo: 'no tenias wind_charge para impulsarte' };
+  if (bot.health < 14) return { ok: false, motivo: 'poca vida para arriesgar la caida' };
+  const objetivo = Object.values(bot.entities).find(e =>
+    e.type === 'player' && e.username !== BOT_USERNAME &&
+    e.gameMode !== 'creative' && e.gameMode !== 'spectator' &&
+    e.position.distanceTo(bot.entity.position) < 8
+  );
+  if (!objetivo) return { ok: false, motivo: 'no habia jugador a menos de 8 bloques' };
+  ultimoSmash = Date.now();
+  manoOcupada = true;
+  try {
+    await bot.equip(carga, 'hand');
+    await bot.look(bot.entity.yaw, -Math.PI / 2, true); // -pi/2 = mirar al suelo
+    bot.activateItem();
+    let impulsado = false;
+    for (let t = 0; t < 8 && !impulsado; t++) { await dormir(100); impulsado = bot.entity.velocity.y > 0.6; }
+    if (!impulsado) return { ok: false, motivo: 'el wind charge no lo impulso' };
+    await bot.equip(maza, 'hand');
+    let pico = bot.entity.position.y;
+    for (let t = 0; t < 40; t++) { // maximo 4 s en el aire
+      await dormir(100);
+      if (!bot.entities[objetivo.id]) break;
+      pico = Math.max(pico, bot.entity.position.y);
+      const p = bot.entity.position, o = objetivo.position;
+      bot.lookAt(o.offset(0, objetivo.height ? objetivo.height / 2 : 0.9, 0), true).catch(() => {});
+      bot.setControlState('forward', Math.hypot(o.x - p.x, o.z - p.z) > 1.5);
+      if (bot.entity.velocity.y < -0.1 && pico - p.y >= 1.6 && p.distanceTo(o) < 3.5) { bot.attack(objetivo); return { ok: true }; }
+      if (bot.entity.onGround && t > 5) break;
+    }
+    return { ok: false, motivo: 'cayo sin alcanzar al jugador' };
+  } finally { bot.setControlState('forward', false); manoOcupada = false; }
 }
 
 function equiparAutomatico(bot) {
@@ -884,6 +954,9 @@ async function manejarRespuesta(bot, ctx, respuestaCruda) {
 
   const mCraft = texto.match(/\[CRAFTEAR:([a-z_:]+)\]/);
   if (mCraft) texto = texto.replace(mCraft[0], '').trim();
+
+  const mSmash = texto.match(/\[SMASH\]/);
+  if (mSmash) texto = texto.replace(mSmash[0], '').trim();
 
   const mRecol = texto.match(/\[RECOLECTAR:([a-z_]+)(?::(\d+))?\]/);
   if (mRecol) texto = texto.replace(mRecol[0], '').trim();
@@ -1070,6 +1143,16 @@ async function manejarRespuesta(bot, ctx, respuestaCruda) {
     } catch (e) {
       console.error('[bot] error crafteando:', e.message);
       ultimaFallaJugador.set(ctx.nombre, `CRAFTEAR:${mCraft[1]} fallo: ${e.message}`);
+    }
+  }
+
+  if (mSmash) {
+    try {
+      const r = await smashAttack(bot);
+      if (!r.ok) ultimaFallaJugador.set(ctx.nombre, `SMASH fallo, ${r.motivo}`);
+    } catch (e) {
+      console.error('[bot] error en smash:', e.message);
+      ultimaFallaJugador.set(ctx.nombre, `SMASH fallo: ${e.message}`);
     }
   }
 

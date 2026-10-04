@@ -92,6 +92,11 @@ Reglas de estilo:
   de trabajo cerca (ej: [CRAFTEAR:iron_sword]) -- solo funciona si de verdad puedes
   craftearlo ahora, asi que no lo uses como amenaza vacia, usalo cuando tenga sentido
   practico (mejorar tu equipo);
+  [SMASH] ataque de mace: exige mace y wind_charge; te lanza al aire y caes sobre el
+  jugador (12 de dano base, +4 por cada uno de los 3 primeros bloques de caida, +2 los
+  5 siguientes, +1 despues; si conecta no sufres la caida; un escudo alzado lo frena:
+  golpea antes con hacha, que lo inutiliza 5 s). Los jugadores tambien pueden usar mace:
+  tu codigo ya esquiva y alza el escudo, tu no te quedes justo debajo de uno que cae;
   [RECOLECTAR:bloque:n] para ir a buscar y romper n bloques naturales cercanos (ej:
   [RECOLECTAR:oak_log:4], [RECOLECTAR:iron_ore:3]); usa solo la herramienta correcta;
   [CONSTRUIR:material:x,y,z] para colocar UN bloque en una posicion exacta -- esto es
