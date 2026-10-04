@@ -231,13 +231,17 @@ function iniciarHuida(bot) {
   // Revision periodica: persigue al jugador mas cercano dentro de rango de vigilancia.
   // Si esta muy lejos, busca terreno alto (high ground) en vez de perseguir a ciegas.
   const RANGO_VIGILANCIA = 20;
-  const MOBS_HOSTILES = /zombie|skeleton|creeper|spider|enderman|witch|drowned|husk|stray|phantom|pillager|vindicator/i;
+  // Verificado contra minecraft-data 1.21.4: zombie/skeleton/creeper/etc. tienen type 'hostile'
+  // (solo slime y magma_cube son 'mob'). El filtro viejo (type === 'mob') no encontraba ninguno.
+  // Se excluyen los neutrales o suicidas: enderman, warden, piglins, dragon, wither, guardian anciano.
+  const MOB_EXCLUIDO = /enderman|warden|piglin|ender_dragon|^wither$|elder_guardian|ghast/i;
+  const esMobHostil = (e) => (e.type === 'hostile' || e.type === 'mob') && !MOB_EXCLUIDO.test(e.name || '');
   function enemigoCerca(radio) {
     if (!bot.entity) return false;
     return Object.values(bot.entities).some(e =>
       e !== bot.entity && e.position.distanceTo(bot.entity.position) < radio && (
         (e.type === 'player' && e.username !== BOT_USERNAME && e.gameMode !== 'spectator' && e.gameMode !== 'creative') ||
-        (e.type === 'mob' && MOBS_HOSTILES.test(e.name || ''))
+        esMobHostil(e)
       )
     );
   }
@@ -276,7 +280,7 @@ function iniciarHuida(bot) {
       e.position.distanceTo(bot.entity.position) < RANGO_VIGILANCIA
     );
     const mobsCercanos = Object.values(bot.entities).filter(e =>
-      e.type === 'mob' && MOBS_HOSTILES.test(e.name || '') &&
+      esMobHostil(e) &&
       e.position.distanceTo(bot.entity.position) < 8
     );
     // Prioridad real por cercania efectiva: un mob pegado al bot no se ignora
@@ -367,6 +371,18 @@ function iniciarHuida(bot) {
     } catch (e) { /* ignorar */ }
   }, 200);
   intervalos.push(esquivaInterval);
+
+  // Nadar: en agua o lava mantiene saltar pulsado para flotar y no ahogarse. El pathfinder
+  // sigue moviendose; esto solo evita que se hunda cuando esta quieto.
+  let nadando = false;
+  const nadoInterval = setInterval(() => {
+    if (!bot.entity) { clearInterval(nadoInterval); return; }
+    const enLiquido = !!(bot.entity.isInWater || bot.entity.isInLava);
+    if (enLiquido === nadando) return;
+    nadando = enLiquido;
+    try { bot.setControlState('jump', enLiquido); } catch (e) { /* ignorar */ }
+  }, 250);
+  intervalos.push(nadoInterval);
 
   // Re-equipar cada 10s por si consigue armadura/espada nueva durante la partida
   // (ej. la mina, o la saca de un cofre via CMD).
