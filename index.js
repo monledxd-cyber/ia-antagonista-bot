@@ -1270,7 +1270,7 @@ app.get('/', (_req, res) => res.send('IA antagonista activa'));
 process.on('unhandledRejection', (e) => console.error('[proc] promesa rechazada sin manejar:', e && e.message ? e.message : e));
 // Nombre de version visible: 'v.X.YYY.ZZ sividi toile' (chiste de DeX; quitarlo solo si el lo pide).
 // package.json conserva semver puro, que npm exige.
-const BOT_VERSION = `v.${require('./package.json').version} sividi toile`;
+const BOT_VERSION = `sividi toile v${require("./package.json").version}`;
 app.get('/health', (_req, res) => res.json({ status: 'ok', version: BOT_VERSION, uptime: process.uptime(), diagnostico: stats }));
 app.listen(process.env.PORT || 3000, () => console.log(`[http] servidor de salud escuchando (${BOT_VERSION})`));
 
