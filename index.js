@@ -234,7 +234,7 @@ function iniciarHuida(bot) {
   // Verificado contra minecraft-data 1.21.4: zombie/skeleton/creeper/etc. tienen type 'hostile'
   // (solo slime y magma_cube son 'mob'). El filtro viejo (type === 'mob') no encontraba ninguno.
   // Se excluyen los neutrales o suicidas: enderman, warden, piglins, dragon, wither, guardian anciano.
-  const MOB_EXCLUIDO = /enderman|warden|piglin|ender_dragon|^wither$|elder_guardian|ghast/i;
+  const MOB_EXCLUIDO = /enderman|warden|piglin|ender_dragon|^wither$|elder_guardian|ghast|golem/i;
   const esMobHostil = (e) => (e.type === 'hostile' || e.type === 'mob') && !MOB_EXCLUIDO.test(e.name || '');
   function enemigoCerca(radio) {
     if (!bot.entity) return false;
