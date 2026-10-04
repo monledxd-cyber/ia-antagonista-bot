@@ -518,6 +518,22 @@ async function crearBot() {
   bot.once('error', () => clearTimeout(failsafe));
   bot.once('end', () => clearTimeout(failsafe));
 
+  // Vigilante de conexion zombi: sin checkTimeoutInterval (quitado a proposito), un
+  // socket muerto (ej. Aternos apaga el server sin cerrar la conexion) dejaba al bot
+  // "conectado" para siempre, mudo y sin recibir chat ni llamar a la IA. El servidor
+  // manda keep-alive cada ~15 s; si pasan 75 s sin NINGUN paquete, se reconecta.
+  bot.once('login', () => {
+    let ultimoPaquete = Date.now();
+    bot._client.on('packet', () => { ultimoPaquete = Date.now(); });
+    const vigilante = setInterval(() => {
+      if (Date.now() - ultimoPaquete < 75_000) return;
+      console.log('[bot] 75 s sin paquetes del servidor (conexion zombi), reconectando');
+      registrarFallo('conexion_zombi');
+      try { bot.end(); } catch (e) { /* ignorar */ }
+    }, 15_000);
+    bot.once('end', () => clearInterval(vigilante));
+  });
+
   bot.on('login', () => {
     console.log(`[bot] conectado a ${HOST}:${PORT} como ${BOT_USERNAME}`);
     stats.exitos++;
