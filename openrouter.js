@@ -164,7 +164,7 @@ ${contextoJugador.espontaneo
       const resp = await fetch(p.url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${p.key}` },
-        body: JSON.stringify({ model: p.model, max_tokens: p.maxTokens, messages: mensajes }),
+        body: JSON.stringify({ model: p.model, max_tokens: p.maxTokens, messages: mensajes, ...(p.extra || {}) }),
       });
       if (!resp.ok) {
         const text = await resp.text();
@@ -194,7 +194,10 @@ const muertoHasta = new Map();
 function proveedoresActivos(keyOpenRouter) {
   const lista = [
     { nombre: 'openrouter', etiqueta: 'OpenRouter', url: OPENROUTER_URL, key: keyOpenRouter || process.env.OPENROUTER_API_KEY,
-      model: process.env.OPENROUTER_MODEL || 'anthropic/claude-haiku-4.5', maxTokens: 120 },
+      model: process.env.OPENROUTER_MODEL || 'anthropic/claude-haiku-4.5', maxTokens: 120,
+      // Modelos "razonadores" gastan los 120 tokens pensando y devuelven texto vacio:
+      // OPENROUTER_REASONING=off les apaga el razonamiento (parametro reasoning.enabled).
+      extra: process.env.OPENROUTER_REASONING === 'off' ? { reasoning: { enabled: false } } : {} },
     { nombre: 'gemini', etiqueta: 'Gemini', url: 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', key: process.env.GEMINI_API_KEY,
       model: process.env.GEMINI_MODEL || 'gemini-3.8-flash', maxTokens: 400 },
     { nombre: 'groq', etiqueta: 'Groq', url: 'https://api.groq.com/openai/v1/chat/completions', key: process.env.GROQ_API_KEY,
