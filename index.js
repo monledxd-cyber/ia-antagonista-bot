@@ -21,12 +21,13 @@ let ultimaLlamadaTs = 0;
 // parecia caido. Avisa por chat, como maximo una vez cada 2 minutos.
 let ultimoAvisoIA = 0;
 function avisarFalloIA(bot, e) {
-  const m = /OpenRouter error (\d+)/.exec(e && e.message || '');
+  const m = /(OpenRouter|Gemini|Groq) error (\d+)/.exec(e && e.message || '');
   if (!m || Date.now() - ultimoAvisoIA < 120_000) return;
-  const motivos = { 401: 'la API key no es valida o expiro', 402: 'la cuenta de OpenRouter no tiene creditos', 404: 'el modelo no existe', 429: 'demasiadas peticiones' };
-  if (!motivos[m[1]]) return;
+  const [, proveedor, codigo] = m;
+  const motivos = { 401: 'la API key no es valida o expiro', 402: 'la cuenta no tiene creditos', 404: 'el modelo no existe', 429: 'demasiadas peticiones' };
+  if (!motivos[codigo]) return;
   ultimoAvisoIA = Date.now();
-  try { bot.chat(`[aviso tecnico] No puedo pensar: OpenRouter ${m[1]}, ${motivos[m[1]]}.`); } catch (err) { /* ignorar */ }
+  try { bot.chat(`[aviso tecnico] No puedo pensar: ${proveedor} ${codigo}, ${motivos[codigo]}.`); } catch (err) { /* ignorar */ }
 }
 function preguntarIA(...args) {
   const miTurno = colaLlamadas.then(async () => {
@@ -50,8 +51,8 @@ const VERSION = process.env.MC_VERSION && process.env.MC_VERSION !== 'false' && 
   : '1.21.4'; // version fija: el ping de auto-deteccion (version:false) falla consistentemente
              // contra este server, aunque el login directo con version fija si funciona.
 
-if (!HOST || !OPENROUTER_KEY) {
-  console.error('Faltan variables de entorno: MC_HOST y/o OPENROUTER_API_KEY');
+if (!HOST || !(OPENROUTER_KEY || process.env.GEMINI_API_KEY || process.env.GROQ_API_KEY)) {
+  console.error('Faltan variables de entorno: MC_HOST y al menos una key (OPENROUTER_API_KEY, GEMINI_API_KEY o GROQ_API_KEY)');
   process.exit(1);
 }
 

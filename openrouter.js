@@ -152,30 +152,58 @@ ${contextoJugador.espontaneo
   : 'Comenta la situacion con tu personalidad. Decide si vale la pena activar una trampa ahora.'}`;
   }
 
-  const resp = await fetch(OPENROUTER_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: process.env.OPENROUTER_MODEL || 'anthropic/claude-haiku-4.5',
-      max_tokens: 120,
-      messages: [
-        { role: 'system', content: SYSTEM_PROMPT },
-        { role: 'user', content: userMsg },
-      ],
-    }),
-  });
-
-  if (!resp.ok) {
-    const text = await resp.text();
-    throw new Error(`OpenRouter error ${resp.status}: ${text}`);
+  const mensajes = [
+    { role: 'system', content: SYSTEM_PROMPT },
+    { role: 'user', content: userMsg },
+  ];
+  const ahora = Date.now();
+  let ultimoError = null;
+  for (const p of proveedoresActivos(apiKey)) {
+    if ((muertoHasta.get(p.nombre) || 0) > ahora) continue;
+    try {
+      const resp = await fetch(p.url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${p.key}` },
+        body: JSON.stringify({ model: p.model, max_tokens: p.maxTokens, messages: mensajes }),
+      });
+      if (!resp.ok) {
+        const text = await resp.text();
+        // Config rota (key/creditos/modelo): no insistir 10 min. Limite: 1 min.
+        if ([401, 402, 403, 404].includes(resp.status)) muertoHasta.set(p.nombre, Date.now() + 10 * 60_000);
+        else if (resp.status === 429) muertoHasta.set(p.nombre, Date.now() + 60_000);
+        throw new Error(`${p.etiqueta} error ${resp.status}: ${text}`);
+      }
+      const data = await resp.json();
+      const texto = data.choices?.[0]?.message?.content?.trim() || '';
+      if (!texto) throw new Error(`${p.etiqueta} error 200: respuesta vacia`);
+      if (ultimoProveedor !== p.nombre) { console.log(`[ia] respondiendo con ${p.nombre} (${p.model})`); ultimoProveedor = p.nombre; }
+      return texto;
+    } catch (e) {
+      ultimoError = e;
+      console.error(`[ia] fallo ${p.nombre}: ${String(e.message).slice(0, 200)}`);
+    }
   }
+  throw ultimoError || new Error('OpenRouter error 401: no hay ninguna API key de IA configurada');
+}
 
-  const data = await resp.json();
-  const texto = data.choices?.[0]?.message?.content?.trim() || '';
-  return texto;
+// Proveedores de IA en orden de preferencia. Si uno falla (sin creditos, key mala,
+// limite), se prueba el siguiente: asi un solo proveedor caido no deja mudo al bot.
+// Gemini y Groq tienen capa gratuita con una key por cuenta (sin reciclar nada).
+let ultimoProveedor = null;
+const muertoHasta = new Map();
+function proveedoresActivos(keyOpenRouter) {
+  const lista = [
+    { nombre: 'openrouter', etiqueta: 'OpenRouter', url: OPENROUTER_URL, key: keyOpenRouter || process.env.OPENROUTER_API_KEY,
+      model: process.env.OPENROUTER_MODEL || 'anthropic/claude-haiku-4.5', maxTokens: 120 },
+    { nombre: 'gemini', etiqueta: 'Gemini', url: 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', key: process.env.GEMINI_API_KEY,
+      model: process.env.GEMINI_MODEL || 'gemini-3.8-flash', maxTokens: 400 },
+    { nombre: 'groq', etiqueta: 'Groq', url: 'https://api.groq.com/openai/v1/chat/completions', key: process.env.GROQ_API_KEY,
+      model: process.env.GROQ_MODEL, maxTokens: 150 },
+  ];
+  // Orden alternativo: IA_PROVEEDORES=gemini,groq,openrouter
+  const orden = (process.env.IA_PROVEEDORES || '').split(',').map(s => s.trim()).filter(Boolean);
+  if (orden.length) lista.sort((a, b) => (orden.indexOf(a.nombre) + 1 || 99) - (orden.indexOf(b.nombre) + 1 || 99));
+  return lista.filter(p => p.key && p.model);
 }
 
 module.exports = { preguntarIA };
