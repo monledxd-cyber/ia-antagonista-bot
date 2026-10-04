@@ -159,7 +159,7 @@ ${contextoJugador.espontaneo
       'Authorization': `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: 'anthropic/claude-haiku-4.5',
+      model: process.env.OPENROUTER_MODEL || 'anthropic/claude-haiku-4.5',
       max_tokens: 120,
       messages: [
         { role: 'system', content: SYSTEM_PROMPT },

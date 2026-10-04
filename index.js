@@ -17,6 +17,17 @@ const { preguntarIA: preguntarIA_real } = require('./openrouter');
 const COOLDOWN_ENTRE_LLAMADAS_MS = 1_500;
 let colaLlamadas = Promise.resolve();
 let ultimaLlamadaTs = 0;
+// Si OpenRouter falla por configuracion (key o creditos), el bot se quedaba mudo y
+// parecia caido. Avisa por chat, como maximo una vez cada 2 minutos.
+let ultimoAvisoIA = 0;
+function avisarFalloIA(bot, e) {
+  const m = /OpenRouter error (\d+)/.exec(e && e.message || '');
+  if (!m || Date.now() - ultimoAvisoIA < 120_000) return;
+  const motivos = { 401: 'la API key no es valida o expiro', 402: 'la cuenta de OpenRouter no tiene creditos', 404: 'el modelo no existe', 429: 'demasiadas peticiones' };
+  if (!motivos[m[1]]) return;
+  ultimoAvisoIA = Date.now();
+  try { bot.chat(`[aviso tecnico] No puedo pensar: OpenRouter ${m[1]}, ${motivos[m[1]]}.`); } catch (err) { /* ignorar */ }
+}
 function preguntarIA(...args) {
   const miTurno = colaLlamadas.then(async () => {
     const espera = Math.max(0, COOLDOWN_ENTRE_LLAMADAS_MS - (Date.now() - ultimaLlamadaTs));
@@ -637,6 +648,7 @@ async function crearBot() {
       await manejarRespuesta(bot, { nombre: username }, respuesta);
     } catch (e) {
       console.error('[bot] error respondiendo chat:', e.message, e.stack);
+      avisarFalloIA(bot, e);
     }
   });
 
