@@ -372,15 +372,52 @@ function iniciarHuida(bot) {
   }, 200);
   intervalos.push(esquivaInterval);
 
-  // Nadar: en agua o lava mantiene saltar pulsado para flotar y no ahogarse. El pathfinder
-  // sigue moviendose; esto solo evita que se hunda cuando esta quieto.
+  // Nadar: en agua/lava mantiene saltar (flota), busca la orilla mas cercana y nada hacia ella.
+  // Respeta una persecucion en curso en agua; en lava siempre prioriza salir.
   let nadando = false;
+  let ultimoRescate = 0;
+  const esOrilla = (b) => b && b.boundingBox === 'block' && !b.liquid &&
+    !/lava|magma|cactus|campfire|fire|powder_snow|sweet_berry/.test(b.name);
+  const buscarOrilla = () => {
+    const p = bot.entity.position;
+    const bloque = bot.findBlock({
+      maxDistance: 24,
+      matching: (b) => {
+        if (!esOrilla(b)) return false;
+        const a1 = bot.blockAt(b.position.offset(0, 1, 0));
+        const a2 = bot.blockAt(b.position.offset(0, 2, 0));
+        return a1 && a2 && a1.boundingBox === 'empty' && !a1.liquid && a2.boundingBox === 'empty' && !a2.liquid;
+      }
+    });
+    return bloque && bloque.position.distanceTo(p) < 40 ? bloque : null;
+  };
   const nadoInterval = setInterval(() => {
     if (!bot.entity) { clearInterval(nadoInterval); return; }
-    const enLiquido = !!(bot.entity.isInWater || bot.entity.isInLava);
-    if (enLiquido === nadando) return;
-    nadando = enLiquido;
-    try { bot.setControlState('jump', enLiquido); } catch (e) { /* ignorar */ }
+    const enLava = !!bot.entity.isInLava;
+    const enLiquido = !!(bot.entity.isInWater || enLava);
+    if (enLiquido !== nadando) {
+      nadando = enLiquido;
+      try { bot.setControlState('jump', enLiquido); } catch (e) { /* ignorar */ }
+      if (!enLiquido) { try { bot.setControlState('forward', false); bot.setControlState('sprint', false); } catch (e) { /* ignorar */ } }
+    }
+    if (!enLiquido) return;
+    const ahora = Date.now();
+    const sinAire = typeof bot.oxygenLevel === 'number' && bot.oxygenLevel <= 12;
+    const moviendose = bot.pathfinder && bot.pathfinder.isMoving && bot.pathfinder.isMoving();
+    if (moviendose && !enLava && !sinAire) return; // persigue algo: dejarlo
+    if (ahora - ultimoRescate < 1500) return;
+    ultimoRescate = ahora;
+    const orilla = buscarOrilla();
+    try {
+      if (orilla && bot.pathfinder) {
+        const q = orilla.position;
+        bot.pathfinder.setGoal(new goals.GoalNear(q.x, q.y + 1, q.z, 1));
+      } else {
+        // sin orilla a la vista: nadar recto hacia donde mira, sin hundirse
+        bot.setControlState('forward', true);
+        bot.setControlState('sprint', true);
+      }
+    } catch (e) { /* ignorar */ }
   }, 250);
   intervalos.push(nadoInterval);
 
