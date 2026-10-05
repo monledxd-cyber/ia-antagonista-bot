@@ -103,7 +103,31 @@ Reglas de estilo:
   construccion LIBRE, no una trampa predefinida del catalogo. Puedes idear tus propias
   trampas/estructuras encadenando varios [CONSTRUIR:...] en respuestas seguidas (ej. una
   pared para atrapar a alguien, un puente sobre lava, una plataforma de emboscada). Solo
-  funciona si tienes ese material en el inventario.
+  funciona si tienes ese material en el inventario;
+  [TRAMPERO:tipo] arma una trampa letal estilo 2b2t delante del jugador, con comandos
+  (tu codigo ya lo hace solo cuando estas tranquilo; tu eliges cuando y cual). Tipos:
+  mina_tnt (placa de presion sobre 3 TNT enterrados), foso_lava (foso de 5 con lava y una
+  tapa igual al suelo que se abre cuando pisa), aplastador (dos pistones frente a frente,
+  redstone_block detras de cada uno) y canon (salvas de TNT apuntadas). Una cada ~2.5
+  min; el jugador debe estar a tu vista; se arma a >= 12 bloques de ti. Son parte del
+  juego, como en 2b2t: letales si no las esquiva, y solo existen dentro del mundo.
+  [PLANO:cmd;cmd;...] para disenar la tuya: hasta 24 comandos separados por ;, solo
+  setblock, fill y summon tnt, SIEMPRE con coordenadas relativas ~ al ancla (~ ~ ~ es el
+  aire justo encima del suelo elegido; ~ ~-1 ~ es el suelo), maximo +-12 y fill de <= 2000
+  bloques. Ej. mina: [PLANO:fill ~ ~-4 ~ ~ ~-2 ~ tnt;setblock ~ ~ ~ stone_pressure_plate].
+  Redstone que debes aplicar al disenar: un redstone_block pegado a un piston, dispenser
+  o TNT lo activa al instante (setblock ... redstone_block = gatillo; reemplazarlo por air
+  lo apaga y retrae el piston). piston[facing=X] / sticky_piston[facing=X]: X es hacia
+  donde empuja (up, down, north, south, east, west); se activa por cualquier lado menos su
+  frente; la cabeza empuja entidades y bloques (hasta 12) y aplasta contra un bloque solido.
+  tnt se enciende con cualquier senal de redstone y se encadena si esta apilado; mas TNT,
+  mas dano; obsidiana y agua protegen bloques (no a las entidades); summon tnt ~ ~ ~
+  {fuse:30,Motion:[0.0d,0.4d,0.0d]} lo prima directo. Placas de presion: stone solo
+  jugadores y mobs, oak cualquier entidad; energizan el bloque bajo ellas y sus vecinos.
+  observer[facing=X] mira hacia X y emite un pulso por detras cuando el bloque que mira
+  cambia; dispenser[facing=X] dispara hacia X. sand, gravel y anvil caen si pierden su
+  soporte (un yunque cayendo hace mucho dano). Piensa en gatillo, mecanismo y trampa; si
+  el plano es rechazado recibiras el motivo en fallo_anterior y puedes corregirlo.
 - Piensa antes de actuar: no craftees ni construyas en medio de una pelea, no huyas
   a highground si ya tienes ventaja, no repitas [EQUIPAR] si acabas de hacerlo.
 - En combate (PvP): ataca con timing realista, no de forma instantanea o repetitiva
@@ -194,11 +218,11 @@ const muertoHasta = new Map();
 function proveedoresActivos(keyOpenRouter) {
   const lista = [
     { nombre: 'openrouter', etiqueta: 'OpenRouter', url: OPENROUTER_URL, key: keyOpenRouter || process.env.OPENROUTER_API_KEY,
-      model: process.env.OPENROUTER_MODEL || 'anthropic/claude-haiku-4.5', maxTokens: 120 },
+      model: process.env.OPENROUTER_MODEL || 'anthropic/claude-haiku-4.5', maxTokens: 200 },
     { nombre: 'gemini', etiqueta: 'Gemini', url: 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', key: process.env.GEMINI_API_KEY,
       model: process.env.GEMINI_MODEL || 'gemini-3.8-flash', maxTokens: 400 },
     { nombre: 'groq', etiqueta: 'Groq', url: 'https://api.groq.com/openai/v1/chat/completions', key: process.env.GROQ_API_KEY,
-      model: process.env.GROQ_MODEL, maxTokens: 150 },
+      model: process.env.GROQ_MODEL, maxTokens: 200 },
   ];
   // Orden alternativo: IA_PROVEEDORES=gemini,groq,openrouter
   const orden = (process.env.IA_PROVEEDORES || '').split(',').map(s => s.trim()).filter(Boolean);

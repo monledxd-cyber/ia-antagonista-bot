@@ -80,8 +80,31 @@ function iniciarCombate(bot, api) {
     return true;
   }
 
+  // Encantamientos del item (1.21.4 los guarda como componente; la forma exacta no esta verificada en juego,
+  // por eso se aceptan varias formas y hay una deteccion por comportamiento como respaldo).
+  const encantosDe = (item) => {
+    const out = {};
+    try {
+      const raw = item.enchants;
+      const lista = Array.isArray(raw) ? raw : (raw && raw.enchantments) || [];
+      for (const e of lista) {
+        const reg = bot.registry.enchantments && bot.registry.enchantments[e.id];
+        const nombre = e.name || (reg && reg.name) || (typeof e.id === 'string' ? e.id.replace('minecraft:', '') : null);
+        if (nombre) out[nombre] = e.lvl != null ? e.lvl : (e.level != null ? e.level : 1);
+      }
+    } catch (err) { /* ignorar */ }
+    return out;
+  };
+  // 'riptide' (se usa para impulsarse con agua o lluvia; NO se lanza), 'loyalty' (vuelve solo), 'normal' (hay que recogerlo).
+  const tipoTridente = (item) => {
+    if (bot._tridenteSinLanzar) return 'riptide';
+    const e = encantosDe(item);
+    return e.riptide ? 'riptide' : (e.loyalty ? 'loyalty' : 'normal');
+  };
+
   // Tridente (wiki): 2.5 bloques/tick, gravedad 0.05, arrastre 0.99 (misma fisica que la flecha, otra velocidad).
-  // Carga minima real 0.5 s; el bot la telegrafia con 1.2 s. Una sola municion: tras lanzarlo hay que recogerlo.
+  // Carga minima real 0.5 s; el bot la telegrafia con 1.2 s. Una sola municion: tras lanzarlo hay que recogerlo
+  // (salvo Lealtad, que vuelve solo). Riptide no se lanza: se usa para impulsarse al enemigo en agua o lluvia.
   const TRIDENTE_CARGA_MS = 1200;
   async function lanzarTridente(t, arma) {
     await bot.equip(arma, 'hand');
@@ -90,7 +113,26 @@ function iniciarCombate(bot, api) {
     while (Date.now() < fin && valido(t)) { apuntar(t, 2.5); await dormir(70); }
     if (!valido(t) || !apuntar(t, 2.5)) { bot.deactivateItem(); return false; }
     bot.deactivateItem(); // soltar = lanzar
+    await dormir(450);
+    if (tiene('trident')) { // sigue en el inventario: no se pudo lanzar => es Riptide
+      bot._tridenteSinLanzar = true;
+      console.log('[combate] el tridente no se lanza (Riptide): se usara para impulsarse');
+      return false;
+    }
     bot._tridenteLanzado = true;
+    return true;
+  }
+  // Riptide: carga y suelta apuntando al rival; solo impulsa si el bot esta en agua o bajo lluvia.
+  async function impulsoRiptide(t, arma) {
+    await bot.equip(arma, 'hand');
+    bot.activateItem();
+    const fin = Date.now() + 1000;
+    while (Date.now() < fin && valido(t)) {
+      const o = t.position.offset(0, 1.0, 0).minus(bot.entity.position.offset(0, 1.62, 0));
+      bot.look(Math.atan2(-o.x, -o.z), Math.atan2(o.y, Math.hypot(o.x, o.z)), true);
+      await dormir(70);
+    }
+    bot.deactivateItem();
     return true;
   }
 
@@ -115,12 +157,21 @@ function iniciarCombate(bot, api) {
     return true;
   }
 
-  // Obsidiana junto al objetivo y autocrystal 8 s (el plugin solo pone cristales sobre obsidiana/bedrock).
-  async function cristales(t) {
+  // Crystal-pvp activo: mientras el rival este a <= 8 bloques y haya cristales y obsidiana (en el inventario o
+  // ya puesta junto al rival), mantiene el autocrystal encendido; si falta obsidiana la coloca junto al rival.
+  // El plugin solo pone cristales sobre obsidiana/bedrock y nunca golpea al jugador: por eso se pausa el melee.
+  let crisActivo = false, crisHasta = 0, ultAcercar = 0;
+  const hayObsidianaCerca = (t) => {
+    try {
+      return bot.findBlocks({ point: t.position, maxDistance: 5, count: 1,
+        matching: (b) => b && (b.name === 'obsidian' || b.name === 'bedrock') }).length > 0;
+    } catch (e) { return false; }
+  };
+  async function ponerObsidiana(t) {
     const obs = tiene('obsidian');
-    if (!obs || !tiene('end_crystal') || !bot.autoCrystal || bot.autoCrystal.enabled) return false;
+    if (!obs) return false;
     const base = t.position.floored().offset(0, -1, 0);
-    const lado = [[1, 0], [-1, 0], [0, 1], [0, -1]].map(([x, z]) => base.offset(x, 0, z)).find((p) => {
+    const lado = [[1, 0], [-1, 0], [0, 1], [0, -1], [2, 0], [-2, 0], [0, 2], [0, -2]].map(([x, z]) => base.offset(x, 0, z)).find((p) => {
       const b = bot.blockAt(p), a = bot.blockAt(p.offset(0, 1, 0)), a2 = bot.blockAt(p.offset(0, 2, 0));
       return b && a && a2 && b.boundingBox === 'block' && a.name === 'air' && a2.name === 'air' &&
         p.distanceTo(bot.entity.position.offset(0, 1.6, 0)) < 4.5;
@@ -128,14 +179,45 @@ function iniciarCombate(bot, api) {
     if (!lado) return false;
     await bot.equip(obs, 'hand');
     await bot.placeBlock(bot.blockAt(lado), new Vec3(0, 1, 0));
-    bot.autoCrystal.enable();
-    setTimeout(() => { try { bot.autoCrystal.disable(); } catch (e) { /* ignorar */ } api.equiparArma(); }, 8000);
     return true;
   }
+  function detenerCristales(t) {
+    if (!crisActivo) return;
+    crisActivo = false;
+    try { bot.autoCrystal.disable(); } catch (e) { /* ignorar */ }
+    api.ocupar(false); api.equiparArma();
+    if (valido(t)) api.reanudar(t);
+  }
+  const cristalLoop = setInterval(async () => {
+    if (!bot.entity) { clearInterval(cristalLoop); return; }
+    try {
+      const t = api.obtenerObjetivo();
+      const ahora = Date.now();
+      const util = valido(t) && t.type === 'player' && bot.autoCrystal && tiene('end_crystal') &&
+        dist(t) <= 8 && bot.health >= 9;
+      if (crisActivo) {
+        if (!util || ahora > crisHasta) { detenerCristales(t); ultCristal = ahora; return; }
+        if (dist(t) > 5.5 && ahora - ultAcercar > 1000) { ultAcercar = ahora; api.acercar(t, 3.5); }
+        return;
+      }
+      if (!util || ocupado || api.ocupado() || ahora - ultCristal < 4000) return;
+      ultCristal = ahora;
+      if (!hayObsidianaCerca(t)) {
+        if (dist(t) > 4.5) { api.acercar(t, 3.5); return; }
+        ocupado = true; api.ocupar(true);
+        try { if (!(await ponerObsidiana(t))) return; } finally { ocupado = false; api.ocupar(false); }
+      }
+      api.pausar();
+      api.ocupar(true);
+      crisActivo = true; crisHasta = ahora + 15000;
+      bot.autoCrystal.enable();
+    } catch (e) { crisActivo = false; api.ocupar(false); console.error('[combate/cristales]', e.message); }
+  }, 400);
+  api.intervalos.push(cristalLoop);
 
   let ocupado = false;
   let enMLG = false;
-  let ultDisparo = 0, ultCristal = 0, ultSmash = 0, ultEscudo = 0, enCaida = false;
+  let ultArco = 0, ultTrid = 0, ultRip = 0, ultimoRango = null, ultCristal = 0, ultSmash = 0, ultEscudo = 0, enCaida = false;
 
   const loop = setInterval(async () => {
     if (!bot.entity) { clearInterval(loop); return; }
@@ -171,26 +253,26 @@ function iniciarCombate(bot, api) {
         try { await api.smashAttack(); } finally { ocupado = false; api.ocupar(false); api.equiparArma(); }
         return;
       }
-      if (d >= 2.5 && d <= 5.5 && bot.health >= 10 && ahora - ultCristal > 20000) {
-        ultCristal = ahora; ocupado = true; api.ocupar(true);
-        try { await cristales(t); } finally { ocupado = false; api.ocupar(false); }
-        return;
-      }
+      // Arco/ballesta y tridente se turnan: si ambos estan listos, alterna; si uno recarga, usa el otro.
       const arco = tiene('crossbow') || tiene('bow');
       const tridente = tiene('trident');
-      if (!(arco && flechas()) && tridente && d > 5 && d <= 26 && ahora - ultDisparo > 4000 && vista(t)) {
-        ultDisparo = ahora; ocupado = true; api.ocupar(true);
+      const tipoT = tridente ? tipoTridente(tridente) : null;
+      const quieto = (comiendoRival(t) || /^(bow|crossbow)$/.test(sosteniendo(t))) && usando(t);
+      const listoArco = !!(arco && flechas()) && d > 8 && d <= 28 && ahora - ultArco > (quieto ? 700 : 1800);
+      const listoTrid = !!tridente && tipoT !== 'riptide' && d > 5 && d <= 26 && ahora - ultTrid > (tipoT === 'loyalty' ? 2500 : 4000);
+      const listoRip = !!tridente && tipoT === 'riptide' && d > 5 && d <= 25 && ahora - ultRip > 3000 &&
+        (bot.entity.isInWater || bot.isRaining);
+      if ((listoArco || listoTrid || listoRip) && vista(t)) {
+        let eleg;
+        if (listoArco && listoTrid) eleg = ultimoRango === 'arco' ? 'trid' : 'arco';
+        else eleg = listoArco ? 'arco' : (listoTrid ? 'trid' : 'rip');
+        ocupado = true; api.ocupar(true);
         api.pausar();
-        try { await disparar(t, tridente); }
-        finally { ocupado = false; api.ocupar(false); api.equiparArma(); if (valido(t)) api.reanudar(t); }
-        return;
-      }
-      const arma = arco;
-      if (arma && flechas() && d > 8 && d <= 28 && ahora - ultDisparo > ((comiendoRival(t) || /^(bow|crossbow)$/.test(sosteniendo(t))) && usando(t) ? 700 : 1800) && vista(t)) {
-        ultDisparo = ahora; ocupado = true; api.ocupar(true);
-        api.pausar();
-        try { await disparar(t, arma); }
-        finally { ocupado = false; api.ocupar(false); api.equiparArma(); if (valido(t)) api.reanudar(t); }
+        try {
+          if (eleg === 'arco') { ultArco = ahora; ultimoRango = 'arco'; await disparar(t, arco); }
+          else if (eleg === 'trid') { ultTrid = ahora; ultimoRango = 'trid'; await disparar(t, tridente); }
+          else { ultRip = ahora; await impulsoRiptide(t, tridente); }
+        } finally { ocupado = false; api.ocupar(false); api.equiparArma(); if (valido(t)) api.reanudar(t); }
       }
     } catch (e) {
       ocupado = false; api.ocupar(false);

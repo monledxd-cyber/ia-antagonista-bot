@@ -6,6 +6,7 @@ const { pathfinder, Movements, goals } = require('mineflayer-pathfinder');
 const pvpPlugin = require('mineflayer-pvp').plugin;
 const { autoCrystal } = require('mineflayer-autocrystal');
 const { iniciarCombate } = require('./combate');
+const { crearTrampero } = require('./trampas');
 const { status: statusPing } = require('minecraft-server-util');
 const express = require('express');
 const { parseFlatSnbt } = require('./snbt');
@@ -226,6 +227,12 @@ function iniciarHuida(bot) {
     smashAttack: () => smashAttack(bot),
     ocupado: () => manoOcupada || comiendo,
     ocupar: (v) => { manoOcupada = v; },
+    acercar: (t, r) => { objetivoActual = null; try { bot.pathfinder.setGoal(new goals.GoalNear(t.position.x, t.position.y, t.position.z, r)); } catch (e) { /* ignorar */ } },
+  });
+
+  // Speakerman update: construye trampas por su cuenta cuando esta tranquilo (necesita OP).
+  bot._trampero = crearTrampero(bot, {
+    tranquilo: () => !objetivoActual && !(bot.pvp && bot.pvp.target) && bot.health > 10 && !enemigoCerca(14),
   });
 
   // Al recibir daño: ataca si esta cerca, si no lo persigue.
@@ -655,6 +662,10 @@ async function crearBot() {
     if (!bot.autoCrystal) bot.loadPlugin(autoCrystal);
     const movimientos = new Movements(bot);
     movimientos.allowSprinting = true;
+    for (const n of ['stone_pressure_plate', 'oak_pressure_plate', 'light_weighted_pressure_plate', 'heavy_weighted_pressure_plate', 'tripwire']) {
+      const def = bot.registry.blocksByName[n];
+      if (def) movimientos.blocksToAvoid.add(def.id); // no pisar sus propias minas
+    }
     movimientos.canDig = false; // no rompe bloques al perseguir, evita destrozar el mundo
     bot.pathfinder.setMovements(movimientos);
     equiparAutomatico(bot);
@@ -1083,6 +1094,12 @@ async function manejarRespuesta(bot, ctx, respuestaCruda) {
   const mSmash = texto.match(/\[SMASH\]/);
   if (mSmash) texto = texto.replace(mSmash[0], '').trim();
 
+  const mTrampero = texto.match(/\[TRAMPERO:(mina_tnt|foso_lava|aplastador|canon)\]/);
+  if (mTrampero) texto = texto.replace(mTrampero[0], '').trim();
+
+  const mPlano = texto.match(/\[PLANO:((?:[^\[\]]|\[[^\]]*\])+)\]/);
+  if (mPlano) texto = texto.replace(mPlano[0], '').trim();
+
   const mRecol = texto.match(/\[RECOLECTAR:([a-z_]+)(?::(\d+))?\]/);
   if (mRecol) texto = texto.replace(mRecol[0], '').trim();
 
@@ -1281,6 +1298,21 @@ async function manejarRespuesta(bot, ctx, respuestaCruda) {
     }
   }
 
+  if ((mTrampero || mPlano) && bot._trampero) {
+    try {
+      const jugador = bot.players[ctx.nombre] && bot.players[ctx.nombre].entity;
+      if (!jugador) {
+        ultimaFallaJugador.set(ctx.nombre, 'TRAMPERO/PLANO fallo, no ves al jugador (esta fuera de tu vista)');
+      } else {
+        const r = mTrampero ? bot._trampero.construir(mTrampero[1], jugador) : bot._trampero.construirPlano(mPlano[1], jugador);
+        if (!r.ok) ultimaFallaJugador.set(ctx.nombre, `${mTrampero ? 'TRAMPERO:' + mTrampero[1] : 'PLANO'} fallo, ${r.motivo}`);
+      }
+    } catch (e) {
+      console.error('[bot] error construyendo trampa:', e.message);
+      ultimaFallaJugador.set(ctx.nombre, `trampa fallo: ${e.message}`);
+    }
+  }
+
   if (mRecol) {
     try {
       const r = await recolectarBloque(bot, mRecol[1], Number(mRecol[2]) || 1);
@@ -1313,7 +1345,7 @@ app.get('/', (_req, res) => res.send('IA antagonista activa'));
 process.on('unhandledRejection', (e) => console.error('[proc] promesa rechazada sin manejar:', e && e.message ? e.message : e));
 // Nombre de version visible: 'v.X.YYY.ZZ sividi toile' (chiste de DeX; quitarlo solo si el lo pide).
 // package.json conserva semver puro, que npm exige.
-const BOT_VERSION = `sividi toile v${require("./package.json").version}`;
+const BOT_VERSION = `sividi toile v${require("./package.json").version} speakerman update`;
 app.get('/health', (_req, res) => res.json({ status: 'ok', version: BOT_VERSION, uptime: process.uptime(), diagnostico: stats }));
 app.listen(process.env.PORT || 3000, () => console.log(`[http] servidor de salud escuchando (${BOT_VERSION})`));
 
