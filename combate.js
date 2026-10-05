@@ -80,7 +80,22 @@ function iniciarCombate(bot, api) {
     return true;
   }
 
+  // Tridente (wiki): 2.5 bloques/tick, gravedad 0.05, arrastre 0.99 (misma fisica que la flecha, otra velocidad).
+  // Carga minima real 0.5 s; el bot la telegrafia con 1.2 s. Una sola municion: tras lanzarlo hay que recogerlo.
+  const TRIDENTE_CARGA_MS = 1200;
+  async function lanzarTridente(t, arma) {
+    await bot.equip(arma, 'hand');
+    bot.activateItem();
+    const fin = Date.now() + TRIDENTE_CARGA_MS;
+    while (Date.now() < fin && valido(t)) { apuntar(t, 2.5); await dormir(70); }
+    if (!valido(t) || !apuntar(t, 2.5)) { bot.deactivateItem(); return false; }
+    bot.deactivateItem(); // soltar = lanzar
+    bot._tridenteLanzado = true;
+    return true;
+  }
+
   async function disparar(t, arma) {
+    if (arma.name === 'trident') return lanzarTridente(t, arma);
     const ballesta = arma.name === 'crossbow';
     const v = ballesta ? 3.15 : 3.0;
     await bot.equip(arma, 'hand');
@@ -161,7 +176,16 @@ function iniciarCombate(bot, api) {
         try { await cristales(t); } finally { ocupado = false; api.ocupar(false); }
         return;
       }
-      const arma = tiene('crossbow') || tiene('bow');
+      const arco = tiene('crossbow') || tiene('bow');
+      const tridente = tiene('trident');
+      if (!(arco && flechas()) && tridente && d > 5 && d <= 26 && ahora - ultDisparo > 4000 && vista(t)) {
+        ultDisparo = ahora; ocupado = true; api.ocupar(true);
+        api.pausar();
+        try { await disparar(t, tridente); }
+        finally { ocupado = false; api.ocupar(false); api.equiparArma(); if (valido(t)) api.reanudar(t); }
+        return;
+      }
+      const arma = arco;
       if (arma && flechas() && d > 8 && d <= 28 && ahora - ultDisparo > ((comiendoRival(t) || /^(bow|crossbow)$/.test(sosteniendo(t))) && usando(t) ? 700 : 1800) && vista(t)) {
         ultDisparo = ahora; ocupado = true; api.ocupar(true);
         api.pausar();
@@ -275,7 +299,22 @@ function iniciarCombate(bot, api) {
   api.intervalos.push(mlg);
 
   // ---------- Escape: totem, perla de ender y correr cuando va perdiendo ----------
-  let ultPerla = 0;
+  let ultPerla = 0, jitter = 0, jitterTs = 0;
+  const hpLog = [];
+  bot.on('health', () => { hpLog.push([Date.now(), bot.health]); if (hpLog.length > 40) hpLog.shift(); });
+  // Umbral de huida variable: base 6 con azar (-2..+2, cambia cada 15 s), sube contra rival superior o si
+  // pierde vida muy rapido, baja si tiene totem o manzana dorada. Nunca fijo.
+  const umbralHuida = (t) => {
+    const ahora = Date.now();
+    if (ahora - jitterTs > 15000) { jitterTs = ahora; jitter = Math.round(Math.random() * 4 - 2); }
+    let u = 6 + jitter;
+    if (t.type === 'player' && rivalSuperior(t)) u += 3;
+    const maxReciente = Math.max(bot.health, ...hpLog.filter(([ts]) => ahora - ts < 3000).map((r) => r[1]));
+    if (maxReciente - bot.health >= 8) u += 3;
+    if (tiene('totem_of_undying')) u -= 2;
+    if (tiene('golden_apple') || tiene('enchanted_golden_apple')) u -= 1;
+    return Math.max(3, Math.min(14, u));
+  };
   const escape = setInterval(async () => {
     if (!bot.entity) { clearInterval(escape); return; }
     if (api.ocupado() || enMLG || ocupado) return;
@@ -286,7 +325,7 @@ function iniciarCombate(bot, api) {
       if (totem && hp <= 10 && (!off || off.name !== 'totem_of_undying')) bot.equip(totem, 'off-hand').catch(() => {});
       else if (hp >= 17 && off && off.name === 'totem_of_undying' && escudo) bot.equip(escudo, 'off-hand').catch(() => {});
       const t = api.obtenerObjetivo();
-      if (!t || hp > (t.type === 'player' && rivalSuperior(t) ? 10 : 7)) return;
+      if (!t || hp > umbralHuida(t)) return;
       const d = dist(t);
       if (d > 10) return;
       const perla = tiene('ender_pearl');
@@ -305,6 +344,25 @@ function iniciarCombate(bot, api) {
     } catch (err) { ocupado = false; api.ocupar(false); }
   }, 400);
   api.intervalos.push(escape);
+
+  // Recoger el tridente lanzado cuando no hay pelea (clavado en un bloque o caido como item).
+  const prev = new Map();
+  const recoger = setInterval(() => {
+    if (!bot.entity) { clearInterval(recoger); return; }
+    if (tiene('trident')) { bot._tridenteLanzado = false; return; }
+    if (!bot._tridenteLanzado || ocupado || api.ocupado() || api.obtenerObjetivo()) return;
+    const p = bot.entity.position;
+    const e = Object.values(bot.entities).find((x) => {
+      const quieto = prev.has(x.id) && prev.get(x.id).distanceTo(x.position) < 0.1;
+      prev.set(x.id, x.position.clone());
+      if (!quieto || x.position.distanceTo(p) > 40) return false;
+      if (x.name === 'trident') return true;
+      const it = x.name === 'item' && x.getDroppedItem && x.getDroppedItem();
+      return !!(it && it.name === 'trident');
+    });
+    if (e) api.irA(e.position);
+  }, 1000);
+  api.intervalos.push(recoger);
   api.intervalos.push(loop);
 }
 

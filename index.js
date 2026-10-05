@@ -222,6 +222,7 @@ function iniciarHuida(bot) {
     equiparArma: () => equiparArma(bot),
     fijarHacha: (v) => { if (preferirHacha !== v) { preferirHacha = v; equiparArma(bot); } },
     tierDe,
+    irA: (pos) => { try { bot.pathfinder.setGoal(new goals.GoalNear(pos.x, pos.y, pos.z, 1)); } catch (e) { /* ignorar */ } },
     smashAttack: () => smashAttack(bot),
     ocupado: () => manoOcupada || comiendo,
     ocupar: (v) => { manoOcupada = v; },
