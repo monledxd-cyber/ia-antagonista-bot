@@ -109,6 +109,7 @@ function iniciarCombate(bot, api) {
   }
 
   let ocupado = false;
+  let enMLG = false;
   let ultDisparo = 0, ultCristal = 0, ultSmash = 0, ultEscudo = 0, enCaida = false;
 
   const loop = setInterval(async () => {
@@ -161,6 +162,138 @@ function iniciarCombate(bot, api) {
       console.error('[combate]', e.message);
     }
   }, 150);
+
+  // ---------- Escudo reactivo: contra cualquier ataque, no solo la mace ----------
+  let escudoArriba = false, escudoHasta = 0, sinAlzarHasta = 0, escudoRotoHasta = 0, ultDano = 0, hpPrev = bot.health;
+  const alzar = (ms, forzar) => {
+    const ahora = Date.now();
+    if (escudoArriba || ahora < escudoRotoHasta || (!forzar && ahora < sinAlzarHasta)) return;
+    const off = bot.inventory.slots[45];
+    if (!off || off.name !== 'shield') return;
+    try { bot.activateItem(true); escudoArriba = true; escudoHasta = ahora + ms; } catch (e) { /* ignorar */ }
+  };
+  const bajar = () => {
+    if (!escudoArriba) return;
+    try { bot.deactivateItem(); } catch (e) { /* ignorar */ }
+    escudoArriba = false;
+    sinAlzarHasta = Date.now() + 350; // hueco para poder golpear entre guardias
+  };
+  bot.on('health', () => {
+    if (bot.health < hpPrev) {
+      ultDano = Date.now();
+      // Dano con el escudo arriba y un hacha cerca: probablemente nos lo inutilizo (5 s). No insistir.
+      const hacha = Object.values(bot.entities).find((e) => e !== bot.entity && e.type === 'player' &&
+        e.heldItem && /_axe$/.test(e.heldItem.name) && e.position.distanceTo(bot.entity.position) < 6);
+      if (escudoArriba && hacha) { escudoRotoHasta = Date.now() + 5000; bajar(); }
+    }
+    hpPrev = bot.health;
+  });
+  const PROYECTIL = /^(arrow|spectral_arrow|trident|fireball|small_fireball|wind_charge|snowball|egg)$/;
+  const defensa = setInterval(() => {
+    if (!bot.entity) { clearInterval(defensa); return; }
+    if (api.ocupado() || enMLG || ocupado) { bajar(); return; }
+    const ahora = Date.now();
+    if (escudoArriba && ahora > escudoHasta) bajar();
+    const p = bot.entity.position;
+    const todos = Object.values(bot.entities);
+    const proy = todos.find((e) => PROYECTIL.test(e.name || '') && e.velocity &&
+      e.position.distanceTo(p) < 14 && e.position.plus(e.velocity).distanceTo(p) < e.position.distanceTo(p) - 0.2);
+    if (proy) { alzar(900, true); return; }
+    const arquero = todos.find((e) => e !== bot.entity && e.type === 'player' && e.heldItem &&
+      /^(bow|crossbow)$/.test(e.heldItem.name) && e.position.distanceTo(p) < 35);
+    if (arquero && ahora - ultDano < 4000) { try { bot.lookAt(arquero.position.offset(0, 1.6, 0), true); } catch (e) { /* ignorar */ } alzar(700); return; }
+    const cerca = todos.find((e) => e !== bot.entity && (e.type === 'player' || e.type === 'hostile') &&
+      e.position.distanceTo(p) < 4.2 && e.username !== bot.username);
+    if (cerca) {
+      const arma = (cerca.heldItem && cerca.heldItem.name) || '';
+      const peligrosa = /_axe$|^mace$|^trident$/.test(arma);
+      if (ahora - ultDano < 2500 || bot.health < 16 || peligrosa || cerca.name === 'creeper') alzar(500);
+    } else if (escudoArriba) bajar();
+  }, 100);
+  api.intervalos.push(defensa);
+
+  // ---------- Water-drop (MLG): cubo de agua al caer ----------
+  let yMax = -Infinity, cuboListo = false, aguaPuesta = false;
+  const suelo = () => { // primer bloque no vacio debajo; null si es agua/colchon o no hay
+    const base = bot.entity.position.floored();
+    for (let k = 0; k <= 40; k++) {
+      const b = bot.blockAt(base.offset(0, -k, 0));
+      if (!b) return null;
+      if (b.name === 'air' || b.name === 'cave_air' || b.name === 'void_air') continue;
+      if (/water|slime_block|cobweb|powder_snow|scaffolding|vine|ladder|hay_block/.test(b.name)) return { seguro: true };
+      return { dist: bot.entity.position.y - (b.position.y + 1), seguro: false };
+    }
+    return null;
+  };
+  const mlg = setInterval(async () => {
+    if (!bot.entity) { clearInterval(mlg); return; }
+    const e = bot.entity;
+    try {
+      if (e.onGround || e.isInWater) {
+        if (aguaPuesta && !ocupado) { // recoger el agua puesta para no dejar el cubo vacio
+          aguaPuesta = false; enMLG = true;
+          bot.look(e.yaw, -Math.PI / 2, true);
+          await dormir(80);
+          bot.activateItem();
+          await dormir(200);
+          api.equiparArma();
+        }
+        yMax = -Infinity; cuboListo = false; enMLG = false;
+        return;
+      }
+      yMax = Math.max(yMax, e.position.y);
+      if (e.velocity.y > -0.5 || e.isInLava || e.isInWater) return;
+      const balde = tiene('water_bucket');
+      if (!balde) return;
+      const s = suelo();
+      if (!s || s.seguro) return;
+      const caidaTotal = (yMax - e.position.y) + s.dist;
+      if (caidaTotal < 4.5) return; // dano de caida solo si > 3 bloques; margen
+      enMLG = true;
+      if (!cuboListo && s.dist < 14) {
+        cuboListo = true;
+        if (!bot.heldItem || bot.heldItem.name !== 'water_bucket') await bot.equip(balde, 'hand');
+      }
+      bot.look(e.yaw, -Math.PI / 2, true);
+      if (cuboListo && !aguaPuesta && s.dist <= 3.4 && s.dist > 0.2) {
+        bot.activateItem();
+        aguaPuesta = true;
+      }
+    } catch (err) { /* ignorar */ }
+  }, 50);
+  api.intervalos.push(mlg);
+
+  // ---------- Escape: totem, perla de ender y correr cuando va perdiendo ----------
+  let ultPerla = 0;
+  const escape = setInterval(async () => {
+    if (!bot.entity) { clearInterval(escape); return; }
+    if (api.ocupado() || enMLG || ocupado) return;
+    try {
+      const hp = bot.health, ahora = Date.now();
+      const off = bot.inventory.slots[45];
+      const totem = tiene('totem_of_undying'), escudo = tiene('shield');
+      if (totem && hp <= 10 && (!off || off.name !== 'totem_of_undying')) bot.equip(totem, 'off-hand').catch(() => {});
+      else if (hp >= 17 && off && off.name === 'totem_of_undying' && escudo) bot.equip(escudo, 'off-hand').catch(() => {});
+      const t = api.obtenerObjetivo();
+      if (!t || hp > 7) return;
+      const d = dist(t);
+      if (d > 10) return;
+      const perla = tiene('ender_pearl');
+      if (perla && d < 8 && ahora - ultPerla > 8000) {
+        ultPerla = ahora; ocupado = true; api.ocupar(true);
+        try {
+          api.pausar();
+          await bot.equip(perla, 'hand');
+          const dx = bot.entity.position.x - t.position.x, dz = bot.entity.position.z - t.position.z;
+          await bot.look(Math.atan2(-dx, -dz), 0.6, true); // lejos del enemigo y hacia arriba
+          bot.activateItem();
+          await dormir(300);
+        } finally { ocupado = false; api.ocupar(false); api.equiparArma(); }
+      }
+      api.huir(t);
+    } catch (err) { ocupado = false; api.ocupar(false); }
+  }, 400);
+  api.intervalos.push(escape);
   api.intervalos.push(loop);
 }
 

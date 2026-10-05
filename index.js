@@ -218,6 +218,7 @@ function iniciarHuida(bot) {
     },
     pausar: () => { objetivoActual = null; try { bot.pvp.stop(); bot.pathfinder.setGoal(null); } catch (e) { /* ignorar */ } },
     reanudar: (t) => { try { bot.pvp.attack(t); } catch (e) { /* ignorar */ } },
+    huir: (t) => { objetivoActual = null; try { bot.pvp.stop(); bot.pathfinder.setGoal(new goals.GoalInvert(new goals.GoalFollow(t, 14)), true); } catch (e) { /* ignorar */ } },
     equiparArma: () => equiparArma(bot),
     smashAttack: () => smashAttack(bot),
     ocupado: () => manoOcupada || comiendo,
