@@ -42,6 +42,16 @@ function iniciarCombate(bot, api) {
     const d = e.position.minus(h.p).scaled(1 / ticks);
     return new Vec3(d.x, 0, d.z);
   };
+  // Lectura del rival. metadata[8] = estados de mano de LivingEntity (bit0 = mano activa: comiendo,
+  // cargando arco o bloqueando; bit1 = mano secundaria). Indice segun el protocolo 1.21.x, sin probar en juego.
+  const usando = (e) => !!(e && e.metadata && typeof e.metadata[8] === 'number' && (e.metadata[8] & 3));
+  const sosteniendo = (e) => (e && e.heldItem && e.heldItem.name) || '';
+  const comiendoRival = (e) => usando(e) && !!(bot.registry.foodsByName && bot.registry.foodsByName[sosteniendo(e)]);
+  const conEscudoRival = (e) => Array.isArray(e.equipment) && e.equipment.some((it) => it && it.name === 'shield');
+  // Puntaje de armadura: suma de (tier+1) por pieza. Rival: ranuras 2..5; yo: ranuras 5..8.
+  const puntaje = (items) => items.reduce((a, it) => a + (it && api.tierDe ? api.tierDe(it.name) + 1 : 0), 0);
+  const rivalSuperior = (e) => Array.isArray(e.equipment) &&
+    puntaje(e.equipment.slice(2, 6)) - puntaje([5, 6, 7, 8].map((i) => bot.inventory.slots[i])) >= 4;
   const inv = () => bot.inventory.items();
   const tiene = (n) => inv().find((i) => i.name === n);
   const flechas = () => inv().some((i) => /(^|_)arrow$/.test(i.name));
@@ -128,6 +138,7 @@ function iniciarCombate(bot, api) {
       if (!valido(t)) { enCaida = false; return; }
       const d = dist(t);
       const mace = tiene('mace');
+      if (t.type === 'player' && d < 8) api.fijarHacha(conEscudoRival(t)); // hacha contra escudo, sin esperar a la IA
 
       // Golpe de mace al caer: si ya cae >= 1.5 bloques sobre el objetivo, cambia a mace y pega.
       if (mace && bot.entity.velocity.y < -0.55 && d < 4 && t.type === 'player') {
@@ -151,7 +162,7 @@ function iniciarCombate(bot, api) {
         return;
       }
       const arma = tiene('crossbow') || tiene('bow');
-      if (arma && flechas() && d > 8 && d <= 28 && ahora - ultDisparo > 1800 && vista(t)) {
+      if (arma && flechas() && d > 8 && d <= 28 && ahora - ultDisparo > ((comiendoRival(t) || /^(bow|crossbow)$/.test(sosteniendo(t))) && usando(t) ? 700 : 1800) && vista(t)) {
         ultDisparo = ahora; ocupado = true; api.ocupar(true);
         api.pausar();
         try { await disparar(t, arma); }
@@ -201,7 +212,7 @@ function iniciarCombate(bot, api) {
     if (proy) { alzar(900, true); return; }
     const arquero = todos.find((e) => e !== bot.entity && e.type === 'player' && e.heldItem &&
       /^(bow|crossbow)$/.test(e.heldItem.name) && e.position.distanceTo(p) < 35);
-    if (arquero && ahora - ultDano < 4000) { try { bot.lookAt(arquero.position.offset(0, 1.6, 0), true); } catch (e) { /* ignorar */ } alzar(700); return; }
+    if (arquero && (ahora - ultDano < 4000 || usando(arquero))) { try { bot.lookAt(arquero.position.offset(0, 1.6, 0), true); } catch (e) { /* ignorar */ } alzar(700); return; }
     const cerca = todos.find((e) => e !== bot.entity && (e.type === 'player' || e.type === 'hostile') &&
       e.position.distanceTo(p) < 4.2 && e.username !== bot.username);
     if (cerca) {
@@ -275,7 +286,7 @@ function iniciarCombate(bot, api) {
       if (totem && hp <= 10 && (!off || off.name !== 'totem_of_undying')) bot.equip(totem, 'off-hand').catch(() => {});
       else if (hp >= 17 && off && off.name === 'totem_of_undying' && escudo) bot.equip(escudo, 'off-hand').catch(() => {});
       const t = api.obtenerObjetivo();
-      if (!t || hp > 7) return;
+      if (!t || hp > (t.type === 'player' && rivalSuperior(t) ? 10 : 7)) return;
       const d = dist(t);
       if (d > 10) return;
       const perla = tiene('ender_pearl');

@@ -220,6 +220,8 @@ function iniciarHuida(bot) {
     reanudar: (t) => { try { bot.pvp.attack(t); } catch (e) { /* ignorar */ } },
     huir: (t) => { objetivoActual = null; try { bot.pvp.stop(); bot.pathfinder.setGoal(new goals.GoalInvert(new goals.GoalFollow(t, 14)), true); } catch (e) { /* ignorar */ } },
     equiparArma: () => equiparArma(bot),
+    fijarHacha: (v) => { if (preferirHacha !== v) { preferirHacha = v; equiparArma(bot); } },
+    tierDe,
     smashAttack: () => smashAttack(bot),
     ocupado: () => manoOcupada || comiendo,
     ocupar: (v) => { manoOcupada = v; },
