@@ -5,6 +5,7 @@ const mineflayer = require('mineflayer');
 const { pathfinder, Movements, goals } = require('mineflayer-pathfinder');
 const pvpPlugin = require('mineflayer-pvp').plugin;
 const { autoCrystal } = require('mineflayer-autocrystal');
+const { iniciarCombate } = require('./combate');
 const { status: statusPing } = require('minecraft-server-util');
 const express = require('express');
 const { parseFlatSnbt } = require('./snbt');
@@ -207,6 +208,21 @@ function iniciarHuida(bot) {
       bot.pathfinder.setGoal(new goals.GoalFollow(objetivo, 2), true);
     } catch (e) { /* ignorar */ }
   }
+
+  // Combate por reflejos (arco/ballesta, cristales, mace, escudo) sin depender de la IA.
+  iniciarCombate(bot, {
+    intervalos,
+    obtenerObjetivo: () => {
+      const e = (bot.pvp && bot.pvp.target) || (objetivoActual && bot.entities[objetivoActual]);
+      return e && bot.entities[e.id] ? e : null;
+    },
+    pausar: () => { objetivoActual = null; try { bot.pvp.stop(); bot.pathfinder.setGoal(null); } catch (e) { /* ignorar */ } },
+    reanudar: (t) => { try { bot.pvp.attack(t); } catch (e) { /* ignorar */ } },
+    equiparArma: () => equiparArma(bot),
+    smashAttack: () => smashAttack(bot),
+    ocupado: () => manoOcupada || comiendo,
+    ocupar: (v) => { manoOcupada = v; },
+  });
 
   // Al recibir daño: ataca si esta cerca, si no lo persigue.
   bot.on('entityHurt', (entity) => {
@@ -533,10 +549,13 @@ function registrarFallo(tipo) {
 // Reintentar cada 15s sin parar dispara ese throttle en cadena. Vamos aumentando
 // el tiempo de espera con cada fallo consecutivo, y lo reseteamos al conectar bien.
 let intentosFallidos = 0;
+let hayThrottle = false;
+let ultimoEnd = Date.now();
 function proximoDelay() {
-  const base = 3_000; // igual que Slobos: reintentos iniciales rapidos
-  const delay = Math.min(base * Math.pow(2, intentosFallidos), 90_000); // tope 90s, no 5 min: mas persistente
-  const jitter = Math.floor(Math.random() * 2000); // evita que todos los reintentos caigan en el mismo instante
+  const base = 2_000;
+  const tope = hayThrottle ? 30_000 : 12_000; // persistente: nunca espera mas de 12s (30s si Aternos throttlea)
+  const delay = Math.min(base * Math.pow(1.6, intentosFallidos), tope);
+  const jitter = Math.floor(Math.random() * 1500); // evita que todos los reintentos caigan en el mismo instante
   return delay + jitter;
 }
 
@@ -558,18 +577,31 @@ async function crearBot() {
   console.log(`[diag] resumen hasta ahora: intentos=${stats.intentos} exitos=${stats.exitos} tcpOk=${stats.tcpOk} tcpFallo=${stats.tcpFallo} fallos=${JSON.stringify(stats.fallos)}`);
 
   console.log(`[bot] intentando conectar a ${HOST}:${PORT} (version ${VERSION === false ? 'auto' : VERSION}) como ${BOT_USERNAME}... (TCP crudo: ${tcpOk ? 'OK' : 'FALLO'})`);
-  const bot = mineflayer.createBot({
+  let bot;
+  try {
+  bot = mineflayer.createBot({
     host: HOST,
     port: PORT,
     username: BOT_USERNAME,
     version: VERSION,
     auth: 'offline', // server cracked / offline-mode
     hideErrors: false,
+    // El default de la libreria es 30 s sin keep-alive => "timed out" y desconexion. Si
+    // Aternos se sobrecarga y se atrasa, el bot se salia solo. Se sube a 180 s.
+    checkTimeoutInterval: 180_000,
     // NOTA: checkTimeoutInterval se probo en 30s y luego en 600s -- ninguno
     // arreglo el kicked_vacio. Un mantenedor de mineflayer sugirio quitarlo
     // por completo para este mismo sintoma (kick sin razon util, tarda en
     // aparecer): https://github.com/PrismarineJS/mineflayer/issues/1762
   });
+  } catch (e) {
+    console.error('[bot] createBot lanzo excepcion, se reintenta:', e.message);
+    registrarFallo('createBot_excepcion');
+    botConectadoOEnCurso = false;
+    intentosFallidos++;
+    setTimeout(crearBot, proximoDelay());
+    return;
+  }
 
   // Failsafe: si createBot no emite login/error/end en 150s, forzamos el reintento.
   // 150s porque Aternos puede tardar 90-120s en completar el spawn (no es un colgado real).
@@ -591,8 +623,8 @@ async function crearBot() {
     let ultimoPaquete = Date.now();
     bot._client.on('packet', () => { ultimoPaquete = Date.now(); });
     const vigilante = setInterval(() => {
-      if (Date.now() - ultimoPaquete < 75_000) return;
-      console.log('[bot] 75 s sin paquetes del servidor (conexion zombi), reconectando');
+      if (Date.now() - ultimoPaquete < 120_000) return;
+      console.log('[bot] 120 s sin paquetes del servidor (conexion zombi), reconectando');
       registrarFallo('conexion_zombi');
       try { bot.end(); } catch (e) { /* ignorar */ }
     }, 15_000);
@@ -603,7 +635,11 @@ async function crearBot() {
     console.log(`[bot] conectado a ${HOST}:${PORT} como ${BOT_USERNAME}`);
     stats.exitos++;
     stats.ultimoExito = new Date().toISOString();
-    intentosFallidos = 0; // conexion exitosa: reseteamos el backoff
+  });
+  // El backoff solo se resetea tras 60 s estables: si entra y lo echan enseguida, no martillea cada 2 s.
+  bot.once('spawn', () => {
+    const t = setTimeout(() => { intentosFallidos = 0; hayThrottle = false; }, 60_000);
+    bot.once('end', () => clearTimeout(t));
   });
 
   bot.on('spawn', () => {
@@ -753,6 +789,7 @@ async function crearBot() {
       registrarFallo('kicked_vacio');
     } else if (texto.includes('throttl') || texto.includes('wait before') || texto.includes('too fast') || texto.includes('too many')) {
       console.log('[bot] kick por throttling detectado, se aplicara backoff mas largo');
+      hayThrottle = true;
       registrarFallo('kicked_throttle');
     } else {
       registrarFallo('kicked_otro');
@@ -762,8 +799,10 @@ async function crearBot() {
     console.log('[bot] error de conexion:', err.code || err.message, err);
     registrarFallo(err.code || 'error_desconocido');
   });
-  bot.on('end', () => {
+  bot.on('end', (razon) => {
+    console.log('[bot] fin de conexion, razon:', razon || '(sin razon)');
     botConectadoOEnCurso = false;
+    ultimoEnd = Date.now();
     intentosFallidos++;
     const delay = proximoDelay();
     console.log(`[bot] desconectado, reintentando en ${Math.round(delay / 1000)}s (intento fallido #${intentosFallidos})...`);
@@ -1273,5 +1312,13 @@ process.on('unhandledRejection', (e) => console.error('[proc] promesa rechazada 
 const BOT_VERSION = `sividi toile v${require("./package.json").version}`;
 app.get('/health', (_req, res) => res.json({ status: 'ok', version: BOT_VERSION, uptime: process.uptime(), diagnostico: stats }));
 app.listen(process.env.PORT || 3000, () => console.log(`[http] servidor de salud escuchando (${BOT_VERSION})`));
+
+// Red de seguridad: si por cualquier bug quedo sin bot ni intento en curso, reintenta.
+setInterval(() => {
+  if (!botConectadoOEnCurso && Date.now() - ultimoEnd > 45_000) {
+    console.log('[bot] red de seguridad: sin bot activo, reintentando');
+    crearBot().catch((e) => console.error('[bot] crearBot fallo:', e.message));
+  }
+}, 30_000);
 
 crearBot();
