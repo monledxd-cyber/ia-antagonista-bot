@@ -181,10 +181,67 @@ function iniciarCombate(bot, api) {
     await bot.placeBlock(bot.blockAt(lado), new Vec3(0, 1, 0));
     return true;
   }
+  // Motor propio: COLOCAR (clic derecho con el cristal en la mano sobre la cara superior de la obsidiana) y despues
+  // ROMPER (clic izquierdo al cristal). El plugin viejo comparaba mal la distancia y volvia a colocar sin romper nunca.
+  let ultPoner = 0, ultRomper = 0, ponerCuenta = 0;
+  const esCristal = (e) => e && e.name === 'end_crystal';
+  const centro = (p) => p.offset(0.5, 1, 0.5); // donde queda el cristal sobre el bloque p
+  const danoEn = (ent, pos) => { try { return bot.getExplosionDamages(ent, pos, 6, true) || 0; } catch (e) { return 0; } };
+  async function cristalPaso(t) {
+    const ojos = bot.entity.position.offset(0, 1.62, 0);
+    const mano = bot.heldItem && bot.heldItem.name === 'end_crystal';
+    const ahora = Date.now();
+    // 1) romper: cualquier cristal a alcance de ataque que dane al rival mas de lo que me daña a mi
+    const cristales = Object.values(bot.entities).filter((e) => esCristal(e) && e.position.distanceTo(ojos) <= 4.3);
+    for (const k of cristales.sort((p, q) => danoEn(t, q.position) - danoEn(t, p.position))) {
+      const propio = danoEn(bot.entity, k.position), rival = danoEn(t, k.position);
+      if (propio >= bot.health - 3 || (propio > 9 && rival < propio * 1.2)) continue; // demasiado caro
+      if (ahora - ultRomper < 120) return;
+      ultRomper = ahora;
+      try { await bot.lookAt(k.position, true); bot.attack(k); } catch (e) { /* ignorar */ }
+      return;
+    }
+    // 2) colocar: mejor obsidiana (dano al rival - dano propio), sin cristal ya puesto encima y con 2 de aire
+    if (ahora - ultPoner < 280) return;
+    const cris = tiene('end_crystal');
+    if (!cris) return;
+    let cand = [];
+    try {
+      cand = bot.findBlocks({ point: t.position, maxDistance: 6, count: 40,
+        matching: (b) => b && (b.name === 'obsidian' || b.name === 'bedrock') });
+    } catch (e) { cand = []; }
+    let mejor = null, mejorV = 1.5;
+    for (const p of cand) {
+      const a1 = bot.blockAt(p.offset(0, 1, 0)), a2 = bot.blockAt(p.offset(0, 2, 0));
+      if (!a1 || !a2 || a1.name !== 'air' || a2.name !== 'air') continue;
+      const c = centro(p);
+      if (c.distanceTo(ojos) > 3.6) continue;                      // tiene que poder romperlo despues
+      if (Object.values(bot.entities).some((e) => esCristal(e) && e.position.distanceTo(c) < 1.1)) continue;
+      const propio = danoEn(bot.entity, c), rival = danoEn(t, c);
+      if (propio >= bot.health - 5) continue;
+      const v = rival - propio * 0.8;
+      if (v > mejorV) { mejorV = v; mejor = p; }
+    }
+    if (!mejor) { if (dist(t) > 4 && ahora - ultAcercar > 800) { ultAcercar = ahora; api.acercar(t, 3); } return; }
+    ultPoner = ahora;
+    if (!mano) await bot.equip(cris, 'hand');
+    const bloque = bot.blockAt(mejor);
+    await bot.lookAt(mejor.offset(0.5, 1, 0.5), true);
+    try { await bot.activateBlock(bloque, new Vec3(0, 1, 0)); ponerCuenta++; } catch (e) { /* intento perdido */ }
+  }
+  const cristalMotor = setInterval(async () => {
+    if (!crisActivo || !bot.entity || motorOcupado) return;
+    const t = api.obtenerObjetivo();
+    if (!valido(t) || t.type !== 'player') return;
+    motorOcupado = true;
+    try { await cristalPaso(t); } catch (e) { /* ignorar */ } finally { motorOcupado = false; }
+  }, 60);
+  let motorOcupado = false;
+  api.intervalos.push(cristalMotor);
+
   function detenerCristales(t) {
     if (!crisActivo) return;
     crisActivo = false;
-    try { bot.autoCrystal.disable(); } catch (e) { /* ignorar */ }
     api.ocupar(false); api.equiparArma();
     if (valido(t)) api.reanudar(t);
   }
@@ -193,7 +250,7 @@ function iniciarCombate(bot, api) {
     try {
       const t = api.obtenerObjetivo();
       const ahora = Date.now();
-      const util = valido(t) && t.type === 'player' && bot.autoCrystal && tiene('end_crystal') &&
+      const util = valido(t) && t.type === 'player' && tiene('end_crystal') &&
         dist(t) <= 8 && bot.health >= 9;
       if (crisActivo) {
         if (!util || ahora > crisHasta) { detenerCristales(t); ultCristal = ahora; return; }
@@ -210,7 +267,6 @@ function iniciarCombate(bot, api) {
       api.pausar();
       api.ocupar(true);
       crisActivo = true; crisHasta = ahora + 15000;
-      bot.autoCrystal.enable();
     } catch (e) { crisActivo = false; api.ocupar(false); console.error('[combate/cristales]', e.message); }
   }, 400);
   api.intervalos.push(cristalLoop);

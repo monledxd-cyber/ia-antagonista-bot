@@ -1087,7 +1087,7 @@ async function recolectarBloque(bot, nombre, cantidad = 1) {
 const dormir = (ms) => new Promise(r => setTimeout(r, ms));
 let ultimoSmash = 0;
 async function smashAttack(bot) {
-  if (Date.now() - ultimoSmash < 25_000) return { ok: false, motivo: 'smash en enfriamiento' };
+  if (Date.now() - ultimoSmash < 8_000) return { ok: false, motivo: 'smash en enfriamiento' };
   const inv = bot.inventory.items();
   const maza = inv.find(i => i.name === 'mace');
   const carga = inv.find(i => i.name === 'wind_charge');
@@ -1118,7 +1118,18 @@ async function smashAttack(bot) {
       const p = bot.entity.position, o = objetivo.position;
       bot.lookAt(o.offset(0, objetivo.height ? objetivo.height / 2 : 0.9, 0), true).catch(() => {});
       bot.setControlState('forward', Math.hypot(o.x - p.x, o.z - p.z) > 1.5);
-      if (bot.entity.velocity.y < -0.1 && pico - p.y >= 1.6 && p.distanceTo(o) < 3.5) { bot.attack(objetivo); return { ok: true }; }
+      // El dano de la mace crece con la altura de caida: espera a >= 3 bloques (cuanto mas, mejor) pero dentro de alcance.
+      const caida = pico - p.y, alcance = p.distanceTo(o.offset(0, 0.9, 0));
+      if (bot.entity.velocity.y < -0.1 && alcance < 3.1 && (caida >= 3 || (caida >= 1.6 && (alcance < 2.2 || t > 25)))) {
+        bot.attack(objetivo);
+        await dormir(120);
+        if (bot.entities[objetivo.id] && bot.entity.velocity.y < -0.1) bot.attack(objetivo); // segundo intento si el primero fallo
+        // golpea y corre: se aleja unos instantes para no comerse el contraataque
+        bot.setControlState('back', true); await dormir(500); bot.setControlState('back', false);
+        return { ok: true };
+      }
+      // predice a donde ira: apunta un poco por delante de su velocidad
+      if (objetivo.velocity) bot.lookAt(o.offset(objetivo.velocity.x * 3, 0.9, objetivo.velocity.z * 3), true).catch(() => {});
       if (bot.entity.onGround && t > 5) break;
     }
     return { ok: false, motivo: 'cayo sin alcanzar al jugador' };
