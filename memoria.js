@@ -7,7 +7,7 @@ function crearMemoria(ruta) {
   let datos = {};
   try { datos = JSON.parse(fs.readFileSync(ARCHIVO, 'utf8')) || {}; } catch (e) { datos = {}; }
   let sucio = false;
-  const get = (n) => (datos[n] = datos[n] || { visitas: 0, primera: Date.now(), ultima: Date.now(), muertes: 0, mato: 0, trampas: 0, armas: {}, huyo: 0 });
+  const get = (n) => (datos[n] = datos[n] || { visitas: 0, primera: Date.now(), ultima: Date.now(), muertes: 0, mato: 0, trampas: 0, armas: {}, huyo: 0, obs: {}, n: 0, lugares: {} });
   const guardar = () => {
     if (!sucio) return;
     try { fs.writeFileSync(ARCHIVO, JSON.stringify(datos)); sucio = false; } catch (e) { /* disco de solo lectura */ }
@@ -23,11 +23,21 @@ function crearMemoria(ruta) {
     trampa: (n) => marca(n, 'trampas'),
     huyo: (n) => marca(n, 'huyo'),
     arma: (n, item) => { if (!item) return; const a = get(n).armas; a[item] = (a[item] || 0) + 1; sucio = true; },
+    // Observacion periodica del jugador: tags = ['escudo','arco','sprint','agachado','elytra',...], pos = {x,z}
+    observa: (n, tags, pos) => {
+      const j = get(n); j.n = (j.n || 0) + 1; j.ultima = Date.now(); sucio = true;
+      for (const t of tags) j.obs[t] = (j.obs[t] || 0) + 1;
+      if (pos) { const k = Math.floor(pos.x / 32) + ',' + Math.floor(pos.z / 32); j.lugares[k] = (j.lugares[k] || 0) + 1; }
+    },
     resumen: (n) => {
       const j = datos[n];
       if (!j) return '';
       const arma = Object.entries(j.armas).sort((a, b) => b[1] - a[1])[0];
-      return `${j.visitas} visitas, visto hace ${dias(j.ultima)}d; murio ${j.muertes}x, me mato ${j.mato}x, ${j.trampas} trampas sufridas` + (arma ? `; usa ${arma[0]}` : '');
+      const pct = (k) => (j.n > 20 ? Math.round(100 * (j.obs[k] || 0) / j.n) : 0);
+      const tend = ['escudo', 'arco', 'elytra', 'agachado', 'sprint'].filter((k) => pct(k) >= 15).map((k) => `${k}${pct(k)}%`).join(',');
+      const base = Object.entries(j.lugares || {}).sort((a, b) => b[1] - a[1])[0];
+      const zona = base && base[1] > 20 ? ` zona_habitual=${base[0].split(',').map((v) => v * 32 + 16).join(',')}(x,z)` : '';
+      return `${j.visitas} visitas, visto hace ${dias(j.ultima)}d; murio ${j.muertes}x, me mato ${j.mato}x, ${j.trampas} trampas sufridas` + (arma ? `; usa ${arma[0]}` : '') + (tend ? `; tendencias ${tend}` : '') + zona;
     },
     guardar,
     detener: () => { clearInterval(timer); guardar(); },

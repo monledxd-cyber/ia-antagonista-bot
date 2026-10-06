@@ -702,14 +702,68 @@ async function crearBot() {
           if (e.type !== 'player' || e.username === BOT_USERNAME || e.position.distanceTo(bot.entity.position) > 20) continue;
           const it = e.heldItem && e.heldItem.name;
           if (it && /sword|axe|bow|trident|mace|crystal|shield|pickaxe/.test(it)) memoria.arma(e.username, it);
+          const off = e.equipment && e.equipment[1] && e.equipment[1].name;
+          const tags = [];
+          if ((off === 'shield') || it === 'shield') tags.push('escudo');
+          if (it === 'bow' || it === 'crossbow') tags.push('arco');
+          if (e.metadata && e.metadata[0] !== undefined) {
+            const f = Number(e.metadata[0]) || 0;
+            if (f & 0x08) tags.push('sprint');
+            if (f & 0x02) tags.push('agachado');
+            if (f & 0x80) tags.push('elytra');
+          }
+          memoria.observa(e.username, tags, { x: e.position.x, z: e.position.z });
         }
-      }, 10_000);
+      }, 5_000);
       bot.once('end', () => { clearInterval(armasI); memoria.guardar(); });
     }
 
     // Habla espontanea: cada ~90s, si hay un jugador cerca, comenta sin que
     // haya pasado nada en particular. Se crea UNA sola vez por conexion (no
     // en cada respawn, que tambien dispara 'spawn' y duplicaria el interval).
+    // Voluntad propia: sin que nadie hable ni dispare el datapack, cada ~2 min decide solo que hacer (incluye [CMD]).
+    if (!bot._voluntadActiva) {
+      bot._voluntadActiva = true;
+      const BASE = Number(process.env.IA_VOLUNTAD_MS) || 120_000;
+      let ultCmd = 0, pensando = false;
+      const ciclo = async () => {
+        if (!bot.entity || pensando || process.env.IA_VOLUNTAD === '0') return;
+        const ocupadoYa = (bot.pvp && bot.pvp.target) || bot.health <= 8 || (bot._trampero && bot._trampero.pendientes() > 0);
+        if (ocupadoYa) return;
+        const online = Object.values(bot.players).filter(p => p.username !== BOT_USERNAME);
+        if (!online.length) return;
+        const p = online[Math.floor(Math.random() * online.length)];
+        const real = ultimoContexto.get(p.username) || {};
+        const ent = p.entity;
+        const hist = registrarInteraccion(p.username);
+        pensando = true;
+        try {
+          const f = ultimaFallaJugador.get(p.username); if (f) ultimaFallaJugador.delete(p.username);
+          let respuesta = await preguntarIA(OPENROUTER_KEY, {
+            nombre: p.username, vida: real.vida ?? 'desconocida',
+            x: real.x ?? (ent && ent.position.x), y: real.y ?? (ent && ent.position.y), z: real.z ?? (ent && ent.position.z),
+            inventario: real.inventario, cerca_lava: real.cerca_lava ?? 0, cerca_borde: real.cerca_borde ?? 0,
+            dimension: real.dimension, hora_dia: real.hora_dia, diamantes: real.diamantes ?? 'desconocidos',
+            interacciones: hist.interacciones, ultimasRespuestas: hist.ultimasRespuestas,
+            eventosRecientes: formatearEventos(p.username), estadoPropio: obtenerEstadoPropio(bot),
+            ultimaFalla: f, ...extrasCtx(bot, p.username, f),
+            voluntad: true, enVista: !!ent,
+          });
+          registrarRespuesta(p.username, respuesta);
+          // limite de ritmo para comandos propios: el chat vanilla expulsa por spam
+          if (/\[CMD:/.test(respuesta) && Date.now() - ultCmd < 20_000) respuesta = respuesta.replace(/\[CMD:(?:[^\[\]]|\[[^\]]*\])+\]/, '');
+          else if (/\[CMD:/.test(respuesta)) ultCmd = Date.now();
+          await manejarRespuesta(bot, { nombre: p.username }, respuesta);
+        } catch (e) { console.error('[voluntad] error:', e.message); }
+        pensando = false;
+      };
+      const programar = () => {
+        const t = setTimeout(async () => { await ciclo(); if (bot._voluntadActiva) programar(); }, BASE * (0.6 + Math.random() * 0.8));
+        bot.once('end', () => { clearTimeout(t); bot._voluntadActiva = false; });
+      };
+      programar();
+    }
+
     if (!bot._habladorEspontaneoActivo) {
       bot._habladorEspontaneoActivo = true;
       const HABLA_ESPONTANEA_MS = 90_000;

@@ -44,8 +44,9 @@ Estilo:
   [TRAMPA:borde] empujon junto a un precipicio; [TRAMPA:lava] lava cerca (no debajo);
   [TRAMPA:jaula] lo encierra un momento; [TRAMPA:oscuridad] apaga la luz; [TRAMPA:desarme] tira
   el item de su mano; [PERSEGUIR:nombre] (nombre exacto); [IR:x,y,z] (solo numeros);
-  [ATACAR] golpea al mas cercano si esta a < 4 bloques; [CMD:comando] consola sin barra (setblock,
-  fill, item give/clear); [EQUIPAR] mejor armadura y espada; [OFFHAND:item]; [ARMA:item];
+  [ATACAR] golpea al mas cercano si esta a < 4 bloques; [CMD:comando] consola sin barra, tuyo por voluntad propia (title/tellraw,
+  playsound, effect give blindness|darkness|slowness|nausea|mining_fatigue, time set night, weather
+  thunder, summon lightning_bolt, particle, setblock, fill); ve con tacto, 1 por turno; [EQUIPAR] mejor armadura y espada; [OFFHAND:item]; [ARMA:item];
   [USAR:ender_pearl|wind_charge|bow|crossbow|golden_apple|enchanted_golden_apple|trident] solo
   si lo tienes; [CRYSTALPVP] cristales de end contra el jugador (exige end_crystal y obsidiana;
   tu forma mas letal); [SMASH] mace + wind_charge: te lanza y caes sobre el jugador (12+ de
@@ -124,7 +125,9 @@ entidades_cerca:${entStr}
 bloque_enfrente:${bloqueStr}
 ${estadoPropioLinea}
 
-${contextoJugador.espontaneo
+${contextoJugador.voluntad
+  ? `Nadie te hablo: actuas por VOLUNTAD PROPIA. ${contextoJugador.enVista ? 'Lo tienes a la vista.' : 'No lo ves ahora; usa su ultima posicion.'} Decide tu: acechar, cambiar el clima o la hora, un efecto, un titulo, una trampa, o callar. Usa memoria_jugador para explotar sus habitos (tendencias, zona_habitual). Elige UNA accion con etiqueta y una frase corta.`
+  : contextoJugador.espontaneo
   ? 'No paso nada en particular ahora mismo -- solo estas vigilando. Suelta un comentario espontaneo, sin urgencia, como si simplemente decidieras hablar.'
   : 'Comenta la situacion con tu personalidad. Decide si vale la pena activar una trampa ahora.'}`;
   }
