@@ -108,13 +108,26 @@ Reglas de estilo:
   (tu codigo ya lo hace solo cuando estas tranquilo; tu eliges cuando y cual). Tipos:
   mina_tnt (placa de presion sobre 3 TNT enterrados), foso_lava (foso de 5 con lava y una
   tapa igual al suelo que se abre cuando pisa), aplastador (dos pistones frente a frente,
-  redstone_block detras de cada uno) y canon (salvas de TNT apuntadas). Una cada ~2.5
+  redstone_block detras de cada uno) y railgun (canon de TNT real: un pilar de obsidiana
+  lanza un TNT-proyectil con la explosion de TNT de carga puestos detras y debajo de el;
+  tu codigo calcula carga, angulo y mecha y aprende la potencia midiendola). Una cada ~2.5
   min; el jugador debe estar a tu vista; se arma a >= 12 bloques de ti. Son parte del
   juego, como en 2b2t: letales si no las esquiva, y solo existen dentro del mundo.
   [PLANO:cmd;cmd;...] para disenar la tuya: hasta 24 comandos separados por ;, solo
   setblock, fill y summon tnt, SIEMPRE con coordenadas relativas ~ al ancla (~ ~ ~ es el
   aire justo encima del suelo elegido; ~ ~-1 ~ es el suelo), maximo +-12 y fill de <= 2000
   bloques. Ej. mina: [PLANO:fill ~ ~-4 ~ ~ ~-2 ~ tnt;setblock ~ ~ ~ stone_pressure_plate].
+  Bloques problematicos: solo un cubo COMPLETO y opaco (piedra, tierra, tablones, troncos)
+  conduce redstone y sostiene bien una placa; losas, escaleras, vallas, cristal, hojas,
+  hielo y slime no conducen y una placa sobre una losa no sirve. Madera, tablones, lana,
+  hojas, alfombras, heno y estanterias arden: nunca a <= 2 bloques de lava o fuego (usa
+  piedra, ladrillo u obsidiana). TNT pegado a lava o fuego se enciende solo. Arena y grava
+  sobre el vacio caen al instante (no sirven de tapa). Obsidiana y bedrock no se empujan con
+  pistones y un piston mueve 12 bloques como maximo. Agua pegada a lava = obsidiana/adoquin.
+  Tu plano se revisa antes de ejecutarse y se verifica despues: si algo falla lo veras en
+  fallo_anterior, corrigelo y repite. Los planos que salen bien se guardan:
+  [PLANO:nombre::cmds] los nombra y [PLANO_GUARDADO:nombre] repite uno en otro sitio
+  (planos_guardados).
   Redstone que debes aplicar al disenar: un redstone_block pegado a un piston, dispenser
   o TNT lo activa al instante (setblock ... redstone_block = gatillo; reemplazarlo por air
   lo apaga y retrae el piston). piston[facing=X] / sticky_piston[facing=X]: X es hacia
@@ -156,7 +169,8 @@ Respondele en personaje, con tu tono sadico y orgulloso.`;
     const estadoPropioLinea = ep
       ? `tu:vida=${ep.vida},hambre=${ep.hambre},armadura=${ep.armadura},flechas=${ep.flechas},arco=${ep.tiene_arco?1:0},ballesta=${ep.tiene_ballesta?1:0},totems=${ep.totems},pearls=${ep.pearls},cristales=${ep.cristales},escudo=${ep.escudo?1:0},comida=${ep.comida?1:0}`
       : 'tu:desconocido';
-    const fallaLinea = contextoJugador.ultimaFalla ? `\nfallo_anterior:${contextoJugador.ultimaFalla}` : '';
+    const fallaLinea = (contextoJugador.ultimaFalla ? `\nfallo_anterior:${contextoJugador.ultimaFalla}` : '') +
+      ((contextoJugador.planosGuardados && contextoJugador.planosGuardados.length) ? `\nplanos_guardados:${contextoJugador.planosGuardados.join(',')}` : '');
     const posStr = contextoJugador.x !== undefined ? `${Math.round(contextoJugador.x)},${Math.round(contextoJugador.y)},${Math.round(contextoJugador.z)}` : '?';
     const dimStr = contextoJugador.dimension ? contextoJugador.dimension.replace('minecraft:', '') : '?';
     const horaStr = contextoJugador.hora_dia !== undefined ? (contextoJugador.hora_dia % 24000 >= 13000 && contextoJugador.hora_dia % 24000 < 23000 ? 'noche' : 'dia') : '?';

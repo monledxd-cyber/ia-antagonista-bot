@@ -705,6 +705,7 @@ async function crearBot() {
             ultimasRespuestas: hist.ultimasRespuestas,
             eventosRecientes: formatearEventos(candidato.username),
             estadoPropio: obtenerEstadoPropio(bot),
+            planosGuardados: bot._trampero ? bot._trampero.nombresGuardados() : [],
             ultimaFalla: (() => { const f = ultimaFallaJugador.get(candidato.username); if (f) ultimaFallaJugador.delete(candidato.username); return f; })(),
             espontaneo: true,
           });
@@ -747,6 +748,7 @@ async function crearBot() {
         bloqueEnfrente: obtenerBloqueEnfrente(bot),
         eventosRecientes: formatearEventos(username),
         estadoPropio: obtenerEstadoPropio(bot),
+        planosGuardados: bot._trampero ? bot._trampero.nombresGuardados() : [],
         ultimaFalla: (() => { const f = ultimaFallaJugador.get(username); if (f) ultimaFallaJugador.delete(username); return f; })(),
       });
       registrarRespuesta(username, respuesta);
@@ -789,7 +791,7 @@ async function crearBot() {
       const hist = registrarInteraccion(ctx.nombre);
       const falla = ultimaFallaJugador.get(ctx.nombre);
       if (falla) ultimaFallaJugador.delete(ctx.nombre);
-      const respuesta = await preguntarIA(OPENROUTER_KEY, { ...ctx, interacciones: hist.interacciones, ultimasRespuestas: hist.ultimasRespuestas, eventosRecientes: formatearEventos(ctx.nombre), bloqueEnfrente: obtenerBloqueEnfrente(bot), estadoPropio: obtenerEstadoPropio(bot), ultimaFalla: falla });
+      const respuesta = await preguntarIA(OPENROUTER_KEY, { ...ctx, interacciones: hist.interacciones, ultimasRespuestas: hist.ultimasRespuestas, eventosRecientes: formatearEventos(ctx.nombre), bloqueEnfrente: obtenerBloqueEnfrente(bot), estadoPropio: obtenerEstadoPropio(bot), ultimaFalla: falla, planosGuardados: bot._trampero ? bot._trampero.nombresGuardados() : [] });
       registrarRespuesta(ctx.nombre, respuesta);
       await manejarRespuesta(bot, ctx, respuesta);
     } catch (e) {
@@ -1094,11 +1096,14 @@ async function manejarRespuesta(bot, ctx, respuestaCruda) {
   const mSmash = texto.match(/\[SMASH\]/);
   if (mSmash) texto = texto.replace(mSmash[0], '').trim();
 
-  const mTrampero = texto.match(/\[TRAMPERO:(mina_tnt|foso_lava|aplastador|canon)\]/);
+  const mTrampero = texto.match(/\[TRAMPERO:(mina_tnt|foso_lava|aplastador|canon|railgun)\]/);
   if (mTrampero) texto = texto.replace(mTrampero[0], '').trim();
 
   const mPlano = texto.match(/\[PLANO:((?:[^\[\]]|\[[^\]]*\])+)\]/);
   if (mPlano) texto = texto.replace(mPlano[0], '').trim();
+
+  const mGuardado = texto.match(/\[PLANO_GUARDADO:([a-z0-9_]+)\]/);
+  if (mGuardado) texto = texto.replace(mGuardado[0], '').trim();
 
   const mRecol = texto.match(/\[RECOLECTAR:([a-z_]+)(?::(\d+))?\]/);
   if (mRecol) texto = texto.replace(mRecol[0], '').trim();
@@ -1298,14 +1303,23 @@ async function manejarRespuesta(bot, ctx, respuestaCruda) {
     }
   }
 
-  if ((mTrampero || mPlano) && bot._trampero) {
+  if ((mTrampero || mPlano || mGuardado) && bot._trampero) {
     try {
       const jugador = bot.players[ctx.nombre] && bot.players[ctx.nombre].entity;
       if (!jugador) {
         ultimaFallaJugador.set(ctx.nombre, 'TRAMPERO/PLANO fallo, no ves al jugador (esta fuera de tu vista)');
       } else {
-        const r = mTrampero ? bot._trampero.construir(mTrampero[1], jugador) : bot._trampero.construirPlano(mPlano[1], jugador);
-        if (!r.ok) ultimaFallaJugador.set(ctx.nombre, `${mTrampero ? 'TRAMPERO:' + mTrampero[1] : 'PLANO'} fallo, ${r.motivo}`);
+        const avisar = (txt) => ultimaFallaJugador.set(ctx.nombre, txt);
+        let r;
+        if (mTrampero) r = bot._trampero.construir(mTrampero[1], jugador);
+        else if (mGuardado) r = bot._trampero.usarGuardado(mGuardado[1], jugador, { avisar });
+        else {
+          let cmds = mPlano[1], nombre = null;
+          const m2 = cmds.match(/^([a-z0-9_]{3,24})::([\s\S]+)$/);
+          if (m2) { nombre = m2[1]; cmds = m2[2]; }
+          r = bot._trampero.construirPlano(cmds, jugador, { nombre, avisar });
+        }
+        if (!r.ok) ultimaFallaJugador.set(ctx.nombre, `${mTrampero ? 'TRAMPERO:' + mTrampero[1] : (mGuardado ? 'PLANO_GUARDADO' : 'PLANO')} fallo, ${r.motivo}`);
       }
     } catch (e) {
       console.error('[bot] error construyendo trampa:', e.message);
