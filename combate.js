@@ -280,6 +280,45 @@ function iniciarCombate(bot, api) {
     }
   }, 150);
 
+  // ---------- Contra-estilo: hace lo contrario que el rival para descolocarlo ----------
+  // rusher (corre y golpea) -> retrocede en rafagas con salto; arquero (se planta a disparar) -> zigzag y se acerca;
+  // escudo (se cubre) -> rodea y finta. Mezcla lo que ve ahora con la memoria de sus habitos. Una rafaga cada >= 3 s.
+  let ultRafaga = 0;
+  const estiloDe = (t) => {
+    const p = (api.perfil && t.username && api.perfil(t.username)) || {};
+    const arma = sosteniendo(t);
+    const f = t.metadata && Number(t.metadata[0]) || 0;
+    if (/^(bow|crossbow|trident)$/.test(arma) || p.arco >= 35) return 'arquero';
+    if (arma === 'shield' || (t.equipment && t.equipment.some((it) => it && it.name === 'shield')) || p.escudo >= 35) return 'escudo';
+    if ((f & 0x08) || p.sprint >= 45) return 'rusher';
+    return null;
+  };
+  const contraEstilo = setInterval(async () => {
+    try {
+      if (!bot.entity || ocupado || enCaida || api.ocupado() || bot.health < 9 || Date.now() - ultRafaga < 3000) return;
+      const t = api.obtenerObjetivo();
+      if (!valido(t) || t.type !== 'player') return;
+      const d = dist(t), e = estiloDe(t);
+      let plan = null;
+      if (e === 'rusher' && d < 4) plan = { ms: 550, ctl: ['back', 'sprint', 'jump'] };
+      else if (e === 'arquero' && d > 5 && d < 24) plan = { ms: 900, ctl: [Math.random() < 0.5 ? 'left' : 'right', 'forward', 'sprint'] };
+      else if (e === 'escudo' && d < 4.5) plan = { ms: 700, ctl: [Math.random() < 0.5 ? 'left' : 'right', 'jump'] };
+      if (!plan) return;
+      ultRafaga = Date.now(); ocupado = true;
+      api.pausar();
+      try {
+        bot.lookAt(t.position.offset(0, 1.6, 0), true).catch(() => {});
+        plan.ctl.forEach((c) => bot.setControlState(c, true));
+        await new Promise((r) => setTimeout(r, plan.ms));
+      } finally {
+        ['back', 'left', 'right', 'forward', 'jump', 'sprint'].forEach((c) => { try { bot.setControlState(c, false); } catch (x) { /* ignorar */ } });
+        ocupado = false;
+        if (valido(t)) api.reanudar(t);
+      }
+    } catch (err) { ocupado = false; }
+  }, 400);
+  api.intervalos.push(contraEstilo);
+
   // ---------- Escudo reactivo: contra cualquier ataque, no solo la mace ----------
   let escudoArriba = false, escudoHasta = 0, sinAlzarHasta = 0, escudoRotoHasta = 0, ultDano = 0, hpPrev = bot.health;
   const alzar = (ms, forzar) => {

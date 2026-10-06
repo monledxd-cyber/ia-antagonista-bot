@@ -189,6 +189,40 @@ function crearTrampero(bot, opts = {}) {
     },
   };
   planos.railgun = planos.canon;
+  // Cable trampa: dos ganchos con hilo entre ellos, cada uno pegado a un TNT; al cruzar el hilo se enciende el TNT.
+  // (Si el gancho no lo enciende, el codigo lo hace a mano 1.2 s despues.)
+  planos.cable_tnt = (g, ctx = {}) => {
+    const eje = ctx.eje === 'z' ? 'z' : (ctx.eje === 'x' ? 'x' : (Math.random() < 0.5 ? 'x' : 'z'));
+    const P = (a, dy) => eje === 'x' ? `${g.x + a} ${g.y + dy} ${g.z}` : `${g.x} ${g.y + dy} ${g.z + a}`;
+    const [fa, fb] = eje === 'x' ? ['east', 'west'] : ['south', 'north'];
+    return {
+      cmds: [`setblock ${P(-3, 1)} tnt`, `setblock ${P(3, 1)} tnt`, `setblock ${P(-2, 1)} tripwire_hook[facing=${fa}]`, `setblock ${P(2, 1)} tripwire_hook[facing=${fb}]`,
+        ...[-1, 0, 1].map((a) => `setblock ${P(a, 1)} tripwire`)],
+      datos: { gatillo: 'cuerda', eje, tnts: [[eje === 'x' ? g.x - 3 : g.x, g.y + 1, eje === 'x' ? g.z : g.z - 3], [eje === 'x' ? g.x + 3 : g.x, g.y + 1, eje === 'x' ? g.z : g.z + 3]] },
+    };
+  };
+  // Cielo de yunques: plataforma de piedra a 12 bloques con yunques encima; al pasar debajo se retira la plataforma.
+  planos.lluvia_yunques = (g) => {
+    if (g.y + 15 > 300) return null;
+    return {
+      cmds: [`fill ${g.x - 1} ${g.y + 12} ${g.z - 1} ${g.x + 1} ${g.y + 12} ${g.z + 1} stone`, `fill ${g.x - 1} ${g.y + 13} ${g.z - 1} ${g.x + 1} ${g.y + 13} ${g.z + 1} anvil`],
+      datos: { gatillo: 'debajo', soltar: `fill ${g.x - 1} ${g.y + 12} ${g.z - 1} ${g.x + 1} ${g.y + 12} ${g.z + 1} air` },
+    };
+  };
+  // Pozo de estalagmitas: 12 de caida sobre dripstone puntiagudo (el golpe se duplica), tapado como el foso de lava.
+  planos.foso_estalagmitas = (g) => {
+    if (g.y - 14 <= minY() + 2) return null;
+    const tapa = GRAVEDAD.test(g.name) ? 'sandstone' : g.name;
+    return {
+      cmds: [
+        `fill ${g.x - 2} ${g.y - 13} ${g.z - 2} ${g.x + 2} ${g.y} ${g.z + 2} stone hollow`,
+        `fill ${g.x - 1} ${g.y - 12} ${g.z - 1} ${g.x + 1} ${g.y - 12} ${g.z + 1} pointed_dripstone[vertical_direction=up,thickness=tip]`,
+        `fill ${g.x - 2} ${g.y} ${g.z - 2} ${g.x + 2} ${g.y} ${g.z + 2} ${tapa}`,
+      ],
+      datos: { gatillo: 'tapa', abrir: `fill ${g.x - 1} ${g.y} ${g.z - 1} ${g.x + 1} ${g.y} ${g.z + 1} air` },
+    };
+  };
+
 
   const jugadoresValidos = () => Object.values(bot.entities).filter((e) =>
     e.type === 'player' && e.username && e.username !== bot.username && e.gameMode !== 'creative' && e.gameMode !== 'spectator');
@@ -384,6 +418,23 @@ function crearTrampero(bot, opts = {}) {
           setTimeout(() => { t.apagar.forEach(cmd); armadas.splice(armadas.indexOf(t), 1); }, 3500);
           console.log('[trampas] aplastador activado'); break;
         }
+        if (t.gatillo === 'cuerda' && !t.activa) {
+          const along = t.eje === 'x' ? dx : dz, across = t.eje === 'x' ? dz : dx;
+          if (Math.abs(across) <= 0.8 && Math.abs(along) <= 2 && dy >= -0.3 && dy <= 1.5) {
+            t.activa = true;
+            setTimeout(() => {
+              for (const [x, y, z] of t.tnts) {
+                const b = bloque(x, y, z);
+                if (b && b.name === 'tnt') { cmd(`setblock ${x} ${y} ${z} air`); cmd(`summon tnt ${x + 0.5} ${y} ${z + 0.5} {fuse:10}`); }
+              }
+              armadas.splice(armadas.indexOf(t), 1);
+            }, 1200);
+            console.log('[trampas] cable activado'); break;
+          }
+        }
+        if (t.gatillo === 'debajo' && Math.abs(dx) <= 1.6 && Math.abs(dz) <= 1.6 && dy >= -0.5 && dy <= 4) {
+          cmd(t.soltar); armadas.splice(i, 1); console.log('[trampas] yunques soltados'); break;
+        }
         if (t.gatillo === 'canon' && ahora - t.ult > 12_000 && t.salvas < 5 && dBot >= 12) {
           const dist = Math.hypot(dx, dz);
           if (dist >= 8 && dist <= 70 && Math.abs(dy) <= 25 && dispararRailgun(t, j)) {
@@ -396,6 +447,20 @@ function crearTrampero(bot, opts = {}) {
     }
   }, 250);
 
+  // La memoria del jugador (tendencias observadas) inclina la eleccion hacia la trampa que mejor le cae.
+  function elegirTipo(nombre) {
+    const w = { mina_tnt: 3, foso_lava: 2, canon: 2, cable_tnt: 2, lluvia_yunques: 2, foso_estalagmitas: 2 };
+    const p = (opts.perfil && opts.perfil(nombre)) || {};
+    if (p.sprint >= 40) { w.cable_tnt += 4; w.mina_tnt += 2; }
+    if (p.agachado >= 30) { w.lluvia_yunques += 4; }
+    if (p.elytra >= 15) { w.canon += 6; }
+    if (p.escudo >= 30) { w.mina_tnt += 3; w.cable_tnt += 3; w.foso_lava += 1; }
+    if (p.arco >= 30) { w.lluvia_yunques += 2; w.foso_estalagmitas += 3; }
+    let r = Math.random() * Object.values(w).reduce((a, b) => a + b, 0);
+    for (const [k, v] of Object.entries(w)) { if ((r -= v) < 0) return k; }
+    return 'mina_tnt';
+  }
+
   // ---- Autonomia: arma una trampa cuando esta tranquilo y hay un jugador cerca ----
   const autonomo = setInterval(() => {
     if (!HABILITADO || !bot.entity || !opts.tranquilo()) return;
@@ -406,8 +471,7 @@ function crearTrampero(bot, opts = {}) {
     if (!j) return;
     const g = sitioPara(j);
     if (!g) return;
-    const r = Math.random();
-    const tipo = r < 0.4 ? 'mina_tnt' : (r < 0.7 ? 'foso_lava' : 'canon');
+    const tipo = elegirTipo(j.username);
     construir(tipo, g, { dir: rumbo(j) });
   }, 5000);
 

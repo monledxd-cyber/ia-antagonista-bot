@@ -66,7 +66,8 @@ const MODULO_CONSTRUCCION = `CONSTRUCCION DE TRAMPAS (letales, estilo 2b2t, solo
 sola cuando estas tranquilo; tu eliges cuando y cual (jugador a tu vista; se arma a >= 12 bloques de ti):
 [TRAMPERO:tipo] mina_tnt = placa sobre 3 TNT enterrados; foso_lava = foso de 5 con lava y tapa igual
 al suelo que se abre al pisar; aplastador = 2 pistones enfrentados con redstone_block detras;
-railgun = pilar de obsidiana que lanza un TNT con explosiones de carga (tu codigo calcula carga,
+cable_tnt = hilo entre dos TNT; lluvia_yunques = yunques a 12 bloques que caen al pasar debajo;
+foso_estalagmitas = pozo de 12 con dripstone; railgun = pilar de obsidiana que lanza un TNT con explosiones de carga (tu codigo calcula carga,
 angulo y mecha y aprende la potencia midiendola).
 [PLANO:cmd;cmd] disena la tuya: <= 24 comandos, solo setblock/fill/summon tnt con coordenadas ~
 relativas al ancla (~ ~ ~ = aire sobre el suelo; ~ ~-1 ~ = suelo), +-12, fill <= 2000. Ej:

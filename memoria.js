@@ -29,6 +29,16 @@ function crearMemoria(ruta) {
       for (const t of tags) j.obs[t] = (j.obs[t] || 0) + 1;
       if (pos) { const k = Math.floor(pos.x / 32) + ',' + Math.floor(pos.z / 32); j.lugares[k] = (j.lugares[k] || 0) + 1; }
     },
+    // Porcentajes de cada tendencia (solo con datos suficientes): { escudo, arco, sprint, agachado, elytra, armaMain }
+    perfil: (n) => {
+      const j = datos[n];
+      if (!j || !(j.n > 20)) return null;
+      const r = {};
+      for (const k of ['escudo', 'arco', 'sprint', 'agachado', 'elytra']) r[k] = Math.round(100 * (j.obs[k] || 0) / j.n);
+      const arma = Object.entries(j.armas).sort((a, b) => b[1] - a[1])[0];
+      r.arma = arma ? arma[0] : null;
+      return r;
+    },
     resumen: (n) => {
       const j = datos[n];
       if (!j) return '';

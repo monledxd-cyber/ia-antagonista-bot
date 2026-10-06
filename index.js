@@ -8,6 +8,7 @@ const { autoCrystal } = require('mineflayer-autocrystal');
 const { iniciarCombate } = require('./combate');
 const { crearTrampero } = require('./trampas');
 const { crearMemoria } = require('./memoria');
+const { crearAbasto } = require('./abasto');
 const { status: statusPing } = require('minecraft-server-util');
 const express = require('express');
 const { parseFlatSnbt } = require('./snbt');
@@ -239,12 +240,22 @@ function iniciarHuida(bot) {
     smashAttack: () => smashAttack(bot),
     ocupado: () => manoOcupada || comiendo,
     ocupar: (v) => { manoOcupada = v; },
+    perfil: (n) => memoria.perfil(n),
     acercar: (t, r) => { objetivoActual = null; try { bot.pathfinder.setGoal(new goals.GoalNear(t.position.x, t.position.y, t.position.z, r)); } catch (e) { /* ignorar */ } },
   });
 
   // Speakerman update: construye trampas por su cuenta cuando esta tranquilo (necesita OP).
   bot._trampero = crearTrampero(bot, {
     tranquilo: () => !objetivoActual && !(bot.pvp && bot.pvp.target) && bot.health > 10 && !enemigoCerca(14),
+    perfil: (n) => memoria.perfil(n),
+  });
+
+  // Autoabastecimiento: junta y fabrica solo cuando nadie anda cerca (IA_ABASTO=0 lo apaga).
+  bot._abasto = crearAbasto(bot, {
+    goals,
+    tranquilo: () => !objetivoActual && !(bot.pvp && bot.pvp.target) && bot.health > 12 && !enemigoCerca(14),
+    irCerca, recolectar: recolectarBloque, mejorar: mejorarEquipoCrafteando,
+    ocupar: (v) => { manoOcupada = v; }, equipar: () => equiparArma(bot),
   });
 
   // Al recibir daño: ataca si esta cerca, si no lo persigue.
@@ -1178,7 +1189,7 @@ async function manejarRespuesta(bot, ctx, respuestaCruda) {
   const mSmash = texto.match(/\[SMASH\]/);
   if (mSmash) texto = texto.replace(mSmash[0], '').trim();
 
-  const mTrampero = texto.match(/\[TRAMPERO:(mina_tnt|foso_lava|aplastador|canon|railgun)\]/);
+  const mTrampero = texto.match(/\[TRAMPERO:(mina_tnt|foso_lava|aplastador|canon|railgun|cable_tnt|lluvia_yunques|foso_estalagmitas)\]/);
   if (mTrampero) texto = texto.replace(mTrampero[0], '').trim();
 
   const mPlano = texto.match(/\[PLANO:((?:[^\[\]]|\[[^\]]*\])+)\]/);
