@@ -7,6 +7,7 @@ const pvpPlugin = require('mineflayer-pvp').plugin;
 const { autoCrystal } = require('mineflayer-autocrystal');
 const { iniciarCombate } = require('./combate');
 const { crearTrampero } = require('./trampas');
+const { crearMemoria } = require('./memoria');
 const { status: statusPing } = require('minecraft-server-util');
 const express = require('express');
 const { parseFlatSnbt } = require('./snbt');
@@ -63,6 +64,17 @@ const COOLDOWN_MS = 25_000;
 const lastCall = new Map(); // nombre -> timestamp
 const trampaLastUse = new Map(); // nombre -> timestamp de la ultima trampa activada
 const historialJugador = new Map(); // nombre -> { interacciones, ultimasRespuestas: [], eventos: [] }
+const memoria = crearMemoria();
+process.on('uncaughtException', (e) => console.error('[fatal evitado]', e && e.stack || e));
+process.on('unhandledRejection', (e) => console.error('[promesa rechazada]', e && e.message || e));
+const extrasCtx = (bot, nombre, falla) => {
+  const t = bot._trampero;
+  return {
+    planosGuardados: t ? t.nombresGuardados() : [],
+    memoriaJugador: memoria.resumen(nombre),
+    puedeConstruir: !!(t && t.listo()) || /PLANO|TRAMPERO/.test(falla || ''),
+  };
+};
 const ultimaFallaJugador = new Map(); // nombre -> texto describiendo la ultima accion fallida
 
 function registrarInteraccion(nombre) {
@@ -406,17 +418,19 @@ function iniciarHuida(bot) {
   const esOrilla = (b) => b && b.boundingBox === 'block' && !b.liquid &&
     !/lava|magma|cactus|campfire|fire|powder_snow|sweet_berry/.test(b.name);
   const buscarOrilla = () => {
+    try {
     const p = bot.entity.position;
     const bloque = bot.findBlock({
       maxDistance: 24,
       matching: (b) => {
-        if (!esOrilla(b)) return false;
+        if (!b || !b.position || !esOrilla(b)) return false;
         const a1 = bot.blockAt(b.position.offset(0, 1, 0));
         const a2 = bot.blockAt(b.position.offset(0, 2, 0));
         return a1 && a2 && a1.boundingBox === 'empty' && !a1.liquid && a2.boundingBox === 'empty' && !a2.liquid;
       }
     });
     return bloque && bloque.position.distanceTo(p) < 40 ? bloque : null;
+    } catch (e) { return null; }
   };
   const nadoInterval = setInterval(() => {
     if (!bot.entity) { clearInterval(nadoInterval); return; }
@@ -675,7 +689,23 @@ async function crearBot() {
     }
     bot.on('death', () => {
       console.log('[bot] murio, respawneando en el mismo server (sin reconectar)');
+      const p = Object.values(bot.entities).filter(e => e.type === 'player' && e.username !== BOT_USERNAME && bot.entity && e.position.distanceTo(bot.entity.position) < 8)[0];
+      if (p) memoria.mato(p.username);
     });
+    if (!bot._memoriaHooks) {
+      bot._memoriaHooks = true;
+      bot.on('playerJoined', (p) => { if (p && p.username !== BOT_USERNAME) memoria.entra(p.username); });
+      bot.on('entityDead', (e) => { if (e && e.type === 'player' && e.username && bot.entity && e.position.distanceTo(bot.entity.position) < 16) memoria.murio(e.username); });
+      const armasI = setInterval(() => {
+        if (!bot.entity) return;
+        for (const e of Object.values(bot.entities)) {
+          if (e.type !== 'player' || e.username === BOT_USERNAME || e.position.distanceTo(bot.entity.position) > 20) continue;
+          const it = e.heldItem && e.heldItem.name;
+          if (it && /sword|axe|bow|trident|mace|crystal|shield|pickaxe/.test(it)) memoria.arma(e.username, it);
+        }
+      }, 10_000);
+      bot.once('end', () => { clearInterval(armasI); memoria.guardar(); });
+    }
 
     // Habla espontanea: cada ~90s, si hay un jugador cerca, comenta sin que
     // haya pasado nada en particular. Se crea UNA sola vez por conexion (no
@@ -705,8 +735,7 @@ async function crearBot() {
             ultimasRespuestas: hist.ultimasRespuestas,
             eventosRecientes: formatearEventos(candidato.username),
             estadoPropio: obtenerEstadoPropio(bot),
-            planosGuardados: bot._trampero ? bot._trampero.nombresGuardados() : [],
-            ultimaFalla: (() => { const f = ultimaFallaJugador.get(candidato.username); if (f) ultimaFallaJugador.delete(candidato.username); return f; })(),
+            ...(() => { const f = ultimaFallaJugador.get(candidato.username); if (f) ultimaFallaJugador.delete(candidato.username); return { ultimaFalla: f, ...extrasCtx(bot, candidato.username, f) }; })(),
             espontaneo: true,
           });
           registrarRespuesta(candidato.username, respuesta);
@@ -748,8 +777,7 @@ async function crearBot() {
         bloqueEnfrente: obtenerBloqueEnfrente(bot),
         eventosRecientes: formatearEventos(username),
         estadoPropio: obtenerEstadoPropio(bot),
-        planosGuardados: bot._trampero ? bot._trampero.nombresGuardados() : [],
-        ultimaFalla: (() => { const f = ultimaFallaJugador.get(username); if (f) ultimaFallaJugador.delete(username); return f; })(),
+        ...(() => { const f = ultimaFallaJugador.get(username); if (f) ultimaFallaJugador.delete(username); return { ultimaFalla: f, ...extrasCtx(bot, username, f) }; })(),
       });
       registrarRespuesta(username, respuesta);
       await manejarRespuesta(bot, { nombre: username }, respuesta);
@@ -791,7 +819,7 @@ async function crearBot() {
       const hist = registrarInteraccion(ctx.nombre);
       const falla = ultimaFallaJugador.get(ctx.nombre);
       if (falla) ultimaFallaJugador.delete(ctx.nombre);
-      const respuesta = await preguntarIA(OPENROUTER_KEY, { ...ctx, interacciones: hist.interacciones, ultimasRespuestas: hist.ultimasRespuestas, eventosRecientes: formatearEventos(ctx.nombre), bloqueEnfrente: obtenerBloqueEnfrente(bot), estadoPropio: obtenerEstadoPropio(bot), ultimaFalla: falla, planosGuardados: bot._trampero ? bot._trampero.nombresGuardados() : [] });
+      const respuesta = await preguntarIA(OPENROUTER_KEY, { ...ctx, interacciones: hist.interacciones, ultimasRespuestas: hist.ultimasRespuestas, eventosRecientes: formatearEventos(ctx.nombre), bloqueEnfrente: obtenerBloqueEnfrente(bot), estadoPropio: obtenerEstadoPropio(bot), ultimaFalla: falla, ...extrasCtx(bot, ctx.nombre, falla) });
       registrarRespuesta(ctx.nombre, respuesta);
       await manejarRespuesta(bot, ctx, respuesta);
     } catch (e) {
@@ -1310,6 +1338,7 @@ async function manejarRespuesta(bot, ctx, respuestaCruda) {
         ultimaFallaJugador.set(ctx.nombre, 'TRAMPERO/PLANO fallo, no ves al jugador (esta fuera de tu vista)');
       } else {
         const avisar = (txt) => ultimaFallaJugador.set(ctx.nombre, txt);
+        memoria.trampa(ctx.nombre);
         let r;
         if (mTrampero) r = bot._trampero.construir(mTrampero[1], jugador);
         else if (mGuardado) r = bot._trampero.usarGuardado(mGuardado[1], jugador, { avisar });

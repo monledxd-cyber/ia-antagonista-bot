@@ -426,6 +426,7 @@ function crearTrampero(bot, opts = {}) {
       return construirPlano(p.cmds.join(';'), jugador ? sitioPara(jugador) : null, { ...(opciones || {}), nombre });
     },
     nombresGuardados: () => Object.keys(memoria.planos).slice(0, 8),
+    listo: () => HABILITADO && Date.now() >= bloqueadoHasta && armadas.length < 4 && !cola.length && Date.now() - ultConstruccion > 60_000,
     kRail: () => memoria.kRail,
     armadas: () => armadas.slice(),
     pendientes: () => cola.length,
