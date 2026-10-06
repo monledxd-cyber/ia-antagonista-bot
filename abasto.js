@@ -129,10 +129,174 @@ function crearAbasto(bot, o) {
     try { bot.pathfinder.setGoal(null); } catch (e) { /* ignorar */ }
   }
 
+
+  // ===== Mineria real, obsidiana, base con cofre, recuperacion tras morir y prioridades =====
+  const fs = require('fs');
+  const path = require('path');
+  const ARCH_BASE = process.env.IA_BASE || path.join(__dirname, 'base_am.json');
+  let base = null, muerte = null, mina = null, sinMenasDesde = 0;
+  try { base = JSON.parse(fs.readFileSync(ARCH_BASE, 'utf8')); } catch (e) { base = null; }
+  const guardarBase = () => { try { fs.writeFileSync(ARCH_BASE, JSON.stringify(base)); } catch (e) { /* disco de solo lectura */ } };
+  bot.on('death', () => { if (bot.entity) muerte = { p: bot.entity.position.clone(), t: Date.now() }; mina = null; });
+  const COMIDA = /^(cooked_beef|cooked_porkchop|cooked_mutton|cooked_chicken|bread|apple|golden_apple|carrot|baked_potato)$/;
+  const noche = () => bot.time && bot.time.timeOfDay >= 13000 && bot.time.timeOfDay < 23000;
+  const enSuperficie = () => bot.entity.position.y > 50;
+  const armaduraCompleta = () => [5, 6, 7, 8].every((s) => bot.inventory.slots[s]);
+  const distA = (p) => Math.hypot(p.x - bot.entity.position.x, p.y - bot.entity.position.y, p.z - bot.entity.position.z);
+
+  // Camina excavando: un Movements aparte con canDig. El pathfinder ya evita romper bloques pegados a liquidos.
+  async function cavar(x, y, z, ms = 25000) {
+    const M = new o.Movements(bot);
+    M.canDig = true; M.allow1by1towers = false; M.allowParkour = false; M.scafoldingBlocks = [];
+    for (const n of ['chest', 'furnace', 'crafting_table', 'torch', 'wall_torch']) { const d = bot.registry.blocksByName[n]; if (d) M.blocksCantBreak.add(d.id); }
+    for (const n of ['lava', 'magma_block', 'fire', 'cactus', 'sweet_berry_bush']) { const d = bot.registry.blocksByName[n]; if (d) M.blocksToAvoid.add(d.id); }
+    let ult = bot.entity.position.clone(), quieto = Date.now();
+    try {
+      bot.pathfinder.setMovements(M);
+      bot.pathfinder.setGoal(new goals.GoalNear(x, y, z, 1));
+      const fin = Date.now() + ms;
+      while (Date.now() < fin && libre() && bot.health > 10) {
+        await dormir(600);
+        if (distA({ x, y, z }) <= 2.2) return true;
+        if (bot.entity.position.distanceTo(ult) > 0.6) { ult = bot.entity.position.clone(); quieto = Date.now(); }
+        else if (Date.now() - quieto > 7000) return false;
+      }
+      return distA({ x, y, z }) <= 2.5;
+    } finally {
+      try { bot.pathfinder.setGoal(null); bot.pathfinder.setMovements(bot._movBase || o.base()); } catch (e) { /* ignorar */ }
+    }
+  }
+  async function romper(b) {
+    const bl = bot.blockAt(b.position);
+    if (!bl || !bot.canDigBlock(bl)) return false;
+    try { await o.herramienta(bot, bl); await bot.dig(bl); return true; } catch (e) { return false; }
+  }
+  const pico = () => items().some((i) => /_pickaxe$/.test(i.name) && /stone|iron|diamond|netherite/.test(i.name));
+  const picoHierro = () => items().some((i) => /^(iron|diamond|netherite)_pickaxe$/.test(i.name));
+  const regexMenas = () => {
+    const q = [];
+    if (cuenta(/^(raw_iron|iron_ingot)$/) < 26) q.push('iron');
+    if (cuenta(/^coal$/) < 6) q.push('coal');
+    if (picoHierro() && cuenta(/^diamond$/) < 6 && !tiene(/^diamond_pickaxe$/)) q.push('diamond');
+    else if (picoHierro() && cuenta(/^diamond$/) < 3) q.push('diamond');
+    return q.length ? new RegExp('^(deepslate_)?(' + q.join('|') + ')_ore$') : null;
+  };
+  const antorchas = async () => {
+    if (!tiene(/^crafting_table$/) && !bloqueN(/^crafting_table$/, 16) && cuenta(/_planks$/) >= 4) await craftear('crafting_table');
+    if (cuenta(/^torch$/) >= 8 || cuenta(/^coal$/) < 1 || cuenta(/^stick$/) < 1) return;
+    await craftear('torch', 2);
+  };
+
+  // Sesion de mina: baja en diagonal excavando, abre ramas a esa profundidad, recoge menas y regresa a la superficie.
+  async function paso_mina() {
+    const re = regexMenas();
+    if (!re) return 'nada';
+    if (!mina) {
+      if (!pico() || bot.health < 16 || cuenta(COMIDA) < 3 || !libre()) return 'nada';
+      const necesitaDiamante = /diamond/.test(re.source);
+      const d = [[1, 0], [-1, 0], [0, 1], [0, -1]][Math.floor(Math.random() * 4)];
+      mina = { fase: 'bajar', d, sup: bot.entity.position.clone(), y: necesitaDiamante ? -50 : 14, legs: 0, t0: Date.now() };
+      console.log('[abasto] inicia mina hacia y=' + mina.y);
+    }
+    const p = bot.entity.position;
+    if (Date.now() - mina.t0 > 6 * 60_000 || bot.health < 12 || (cuenta(COMIDA) < 1 && bot.food < 8)) mina.fase = 'subir';
+    await antorchas();
+    if (mina.fase === 'bajar') {
+      if (p.y <= mina.y + 2) { mina.fase = 'rama'; return true; }
+      const ok = await cavar(p.x + mina.d[0] * 14, Math.max(mina.y, p.y - 10), p.z + mina.d[1] * 14, 30000);
+      if (!ok) { mina.d = [[1, 0], [-1, 0], [0, 1], [0, -1]][Math.floor(Math.random() * 4)]; if (++mina.legs > 8) mina.fase = 'subir'; }
+      return true;
+    }
+    if (mina.fase === 'rama') {
+      const ore = bot.findBlock({ maxDistance: 9, matching: (b) => b && re.test(b.name) });
+      if (ore) {
+        if (await cavar(ore.position.x, ore.position.y, ore.position.z, 20000)) { await romper(ore); sinMenasDesde = Date.now(); }
+        return true;
+      }
+      if (mina.legs++ >= 7) { mina.fase = 'subir'; return true; }
+      if (mina.legs % 2 === 0 && tiene(/^torch$/)) await colocar('torch');
+      if (mina.legs % 3 === 0) mina.d = [mina.d[1], mina.d[0]]; // gira para no abrir un solo tunel
+      await cavar(p.x + mina.d[0] * 10, p.y, p.z + mina.d[1] * 10, 25000);
+      return true;
+    }
+    // subir
+    const ok = await cavar(mina.sup.x, mina.sup.y, mina.sup.z, 40000);
+    if (ok || distA(mina.sup) < 4) { console.log('[abasto] fin de mina'); mina = null; }
+    else if (Date.now() - mina.t0 > 12 * 60_000) mina = null;
+    return true;
+  }
+
+  // Obsidiana: agua sobre una fuente de lava, y se pica con pico de diamante.
+  async function paso_obsidiana() {
+    if (cuenta(/^obsidian$/) >= 6 || !tiene(/^diamond_pickaxe$/) || !tiene(/^water_bucket$/)) return 'nada';
+    const lava = bot.findBlock({ maxDistance: 22, matching: (b) => b && b.name === 'lava' && b.metadata === 0 });
+    if (!lava) return 'nada';
+    if (!(await o.irCerca(bot, lava.position, 15000))) return false;
+    const cubo = items().find((i) => i.name === 'water_bucket');
+    await bot.equip(cubo, 'hand');
+    await bot.lookAt(lava.position.offset(0.5, 0.9, 0.5), true);
+    bot.activateItem();
+    await dormir(900);
+    const ob = bot.blockAt(lava.position);
+    if (ob && ob.name === 'obsidian') return romper(ob);
+    return false;
+  }
+
+  // Base: cofre (y mesa y horno al lado) en el primer sitio comodo; guarda el sobrante.
+  async function paso_base() {
+    if (base) return 'nada';
+    if (cuenta(/_planks$/) < 8 + 4 && cuenta(/_log$/) < 4) return 'nada';
+    if (!tiene(/^chest$/)) { if (cuenta(/_planks$/) < 8) await aTablones(); if (!(await craftear('chest'))) return false; }
+    const c = await colocar('chest');
+    if (!c) return false;
+    base = { x: c.position.x, y: c.position.y, z: c.position.z };
+    guardarBase();
+    if (!bloqueN(/^crafting_table$/, 6)) await mesa();
+    console.log('[abasto] base creada en', base.x, base.y, base.z);
+    return true;
+  }
+  const CONSERVAR = /(_sword|_axe|_pickaxe|_shovel|_helmet|_chestplate|_leggings|_boots)$|^(shield|bow|crossbow|arrow|totem_of_undying|ender_pearl|water_bucket|bucket|mace|trident|wind_charge|end_crystal|obsidian|tnt|torch|crafting_table|furnace|chest|golden_apple|enchanted_golden_apple|gunpowder|diamond|iron_ingot|raw_iron|coal|stick|flint|feather)$|^cooked_|^(bread|apple|carrot|baked_potato)$/;
+  async function paso_guardar() {
+    if (!base) return 'nada';
+    const usados = items().length;
+    const sobra = items().filter((i) => !CONSERVAR.test(i.name) || (i.name === 'cobblestone' && i.count > 32));
+    if (usados < 28 && sobra.length < 8) return 'nada';
+    const cofre = bot.blockAt(new Vec3(base.x, base.y, base.z));
+    if (!cofre || cofre.name !== 'chest') { base = null; guardarBase(); return false; }
+    if (distA(base) > 4 && !(await o.irCerca(bot, cofre.position))) return false;
+    const c = await bot.openContainer(cofre);
+    try {
+      for (const it of sobra) {
+        const cant = it.name === 'cobblestone' ? it.count - 32 : it.count;
+        if (cant > 0) { try { await c.deposit(it.type, null, cant); } catch (e) { break; } }
+      }
+    } finally { try { c.close(); } catch (e) { /* ignorar */ } }
+    return true;
+  }
+  async function paso_recuperar() {
+    if (!muerte) return 'nada';
+    if (Date.now() - muerte.t > 5 * 60_000) { muerte = null; return 'nada'; }
+    if (distA(muerte.p) > 3 && !(await cavar(muerte.p.x, muerte.p.y, muerte.p.z, 40000))) { if (Date.now() - muerte.t > 150_000) muerte = null; return false; }
+    for (let k = 0; k < 8 && libre(); k++) {
+      const drop = Object.values(bot.entities).find((e) => e.name === 'item' && e.position.distanceTo(bot.entity.position) < 14);
+      if (!drop) break;
+      try { bot.pathfinder.setGoal(new goals.GoalNear(drop.position.x, drop.position.y, drop.position.z, 0.6)); } catch (e) { /* ignorar */ }
+      await dormir(1600);
+    }
+    muerte = null;
+    return true;
+  }
+  const irBase = async () => { if (base && distA(base) > 18 && !noche()) await o.irCerca(bot, new Vec3(base.x, base.y, base.z), 20000); };
+
   // Cada necesidad devuelve: true si avanzo, false si no pudo (se enfria), 'nada' si no aplica.
   const necesidades = [
+    ['recuperar', paso_recuperar],
+    ['base', paso_base],
+    ['guardar', paso_guardar],
+    ['mina', paso_mina],
+    ['obsidiana', paso_obsidiana],
     ['madera', async () => {
-      if (cuenta(/_log$|_planks$/) >= 12) return 'nada';
+      if (cuenta(/_log$|_planks$/) >= (base ? 14 : 24) || (noche() && enSuperficie())) return 'nada';
       const b = bloqueN(/_log$/, 24);
       if (!b) return explorar().then(() => false);
       return (await o.recolectar(bot, b.name, 5)).ok;
@@ -143,17 +307,20 @@ function crearAbasto(bot, o) {
       if (cuenta(/^cobblestone$/) >= 24 || !bloqueN(/^stone$/, 24)) return 'nada';
       return (await o.recolectar(bot, 'stone', 8)).ok;
     }],
-    ['equipo', async () => { if (!bloqueN(/^crafting_table$/, 24)) return 'nada'; await o.mejorar(bot); return true; }],
+    ['equipo', async () => {
+      if (!bloqueN(/^crafting_table$/, 24)) { if (tiene(/^crafting_table$/)) await colocar('crafting_table'); else return 'nada'; }
+      await irBase(); await o.mejorar(bot); return true;
+    }],
     ['carbon', async () => (cuenta(/^coal$/) >= 6 || !bloqueN(/^(deepslate_)?coal_ore$/, 24)) ? 'nada' : (await o.recolectar(bot, bloqueN(/^(deepslate_)?coal_ore$/, 24).name, 4)).ok],
     ['hierro', async () => {
       if (cuenta(/^(raw_iron|iron_ingot)$/) >= 26) return 'nada';
       const b = bloqueN(/^(deepslate_)?iron_ore$/, 28);
-      if (!b) { if (++sinHallazgo % 3 === 0) return explorar().then(() => true); return 'nada'; }
+      if (!b) return 'nada';
       return (await o.recolectar(bot, b.name, 6)).ok;
     }],
     ['fundir', async () => tiene(/^raw_iron$/) ? cocinar('raw_iron') : 'nada'],
     ['carne', async () => tiene(/^(beef|porkchop|mutton|chicken)$/) ? cocinar(items().find((i) => /^(beef|porkchop|mutton|chicken)$/.test(i.name)).name) : 'nada'],
-    ['comida', async () => (cuenta(/^(cooked_beef|cooked_porkchop|cooked_mutton|cooked_chicken|bread|apple|golden_apple|carrot)$/) >= 6) ? 'nada' : cazar(/^(cow|pig|sheep|chicken)$/)],
+    ['comida', async () => (cuenta(COMIDA) >= 6 || (noche() && enSuperficie())) ? 'nada' : cazar(/^(cow|pig|sheep|chicken)$/)],
     ['escudo', async () => (tiene(/^shield$/) || !tiene(/^iron_ingot$/) || cuenta(/_planks$/) < 6) ? 'nada' : craftear('shield')],
     ['cubo', async () => {
       if (tiene(/^(bucket|water_bucket)$/) || cuenta(/^iron_ingot$/) < 3) return 'nada';
@@ -175,12 +342,24 @@ function crearAbasto(bot, o) {
     }],
   ];
 
+  // Prioridades segun el momento: urgencias primero (comida, armadura, flechas si hay jugadores), y de noche nada en superficie.
+  function ordenar() {
+    const frente = [];
+    if (muerte) frente.push('recuperar');
+    if (cuenta(COMIDA) < 3) frente.push('comida', 'carne');
+    if (!armaduraCompleta() && cuenta(/^iron_ingot$/) >= 4) frente.push('equipo');
+    const hayJugadores = Object.keys(bot.players || {}).length > 1;
+    if (hayJugadores && tiene(/^(bow|crossbow)$/) && cuenta(/^arrow$/) < 8) frente.push('flechas');
+    const rank = (n) => { const i = frente.indexOf(n); return i < 0 ? 100 : i; };
+    return necesidades.map((x, i) => [x, i]).sort((p, q) => (rank(p[0][0]) - rank(q[0][0])) || (p[1] - q[1])).map((x) => x[0]);
+  }
+
   const intervalo = setInterval(async () => {
     if (!ON || activo || !bot.entity || Date.now() - ultima < 8000) return;
     if (!libre() || bot.health <= 12) return;
     activo = true; o.ocupar(true);
     try {
-      for (const [nombre, paso] of necesidades) {
+      for (const [nombre, paso] of ordenar()) {
         if (!libre()) break;
         if ((fallos[nombre] || 0) > Date.now()) continue;
         let r;
@@ -196,6 +375,6 @@ function crearAbasto(bot, o) {
     }
   }, 4000);
   bot.once('end', () => clearInterval(intervalo));
-  return { activo: () => activo, estado: () => ({ activo, ultima, enfriando: Object.keys(fallos).filter((k) => fallos[k] > Date.now()) }) };
+  return { activo: () => activo, estado: () => ({ activo, ultima, base, mina: mina && mina.fase, enfriando: Object.keys(fallos).filter((k) => fallos[k] > Date.now()) }) };
 }
 module.exports = { crearAbasto };

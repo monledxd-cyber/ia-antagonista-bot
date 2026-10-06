@@ -255,6 +255,7 @@ function iniciarHuida(bot) {
     goals,
     tranquilo: () => !objetivoActual && !(bot.pvp && bot.pvp.target) && bot.health > 12 && !enemigoCerca(14),
     irCerca, recolectar: recolectarBloque, mejorar: mejorarEquipoCrafteando,
+    Movements, base: () => bot._movBase, herramienta: equiparMejorHerramienta,
     ocupar: (v) => { manoOcupada = v; }, equipar: () => equiparArma(bot),
   });
 
@@ -692,6 +693,7 @@ async function crearBot() {
       if (def) movimientos.blocksToAvoid.add(def.id); // no pisar sus propias minas
     }
     movimientos.canDig = false; // no rompe bloques al perseguir, evita destrozar el mundo
+    bot._movBase = movimientos;
     bot.pathfinder.setMovements(movimientos);
     equiparAutomatico(bot);
     if (!bot._huidaActiva) {
