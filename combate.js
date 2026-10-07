@@ -332,7 +332,7 @@ function iniciarCombate(bot, api) {
       }
     } catch (e) {
       ocupado = false; api.ocupar(false);
-      console.error('[combate]', e.message);
+      console.error('[combate]', e.message); require('./diag').log('error', 'combate', e.message);
     }
   }, 150);
 

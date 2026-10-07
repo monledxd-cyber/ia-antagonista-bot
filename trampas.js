@@ -107,9 +107,10 @@ function crearTrampero(bot, opts = {}) {
     if (/unknown or incomplete command|do not have permission|no tienes permiso/i.test(m)) {
       if (++fallos >= 3) {
         bloqueadoHasta = Date.now() + 5 * 60_000; cola.length = 0; fallos = 0;
+        require('./diag').estado.trampas.sinOP = true; require('./diag').log('error', 'trampas', '3 comandos rechazados: falta OP');
         console.log('[trampas] 3 comandos rechazados seguidos (sin OP o comando mal formado): pausa de 5 min. Da OP al bot: /op ' + bot.username);
       }
-    } else if (/changed the block|successfully filled|summoned new|filled \d+ block/i.test(m)) fallos = 0;
+    } else if (/changed the block|successfully filled|summoned new|filled \d+ block/i.test(m)) { fallos = 0; require('./diag').estado.trampas.sinOP = false; }
   });
   const cmd = (c) => cola.push(c);
 

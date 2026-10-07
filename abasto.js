@@ -1,6 +1,7 @@
 // Autoabastecimiento: cuando esta tranquilo (nadie cerca) junta madera, piedra, carbon y hierro, cocina en horno,
 // caza comida, y fabrica herramientas, armadura, escudo, cubo, flechas y TNT. Un paso por ciclo; se aborta si aparece alguien.
 const { Vec3 } = require('vec3');
+const diag = require('./diag');
 
 function crearAbasto(bot, o) {
   const { goals } = o;
@@ -434,10 +435,11 @@ function crearAbasto(bot, o) {
       for (const [nombre, paso] of ordenar()) {
         if (!libre()) break;
         if ((fallos[nombre] || 0) > Date.now()) continue;
-        let r;
-        try { r = await paso(); } catch (e) { r = false; }
+        let r, motivo = 'no pudo completarlo (falta algo o no hay objetivo cerca)';
+        try { r = await paso(); } catch (e) { r = false; motivo = 'error: ' + e.message; diag.log('error', 'abasto', nombre + ': ' + e.message); }
         if (r === 'nada') continue;
-        if (!r) fallos[nombre] = Date.now() + 120_000; else { console.log('[abasto] paso:', nombre); }
+        if (!r) { fallos[nombre] = Date.now() + 120_000; const p = diag.estado.fallosPaso[nombre] || { n: 0 }; diag.estado.fallosPaso[nombre] = { n: p.n + 1, t: Date.now(), motivo }; diag.log('warn', 'abasto', nombre + ' fallo: ' + motivo); }
+        else { delete diag.estado.fallosPaso[nombre]; diag.log('info', 'abasto', 'paso ' + nombre); console.log('[abasto] paso:', nombre); }
         break; // un paso por ciclo
       }
     } finally {

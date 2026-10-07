@@ -9,6 +9,7 @@ const { iniciarCombate } = require('./combate');
 const { crearTrampero } = require('./trampas');
 const { crearMemoria } = require('./memoria');
 const { crearAbasto } = require('./abasto');
+const diag = require('./diag');
 const { status: statusPing } = require('minecraft-server-util');
 const express = require('express');
 const { parseFlatSnbt } = require('./snbt');
@@ -41,13 +42,19 @@ function preguntarIA(...args) {
   const ctx = args[1] || {};
   const baja = !!(ctx.voluntad || ctx.espontaneo);
   const usado = usoLLM();
-  if (usado >= MAX_LLM_HORA || (baja && usado >= MAX_LLM_HORA * 0.6)) return Promise.reject(new Error('presupuesto de llamadas IA agotado (' + usado + '/' + MAX_LLM_HORA + ' por hora)'));
+  if (usado >= MAX_LLM_HORA || (baja && usado >= MAX_LLM_HORA * 0.6)) { const er = new Error('presupuesto de llamadas IA agotado (' + usado + '/' + MAX_LLM_HORA + ' por hora)'); diag.estado.ia.ultimoError = { t: Date.now(), msg: er.message }; return Promise.reject(er); }
   llamadasTs.push(Date.now());
   const miTurno = colaLlamadas.then(async () => {
     const espera = Math.max(0, COOLDOWN_ENTRE_LLAMADAS_MS - (Date.now() - ultimaLlamadaTs));
     if (espera > 0) await new Promise(r => setTimeout(r, espera));
     ultimaLlamadaTs = Date.now();
-    return preguntarIA_real(...args);
+    return preguntarIA_real(...args).then((r) => { diag.estado.ia.ultimoOk = Date.now(); return r; }, (e) => {
+      const m = /(OpenRouter|Gemini|Groq) error (\d+)/.exec(e && e.message || '');
+      if (m) { const k = m[1] + ':' + m[2]; const p = diag.estado.ia.errores[k] || { n: 0 }; diag.estado.ia.errores[k] = { n: p.n + 1, t: Date.now() }; }
+      diag.estado.ia.ultimoError = { t: Date.now(), msg: String(e && e.message || e) };
+      diag.log('warn', 'ia', e && e.message || e);
+      throw e;
+    });
   });
   colaLlamadas = miTurno.catch(() => {}); // si esta falla, no traba la cola para la siguiente
   return miTurno;
@@ -76,8 +83,8 @@ const trampaLastUse = new Map(); // nombre -> timestamp de la ultima trampa acti
 const historialJugador = new Map(); // nombre -> { interacciones, ultimasRespuestas: [], eventos: [] }
 const memoria = crearMemoria();
 let erroresVistos = 0;
-process.on('uncaughtException', (e) => { erroresVistos++; console.error('[fatal evitado]', e && e.stack || e); });
-process.on('unhandledRejection', (e) => console.error('[promesa rechazada]', e && e.message || e));
+process.on('uncaughtException', (e) => { erroresVistos++; console.error('[fatal evitado]', e && e.stack || e); diag.estado.erroresCodigo.push({ t: Date.now(), msg: String(e && e.stack || e).slice(0, 900) }); diag.estado.erroresCodigo.splice(0, Math.max(0, diag.estado.erroresCodigo.length - 10)); diag.log('error', 'codigo', e && e.message || e); });
+process.on('unhandledRejection', (e) => { console.error('[promesa rechazada]', e && e.message || e); diag.log('warn', 'promesa', e && e.message || e); });
 const extrasCtx = (bot, nombre, falla) => {
   const t = bot._trampero;
   return {
@@ -701,6 +708,23 @@ async function crearBot() {
   });
 
   bot.on('spawn', () => {
+    diag.estado.conexion.estado = 'conectado'; diag.estado.conexion.ultimoSpawn = Date.now(); diag.log('info', 'conexion', 'aparecio en el mundo');
+    if (!bot._diagVida) {
+      bot._diagVida = true;
+      let hpPrev = bot.health, ultLog = 0;
+      bot.on('health', () => {
+        diag.estado.vida.ultima = bot.health;
+        if (bot.health < hpPrev) {
+          const cerca = Object.values(bot.entities).filter((e) => e !== bot.entity && bot.entity && e.position.distanceTo(bot.entity.position) < 7 && (e.type === 'player' || e.type === 'hostile'))
+            .sort((p, q) => p.position.distanceTo(bot.entity.position) - q.position.distanceTo(bot.entity.position))[0];
+          diag.estado.vida.ultimoDano = Date.now();
+          diag.estado.vida.atacante = cerca ? (cerca.username || cerca.name) + (cerca.heldItem ? ' con ' + cerca.heldItem.name : '') : 'ninguno visible';
+          if (bot.health <= 8 && Date.now() - ultLog > 2000) { ultLog = Date.now(); diag.log('warn', 'vida', 'vida ' + bot.health.toFixed(1) + ' | atacante: ' + diag.estado.vida.atacante); }
+        }
+        hpPrev = bot.health;
+      });
+      bot.on('death', () => diag.log('error', 'vida', 'murio | atacante: ' + diag.estado.vida.atacante));
+    }
     bot.chat(`La vigilancia de ${PERSONAJE} ha comenzado.`);
     console.log('[bot] Recordatorio: para que las trampas (/function) funcionen, ' +
       `dale OP al usuario tecnico "${BOT_USERNAME}" desde la consola de Aternos: /op ${BOT_USERNAME}`);
@@ -917,6 +941,7 @@ async function crearBot() {
 
   bot.on('kicked', (reason) => {
     console.log('[bot] kicked:', reason);
+    diag.estado.conexion.ultimoKick = (typeof reason === 'object' ? JSON.stringify(reason) : String(reason)).slice(0, 200) || '(vacio)'; diag.log('error', 'conexion', 'kick: ' + diag.estado.conexion.ultimoKick);
     const texto = (typeof reason === 'object' ? JSON.stringify(reason) : String(reason)).toLowerCase();
     if (texto === '{"text":""}' || texto === '""' || texto === '') {
       registrarFallo('kicked_vacio');
@@ -930,10 +955,13 @@ async function crearBot() {
   });
   bot.on('error', (err) => {
     console.log('[bot] error de conexion:', err.code || err.message, err);
+    diag.estado.conexion.ultimoMotivo = err.code || err.message; diag.log('error', 'conexion', 'error: ' + (err.code || err.message));
     registrarFallo(err.code || 'error_desconocido');
   });
   bot.on('end', (razon) => {
     console.log('[bot] fin de conexion, razon:', razon || '(sin razon)');
+    const cx = diag.estado.conexion; cx.estado = 'desconectado'; cx.caidas++; cx.ultimaCaida = Date.now(); if (razon) cx.ultimoMotivo = String(razon);
+    diag.log('error', 'conexion', 'fin de conexion: ' + (razon || '(sin razon)') + ' | vida=' + diag.estado.vida.ultima);
     botConectadoOEnCurso = false;
     ultimoEnd = Date.now();
     intentosFallidos++;
@@ -1488,6 +1516,15 @@ process.on('unhandledRejection', (e) => console.error('[proc] promesa rechazada 
 // Nombre de version visible: 'v.X.YYY.ZZ sividi toile' (chiste de DeX; quitarlo solo si el lo pide).
 // package.json conserva semver puro, que npm exige.
 const BOT_VERSION = `sividi toile v${require("./package.json").version} pleller updaté`;
+app.get('/panel', (req, res) => {
+  const tk = process.env.PANEL_TOKEN;
+  if (tk && req.query.k !== tk) return res.status(401).send('falta ?k=TOKEN (PANEL_TOKEN)');
+  let est = {}; try { est = _botEstado(); } catch (e) { /* ignorar */ }
+  const plano = {};
+  for (const [k, v] of Object.entries(est)) plano[k] = v;
+  plano.ia_ultima_hora = usoLLM() + '/' + MAX_LLM_HORA;
+  res.send(diag.html({ version: BOT_VERSION, usuario: BOT_USERNAME, estado: plano }));
+});
 let _botEstado = () => ({});
 app.get('/estado', (_req, res) => res.json({ version: BOT_VERSION, uptime: Math.round(process.uptime()), llm_ultima_hora: usoLLM(), llm_max_hora: MAX_LLM_HORA, errores: erroresVistos, ..._botEstado() }));
 app.get('/health', (_req, res) => res.json({ status: 'ok', version: BOT_VERSION, uptime: process.uptime(), diagnostico: stats }));
