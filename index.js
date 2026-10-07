@@ -631,6 +631,22 @@ function textoKick(reason) {
   rec(o);
   return partes.join(' ').slice(0, 300) || '(vacio)';
 }
+// Guarda universal: nunca interactuar con uno mismo (el servidor lo castiga con kick "Cannot interact with self!").
+// Se llama al crear el bot y otra vez cuando carga mineflayer-pvp (que trae su propio attack).
+function protegerAutoAtaque(bot) {
+  const propio = (e) => !e || e === bot.entity || (bot.entity && e.id === bot.entity.id);
+  if (!bot._atqGuardado) {
+    bot._atqGuardado = true;
+    const _atacar = bot.attack.bind(bot);
+    bot.attack = (e, ...r) => { if (propio(e)) { diag.log('warn', 'combate', 'intento de auto-ataque bloqueado'); return; } return _atacar(e, ...r); };
+  }
+  if (bot.pvp && !bot.pvp._guardado) {
+    bot.pvp._guardado = true;
+    const _pa = bot.pvp.attack.bind(bot.pvp);
+    bot.pvp.attack = (e, ...r) => { if (propio(e)) return; return _pa(e, ...r); };
+  }
+}
+
 function proximoDelay() {
   const base = 2_000;
   const tope = hayThrottle ? 30_000 : 12_000; // persistente: nunca espera mas de 12s (30s si Aternos throttlea)
@@ -675,11 +691,7 @@ async function crearBot() {
     // por completo para este mismo sintoma (kick sin razon util, tarda en
     // aparecer): https://github.com/PrismarineJS/mineflayer/issues/1762
   });
-  // Guarda universal: nunca interactuar con uno mismo (el servidor lo castiga con kick "Cannot interact with self!").
-  const _atacar = bot.attack.bind(bot);
-  bot.attack = (e, ...r) => { if (!e || e === bot.entity || (bot.entity && e.id === bot.entity.id)) { diag.log('warn', 'combate', 'intento de auto-ataque bloqueado'); return; } return _atacar(e, ...r); };
-  const _pvpOnce = () => { if (bot.pvp && !bot.pvp._guardado) { bot.pvp._guardado = true; const _pa = bot.pvp.attack.bind(bot.pvp); bot.pvp.attack = (e, ...r) => { if (!e || e === bot.entity || (bot.entity && e.id === bot.entity.id)) return; return _pa(e, ...r); }; } };
-  bot.once('inject_allowed', _pvpOnce); bot.on('spawn', _pvpOnce);
+  protegerAutoAtaque(bot);
   bot.setMaxListeners(40); // varios modulos escuchan 'end'; evita el aviso de posible fuga
   } catch (e) {
     console.error('[bot] createBot lanzo excepcion, se reintenta:', e.message);
@@ -752,7 +764,7 @@ async function crearBot() {
       `dale OP al usuario tecnico "${BOT_USERNAME}" desde la consola de Aternos: /op ${BOT_USERNAME}`);
     if (!bot.pathfinder) bot.loadPlugin(pathfinder);
     if (!bot.pvp) bot.loadPlugin(pvpPlugin);
-    _pvpOnce();
+    protegerAutoAtaque(bot);
     if (!bot.autoCrystal) bot.loadPlugin(autoCrystal);
     const movimientos = new Movements(bot);
     movimientos.allowSprinting = true;
