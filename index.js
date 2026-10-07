@@ -33,7 +33,16 @@ function avisarFalloIA(bot, e) {
   ultimoAvisoIA = Date.now();
   try { bot.chat(`[aviso tecnico] No puedo pensar: ${proveedor} ${codigo}, ${motivos[codigo]}.`); } catch (err) { /* ignorar */ }
 }
+// Presupuesto de llamadas a la IA por hora: lo espontaneo y la voluntad propia se cortan al 60 % para dejar margen a chat directo y reflejos.
+const MAX_LLM_HORA = Number(process.env.IA_MAX_LLM_HORA) || 150;
+const llamadasTs = [];
+const usoLLM = () => { const h = Date.now() - 3_600_000; while (llamadasTs.length && llamadasTs[0] < h) llamadasTs.shift(); return llamadasTs.length; };
 function preguntarIA(...args) {
+  const ctx = args[1] || {};
+  const baja = !!(ctx.voluntad || ctx.espontaneo);
+  const usado = usoLLM();
+  if (usado >= MAX_LLM_HORA || (baja && usado >= MAX_LLM_HORA * 0.6)) return Promise.reject(new Error('presupuesto de llamadas IA agotado (' + usado + '/' + MAX_LLM_HORA + ' por hora)'));
+  llamadasTs.push(Date.now());
   const miTurno = colaLlamadas.then(async () => {
     const espera = Math.max(0, COOLDOWN_ENTRE_LLAMADAS_MS - (Date.now() - ultimaLlamadaTs));
     if (espera > 0) await new Promise(r => setTimeout(r, espera));
@@ -66,7 +75,8 @@ const lastCall = new Map(); // nombre -> timestamp
 const trampaLastUse = new Map(); // nombre -> timestamp de la ultima trampa activada
 const historialJugador = new Map(); // nombre -> { interacciones, ultimasRespuestas: [], eventos: [] }
 const memoria = crearMemoria();
-process.on('uncaughtException', (e) => console.error('[fatal evitado]', e && e.stack || e));
+let erroresVistos = 0;
+process.on('uncaughtException', (e) => { erroresVistos++; console.error('[fatal evitado]', e && e.stack || e); });
 process.on('unhandledRejection', (e) => console.error('[promesa rechazada]', e && e.message || e));
 const extrasCtx = (bot, nombre, falla) => {
   const t = bot._trampero;
@@ -258,6 +268,17 @@ function iniciarHuida(bot) {
     Movements, base: () => bot._movBase, herramienta: equiparMejorHerramienta,
     ocupar: (v) => { manoOcupada = v; }, equipar: () => equiparArma(bot),
   });
+
+  _botEstado = () => {
+    try {
+      return {
+        bot: bot.entity ? { vida: bot.health, hambre: bot.food, pos: bot.entity.position.floored(), dim: bot.game && bot.game.dimension } : null,
+        abasto: bot._abasto ? bot._abasto.estado() : null,
+        trampas: bot._trampero ? { armadas: bot._trampero.armadas().map((t) => t.tipo), pendientes: bot._trampero.pendientes(), kRail: bot._trampero.kRail() } : null,
+        jugadores: Object.keys(bot.players || {}).filter((n) => n !== BOT_USERNAME).map((n) => ({ n, memoria: memoria.resumen(n) })),
+      };
+    } catch (e) { return { error: e.message }; }
+  };
 
   // Al recibir daño: ataca si esta cerca, si no lo persigue.
   bot.on('entityHurt', (entity) => {
@@ -1467,6 +1488,8 @@ process.on('unhandledRejection', (e) => console.error('[proc] promesa rechazada 
 // Nombre de version visible: 'v.X.YYY.ZZ sividi toile' (chiste de DeX; quitarlo solo si el lo pide).
 // package.json conserva semver puro, que npm exige.
 const BOT_VERSION = `sividi toile v${require("./package.json").version} pleller updaté`;
+let _botEstado = () => ({});
+app.get('/estado', (_req, res) => res.json({ version: BOT_VERSION, uptime: Math.round(process.uptime()), llm_ultima_hora: usoLLM(), llm_max_hora: MAX_LLM_HORA, errores: erroresVistos, ..._botEstado() }));
 app.get('/health', (_req, res) => res.json({ status: 'ok', version: BOT_VERSION, uptime: process.uptime(), diagnostico: stats }));
 app.listen(process.env.PORT || 3000, () => console.log(`[http] servidor de salud escuchando (${BOT_VERSION})`));
 
