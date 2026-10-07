@@ -288,11 +288,82 @@ function crearAbasto(bot, o) {
   }
   const irBase = async () => { if (base && distA(base) > 18 && !noche()) await o.irCerca(bot, new Vec3(base.x, base.y, base.z), 20000); };
 
+
+  // ===== Caza de mobs hostiles por drops y busqueda de items (sueltos y, si IA_SAQUEAR=1, cofres ajenos) =====
+  const VALIOSO = /(diamond|iron_ingot|raw_iron|gold_ingot|coal|emerald|ender_pearl|golden_apple|totem_of_undying|obsidian|^tnt$|gunpowder|^string$|^arrow$|^bow$|crossbow|feather|bread|cooked_|^apple$|carrot|baked_potato|bucket|^shield$|_sword$|_pickaxe$|_axe$|_helmet$|_chestplate$|_leggings$|_boots$|^flint$|^stick$|^torch$|wind_charge|^mace$|trident|end_crystal|experience_bottle)/;
+  const libreCaza = () => !jugadorCerca(36) && bot.health > 10 && bot.entity;
+  const nombreDrop = (e) => { try { const d = e.getDroppedItem && e.getDroppedItem(); return d ? d.name : ''; } catch (x) { return ''; } };
+  async function recoger(re, radio = 12) {
+    let n = 0;
+    for (let k = 0; k < 10 && libreCaza(); k++) {
+      const drop = Object.values(bot.entities).filter((e) => e.name === 'item' && e.position.distanceTo(bot.entity.position) < radio && re.test(nombreDrop(e)))
+        .sort((p, q) => p.position.distanceTo(bot.entity.position) - q.position.distanceTo(bot.entity.position))[0];
+      if (!drop) break;
+      try { bot.pathfinder.setGoal(new goals.GoalNear(drop.position.x, drop.position.y, drop.position.z, 0.5)); } catch (e) { break; }
+      for (let t = 0; t < 8 && bot.entities[drop.id]; t++) await dormir(250);
+      n++;
+    }
+    try { bot.pathfinder.setGoal(null); } catch (e) { /* ignorar */ }
+    return n;
+  }
+  // Caza un mob: se acerca, golpea y, si "huida" (creeper), retrocede tras cada golpe para que no explote encima.
+  async function cazarMob(re, huida) {
+    const buscar = () => Object.values(bot.entities).filter((e) => re.test(e.name || '') && e.position.distanceTo(bot.entity.position) < 30)
+      .sort((p, q) => p.position.distanceTo(bot.entity.position) - q.position.distanceTo(bot.entity.position))[0];
+    const presa = buscar();
+    if (!presa || bot.health < 14 || !items().some((i) => /_(sword|axe)$/.test(i.name))) return false;
+    const arma = items().filter((i) => /_sword$/.test(i.name)).pop() || items().find((i) => /_axe$/.test(i.name));
+    if (arma) await bot.equip(arma, 'hand').catch(() => {});
+    const fin = Date.now() + 30_000; let ult = 0;
+    while (Date.now() < fin && bot.entities[presa.id] && libreCaza()) {
+      const d = presa.position.distanceTo(bot.entity.position);
+      if (d > 3) { try { bot.pathfinder.setGoal(new goals.GoalNear(presa.position.x, presa.position.y, presa.position.z, 2)); } catch (e) { break; } }
+      else {
+        try { bot.pathfinder.setGoal(null); await bot.lookAt(presa.position.offset(0, presa.height / 2, 0), true); } catch (e) { /* ignorar */ }
+        if (Date.now() - ult > 650) {
+          ult = Date.now(); bot.attack(presa);
+          if (huida) { bot.setControlState('back', true); bot.setControlState('sprint', true); await dormir(700); bot.setControlState('back', false); bot.setControlState('sprint', false); }
+        }
+      }
+      await dormir(220);
+    }
+    await dormir(400);
+    await recoger(VALIOSO, 12);
+    return true;
+  }
+  const saqueados = new Set();
+  async function saquear() {
+    if (process.env.IA_SAQUEAR !== '1') return 'nada';
+    const cofre = bot.findBlock({ maxDistance: 24, matching: (b) => b && /^(chest|barrel)$/.test(b.name) && !saqueados.has(b.position.toString()) && !(base && b.position.x === base.x && b.position.y === base.y && b.position.z === base.z) });
+    if (!cofre) return 'nada';
+    saqueados.add(cofre.position.toString());
+    if (!(await o.irCerca(bot, cofre.position))) return false;
+    const c = await bot.openContainer(cofre);
+    try {
+      for (const it of c.containerItems().filter((i) => VALIOSO.test(i.name)).slice(0, 8)) { try { await c.withdraw(it.type, null, it.count); } catch (e) { break; } }
+    } finally { try { c.close(); } catch (e) { /* ignorar */ } }
+    console.log('[abasto] cofre saqueado en', cofre.position.toString());
+    return true;
+  }
+
   // Cada necesidad devuelve: true si avanzo, false si no pudo (se enfria), 'nada' si no aplica.
   const necesidades = [
     ['recuperar', paso_recuperar],
     ['base', paso_base],
     ['guardar', paso_guardar],
+    ['botin', async () => {
+      const hay = Object.values(bot.entities).some((e) => e.name === 'item' && e.position.distanceTo(bot.entity.position) < 24 && VALIOSO.test(nombreDrop(e)));
+      if (hay) return (await recoger(VALIOSO, 24)) > 0;
+      return saquear();
+    }],
+    ['cuerda', async () => {
+      if (tiene(/^(bow|crossbow)$/)) return 'nada';
+      if (cuenta(/^string$/) >= 3 && cuenta(/^stick$/) >= 3) return craftear('bow');
+      if (cuenta(/^string$/) >= 3 && cuenta(/_planks$/) >= 2) return craftear('stick', 1);
+      return cazarMob(/^spider$/, false);
+    }],
+    ['polvora', async () => (cuenta(/^gunpowder$/) >= 10 ? 'nada' : cazarMob(/^creeper$/, true))],
+    ['esqueletos', async () => (tiene(/^(bow|crossbow)$/) && cuenta(/^arrow$/) < 16 ? cazarMob(/^skeleton$/, false) : 'nada')],
     ['mina', paso_mina],
     ['obsidiana', paso_obsidiana],
     ['madera', async () => {
@@ -338,6 +409,7 @@ function crearAbasto(bot, o) {
       if (cuenta(/^flint$/) >= 1 && cuenta(/^feather$/) >= 1 && cuenta(/^stick$/) >= 1) return craftear('arrow', 1);
       if (cuenta(/^flint$/) < 3 && bloqueN(/^gravel$/, 24)) return (await o.recolectar(bot, 'gravel', 4)).ok;
       if (cuenta(/^feather$/) < 3) return cazar(/^chicken$/);
+      if (cuenta(/^arrow$/) < 8) return cazarMob(/^skeleton$/, false);
       return 'nada';
     }],
   ];
