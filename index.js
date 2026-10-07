@@ -298,7 +298,7 @@ function iniciarHuida(bot) {
         setTimeout(() => bot.deactivateItem(), 800);
       }
       const atacante = Object.values(bot.entities).find(e =>
-        e.type === 'player' && bot.entity && e.position.distanceTo(bot.entity.position) < DISTANCIA_PELIGRO + 2
+        e !== bot.entity && e.username !== BOT_USERNAME && e.type === 'player' && bot.entity && e.position.distanceTo(bot.entity.position) < DISTANCIA_PELIGRO + 2
       );
       if (atacante) {
         if (atacante.position.distanceTo(bot.entity.position) < 3) atacar(atacante);
@@ -675,6 +675,11 @@ async function crearBot() {
     // por completo para este mismo sintoma (kick sin razon util, tarda en
     // aparecer): https://github.com/PrismarineJS/mineflayer/issues/1762
   });
+  // Guarda universal: nunca interactuar con uno mismo (el servidor lo castiga con kick "Cannot interact with self!").
+  const _atacar = bot.attack.bind(bot);
+  bot.attack = (e, ...r) => { if (!e || e === bot.entity || (bot.entity && e.id === bot.entity.id)) { diag.log('warn', 'combate', 'intento de auto-ataque bloqueado'); return; } return _atacar(e, ...r); };
+  const _pvpOnce = () => { if (bot.pvp && !bot.pvp._guardado) { bot.pvp._guardado = true; const _pa = bot.pvp.attack.bind(bot.pvp); bot.pvp.attack = (e, ...r) => { if (!e || e === bot.entity || (bot.entity && e.id === bot.entity.id)) return; return _pa(e, ...r); }; } };
+  bot.once('inject_allowed', _pvpOnce); bot.on('spawn', _pvpOnce);
   bot.setMaxListeners(40); // varios modulos escuchan 'end'; evita el aviso de posible fuga
   } catch (e) {
     console.error('[bot] createBot lanzo excepcion, se reintenta:', e.message);
@@ -747,6 +752,7 @@ async function crearBot() {
       `dale OP al usuario tecnico "${BOT_USERNAME}" desde la consola de Aternos: /op ${BOT_USERNAME}`);
     if (!bot.pathfinder) bot.loadPlugin(pathfinder);
     if (!bot.pvp) bot.loadPlugin(pvpPlugin);
+    _pvpOnce();
     if (!bot.autoCrystal) bot.loadPlugin(autoCrystal);
     const movimientos = new Movements(bot);
     movimientos.allowSprinting = true;
