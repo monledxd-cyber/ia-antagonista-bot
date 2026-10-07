@@ -616,9 +616,25 @@ function registrarFallo(tipo) {
 let intentosFallidos = 0;
 let hayThrottle = false;
 let ultimoEnd = Date.now();
+// Texto legible de un motivo de kick (NBT de 1.21.x o JSON antiguo): junta translate/text/extra/with.
+let kickDuplicado = false;
+function textoKick(reason) {
+  let o = reason;
+  try { if (o && o.type === 'compound') o = require('prismarine-nbt').simplify(o); else if (typeof o === 'string') o = JSON.parse(o); } catch (e) { /* queda tal cual */ }
+  const partes = [];
+  const rec = (x, d = 0) => {
+    if (x == null || d > 6) return;
+    if (typeof x === 'string' || typeof x === 'number') { if (String(x).trim()) partes.push(String(x)); return; }
+    if (Array.isArray(x)) return x.forEach((y) => rec(y, d + 1));
+    if (typeof x === 'object') { rec(x.translate, d + 1); rec(x.text, d + 1); rec(x.with, d + 1); rec(x.extra, d + 1); }
+  };
+  rec(o);
+  return partes.join(' ').slice(0, 300) || '(vacio)';
+}
 function proximoDelay() {
   const base = 2_000;
   const tope = hayThrottle ? 30_000 : 12_000; // persistente: nunca espera mas de 12s (30s si Aternos throttlea)
+  if (kickDuplicado) return 60_000 + Math.floor(Math.random() * 30_000); // otra instancia usa el mismo usuario: no pelear
   const delay = Math.min(base * Math.pow(1.6, intentosFallidos), tope);
   const jitter = Math.floor(Math.random() * 1500); // evita que todos los reintentos caigan en el mismo instante
   return delay + jitter;
@@ -659,6 +675,7 @@ async function crearBot() {
     // por completo para este mismo sintoma (kick sin razon util, tarda en
     // aparecer): https://github.com/PrismarineJS/mineflayer/issues/1762
   });
+  bot.setMaxListeners(40); // varios modulos escuchan 'end'; evita el aviso de posible fuga
   } catch (e) {
     console.error('[bot] createBot lanzo excepcion, se reintenta:', e.message);
     registrarFallo('createBot_excepcion');
@@ -708,7 +725,7 @@ async function crearBot() {
   });
 
   bot.on('spawn', () => {
-    diag.estado.conexion.estado = 'conectado'; diag.estado.conexion.ultimoSpawn = Date.now(); diag.log('info', 'conexion', 'aparecio en el mundo');
+    kickDuplicado = false; diag.estado.conexion.estado = 'conectado'; diag.estado.conexion.ultimoSpawn = Date.now(); diag.log('info', 'conexion', 'aparecio en el mundo');
     if (!bot._diagVida) {
       bot._diagVida = true;
       let hpPrev = bot.health, ultLog = 0;
@@ -940,10 +957,15 @@ async function crearBot() {
   });
 
   bot.on('kicked', (reason) => {
-    console.log('[bot] kicked:', reason);
-    diag.estado.conexion.ultimoKick = (typeof reason === 'object' ? JSON.stringify(reason) : String(reason)).slice(0, 200) || '(vacio)'; diag.log('error', 'conexion', 'kick: ' + diag.estado.conexion.ultimoKick);
-    const texto = (typeof reason === 'object' ? JSON.stringify(reason) : String(reason)).toLowerCase();
-    if (texto === '{"text":""}' || texto === '""' || texto === '') {
+    const legible = textoKick(reason);
+    console.log('[bot] kicked:', legible);
+    diag.estado.conexion.ultimoKick = legible; diag.log('error', 'conexion', 'kick: ' + legible);
+    const texto = legible.toLowerCase();
+    kickDuplicado = /duplicate_login|another location|already (logged|connected)|ya (esta|has)/.test(texto);
+    if (kickDuplicado) {
+      console.log('[bot] OTRA INSTANCIA usa el mismo usuario (duplicate login): apaga Render o tu PC; espero 60 s+ para no pelear');
+      registrarFallo('kicked_duplicado');
+    } else if (texto === '(vacio)') {
       registrarFallo('kicked_vacio');
     } else if (texto.includes('throttl') || texto.includes('wait before') || texto.includes('too fast') || texto.includes('too many')) {
       console.log('[bot] kick por throttling detectado, se aplicara backoff mas largo');

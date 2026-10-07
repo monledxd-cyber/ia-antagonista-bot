@@ -20,6 +20,7 @@ function diagnosticar(extra = {}) {
     else if (/banned/i.test(m)) add('alta', 'El bot esta baneado', 'Quita el ban con /pardon.');
     else add('media', 'Desconectado: ' + (m.trim().slice(0, 80) || 'motivo desconocido'), 'Mira los eventos de abajo.');
   }
+  if (/duplicate_login|another location|duplicado/i.test(m)) add('alta', 'OTRA INSTANCIA del bot usa el mismo usuario (duplicate login): se patean entre si', 'Deja solo una corriendo: suspende el servicio de Render o cierra iniciar.bat en tu PC. Si necesitas ambas, usa MC_BOT_USERNAME distinto en cada una.');
   if (/spam|too fast|demasiados/i.test(m)) add('alta', 'Lo expulsaron por spam de chat/comandos', 'Baja el ritmo: IA_VOLUNTAD_MS mas alto o IA_TRAMPAS=0.');
   if (/timed out|keepalive|Timeout/i.test(m)) add('media', 'Se cayo por timeout (la conexion o el proceso se atasco)', 'En Render gratis el proceso se duerme/CPU limitada; usa un plan sin suspension o corre en tu PC.');
   if (c.ultimaCaida && estado.vida.ultimoDano && Math.abs(c.ultimaCaida - estado.vida.ultimoDano) < 8000 && (estado.vida.ultima ?? 20) <= 8)
