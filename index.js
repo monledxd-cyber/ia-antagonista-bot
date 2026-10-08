@@ -532,6 +532,39 @@ function iniciarHuida(bot) {
   }, 2_500);
   intervalos.push(gappleInterval);
 
+  // Comida de emergencia: con poca vida come lo mejor que tenga (la regeneracion natural exige hambre alta).
+  // Sin enemigo encima come ya; con enemigo pegado solo si esta realmente mal (<= 6).
+  const emergenciaInterval = setInterval(async () => {
+    if (!bot.entity) { clearInterval(emergenciaInterval); return; }
+    if (comiendo || bot.health === undefined || bot.health > 12 || bot.food === undefined || bot.food >= 20) return;
+    const pegado = enemigoCerca(3);
+    if (pegado && bot.health > 6) return;
+    await comerAlgo(bot, null);
+  }, 1_000);
+  intervalos.push(emergenciaInterval);
+
+  // Recoger items importantes sueltos (loot de un jugador caido, drops de mobs, lo que se le cayo) cuando no hay peligro.
+  const IMPORTANTE = /(diamond|netherite|iron_ingot|raw_iron|gold_ingot|emerald|ender_pearl|golden_apple|totem_of_undying|obsidian|^tnt$|gunpowder|^arrow$|^bow$|crossbow|^shield$|^mace$|trident|wind_charge|end_crystal|elytra|experience_bottle|cooked_|^bread$|_sword$|_pickaxe$|_axe$|_helmet$|_chestplate$|_leggings$|_boots$|^bucket$|water_bucket)/;
+  const intentosItem = new Map();
+  let ultRecoger = 0;
+  const recogerInterval = setInterval(() => {
+    if (!bot.entity) { clearInterval(recogerInterval); return; }
+    if (objetivoActual || (bot.pvp && bot.pvp.target) || manoOcupada || comiendo || enemigoCerca(10) || bot.health <= 6) return;
+    if (Date.now() - ultRecoger < 2500) return;
+    const yo = bot.entity.position;
+    const it = Object.values(bot.entities).filter((e) => {
+      if (e.name !== 'item' || e.position.distanceTo(yo) > 16 || (intentosItem.get(e.id) || 0) >= 2) return false;
+      try { const d = e.getDroppedItem && e.getDroppedItem(); return !!(d && IMPORTANTE.test(d.name)); } catch (x) { return false; }
+    }).sort((p, q) => p.position.distanceTo(yo) - q.position.distanceTo(yo))[0];
+    if (!it) return;
+    ultRecoger = Date.now();
+    intentosItem.set(it.id, (intentosItem.get(it.id) || 0) + 1);
+    if (intentosItem.size > 200) intentosItem.clear();
+    try { bot.pathfinder.setGoal(new goals.GoalNear(it.position.x, it.position.y, it.position.z, 0.6)); } catch (e) { /* ignorar */ }
+    diag.log('info', 'botin', 'va por ' + ((it.getDroppedItem && it.getDroppedItem() || {}).name || 'item'));
+  }, 700);
+  intervalos.push(recogerInterval);
+
   // Mejora de equipo craftenando: si tiene materiales para una pieza de mejor
   // tier que la que posee y hay una mesa de trabajo a la vista, la fabrica.
   // Solo con la zona tranquila (sin enemigos cerca) y vida razonable.
@@ -635,7 +668,7 @@ function textoKick(reason) {
 // Se llama al crear el bot y otra vez cuando carga mineflayer-pvp (que trae su propio attack).
 function protegerAutoAtaque(bot) {
   const propio = (e) => !e || e === bot.entity || (bot.entity && e.id === bot.entity.id);
-  if (!bot._atqGuardado) {
+  if (!bot._atqGuardado && typeof bot.attack === 'function') { // los plugins de mineflayer se cargan despues de createBot: antes del spawn attack no existe
     bot._atqGuardado = true;
     const _atacar = bot.attack.bind(bot);
     bot.attack = (e, ...r) => { if (propio(e)) { diag.log('warn', 'combate', 'intento de auto-ataque bloqueado'); return; } return _atacar(e, ...r); };
