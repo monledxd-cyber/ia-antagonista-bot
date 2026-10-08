@@ -111,7 +111,8 @@ Respondele en personaje, con tu tono sadico y orgulloso.`;
       : 'tu:desconocido';
     const fallaLinea = (contextoJugador.ultimaFalla ? `\nfallo_anterior:${contextoJugador.ultimaFalla}` : '') +
       ((contextoJugador.puedeConstruir && contextoJugador.planosGuardados && contextoJugador.planosGuardados.length) ? `\nplanos_guardados:${contextoJugador.planosGuardados.join(',')}` : '') +
-      (contextoJugador.memoriaJugador ? `\nmemoria_jugador:${contextoJugador.memoriaJugador}` : '');
+      (contextoJugador.memoriaJugador ? `\nmemoria_jugador:${contextoJugador.memoriaJugador}` : '') +
+      (contextoJugador.yo ? `\nyo:${contextoJugador.yo}` : '');
     const posStr = contextoJugador.x !== undefined ? `${Math.round(contextoJugador.x)},${Math.round(contextoJugador.y)},${Math.round(contextoJugador.z)}` : '?';
     const dimStr = contextoJugador.dimension ? contextoJugador.dimension.replace('minecraft:', '') : '?';
     const horaStr = contextoJugador.hora_dia !== undefined ? (contextoJugador.hora_dia % 24000 >= 13000 && contextoJugador.hora_dia % 24000 < 23000 ? 'noche' : 'dia') : '?';

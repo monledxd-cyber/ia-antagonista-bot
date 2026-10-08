@@ -83,6 +83,7 @@ const lastCall = new Map(); // nombre -> timestamp
 const trampaLastUse = new Map(); // nombre -> timestamp de la ultima trampa activada
 const historialJugador = new Map(); // nombre -> { interacciones, ultimasRespuestas: [], eventos: [] }
 const memoria = crearMemoria();
+const diario = require('./diario').crearDiario();
 let erroresVistos = 0;
 process.on('uncaughtException', (e) => { erroresVistos++; console.error('[fatal evitado]', e && e.stack || e); diag.estado.erroresCodigo.push({ t: Date.now(), msg: String(e && e.stack || e).slice(0, 900) }); diag.estado.erroresCodigo.splice(0, Math.max(0, diag.estado.erroresCodigo.length - 10)); diag.log('error', 'codigo', e && e.message || e); });
 process.on('unhandledRejection', (e) => { console.error('[promesa rechazada]', e && e.message || e); diag.log('warn', 'promesa', e && e.message || e); });
@@ -91,6 +92,7 @@ const extrasCtx = (bot, nombre, falla) => {
   return {
     planosGuardados: t ? t.nombresGuardados() : [],
     memoriaJugador: memoria.resumen(nombre),
+    yo: (() => { try { const eq = bot.inventory.items().length; return diario.resumen() + `; items=${eq}` + (diag.estado.metas && diag.estado.metas.length ? '; metas=' + diag.estado.metas.slice(0, 3).join('>') : '') + (bot._modoEquipo > Date.now() ? '; modo=reequipandome' : ''); } catch (e) { return ''; } })(),
     puedeConstruir: !!(t && t.listo()) || /PLANO|TRAMPERO/.test(falla || ''),
   };
 };
@@ -406,7 +408,7 @@ function iniciarHuida(bot) {
         const recienGolpeado = diag.estado.vida.ultimoDano && ahora - diag.estado.vida.ultimoDano < 6000;
         if ((!bot._modoEquipo || bot._modoEquipo < ahora) && !recienGolpeado && dist > 5 && ((ahora - persec.ult > 25_000) || (superior && dist > 8))) {
           bot._modoEquipo = ahora + 4 * 60_000;
-          diag.log('info', 'estrategia', 'persecucion inutil (' + (superior ? 'rival superior' : 'sin acercarse') + '): se retira a conseguir equipo 4 min');
+          diario.equipo(); diag.log('info', 'estrategia', 'persecucion inutil (' + (superior ? 'rival superior' : 'sin acercarse') + '): se retira a conseguir equipo 4 min');
           objetivoActual = null; try { if (bot.pvp) bot.pvp.stop(); bot.pathfinder.setGoal(null); } catch (e) { /* ignorar */ }
         }
         if (bot._modoEquipo > ahora && dist > 5 && !recienGolpeado) return; // no persigue: a equiparse
@@ -571,7 +573,7 @@ function iniciarHuida(bot) {
     if (Date.now() - ultRecoger < 2500) return;
     const yo = bot.entity.position;
     const it = Object.values(bot.entities).filter((e) => {
-      if (e.name !== 'item' || e.position.distanceTo(yo) > 16 || (intentosItem.get(e.id) || 0) >= 2) return false;
+      if (e.name !== 'item' || e.position.distanceTo(yo) > (bot.pvp && bot.pvp.target ? 16 : 28) || (intentosItem.get(e.id) || 0) >= 2) return false;
       try { const d = e.getDroppedItem && e.getDroppedItem(); return !!(d && IMPORTANTE.test(d.name)); } catch (x) { return false; }
     }).sort((p, q) => p.position.distanceTo(yo) - q.position.distanceTo(yo))[0];
     if (!it) return;
@@ -839,11 +841,15 @@ async function crearBot() {
       console.log('[bot] murio, respawneando en el mismo server (sin reconectar)');
       const p = Object.values(bot.entities).filter(e => e.type === 'player' && e.username !== BOT_USERNAME && bot.entity && e.position.distanceTo(bot.entity.position) < 8)[0];
       if (p) memoria.mato(p.username);
+      const ar = p && p.heldItem && p.heldItem.name;
+      const ultimo = diag.estado.vida.atacante;
+      diario.muerte(p ? { por: 'jugador', quien: p.username, arma: ar || null } : { por: 'entorno', causa: String(ultimo || 'desconocida').slice(0, 24) });
+      if (diario.muertesRecientes(30) >= 2) { bot._modoEquipo = Date.now() + 6 * 60_000; diag.log('info', 'estrategia', 'murio 2 veces en 30 min: se reequipa antes de volver a pelear'); diario.equipo(); }
     });
     if (!bot._memoriaHooks) {
       bot._memoriaHooks = true;
       bot.on('playerJoined', (p) => { if (p && p.username !== BOT_USERNAME) memoria.entra(p.username); });
-      bot.on('entityDead', (e) => { if (e && e.type === 'player' && e.username && bot.entity && e.position.distanceTo(bot.entity.position) < 16) memoria.murio(e.username); });
+      bot.on('entityDead', (e) => { if (e && e.type === 'player' && e.username && bot.entity && e.position.distanceTo(bot.entity.position) < 16) { memoria.murio(e.username); diario.kill(); } });
       const armasI = setInterval(() => {
         if (!bot.entity) return;
         for (const e of Object.values(bot.entities)) {
