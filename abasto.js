@@ -11,7 +11,7 @@ function crearAbasto(bot, o) {
   const items = () => bot.inventory.items();
   const cuenta = (re) => items().filter((i) => re.test(i.name)).reduce((a, i) => a + i.count, 0);
   const tiene = (re) => cuenta(re) > 0;
-  const libre = () => o.tranquilo() && !jugadorCerca(36);
+  const libre = () => o.tranquilo() && !jugadorCerca(bot._modoEquipo > Date.now() ? 14 : 36);
   function jugadorCerca(r) {
     return Object.values(bot.entities).some((e) => e.type === 'player' && e.username !== bot.username && e.position.distanceTo(bot.entity.position) < r);
   }
@@ -357,6 +357,22 @@ function crearAbasto(bot, o) {
       if (hay) return (await recoger(VALIOSO, 24)) > 0;
       return saquear();
     }],
+    ['claves', async () => {
+      if (!o.claves) return 'nada';
+      const pos = bot.entity.position;
+      let re = null;
+      const m = pico() ? regexMenas() : null;
+      if (m) re = m;
+      else if (tiene(/^bucket$/) && !tiene(/^water_bucket$/)) re = /^water$/;
+      else if (tiene(/^diamond_pickaxe$/) && tiene(/^water_bucket$/) && cuenta(/^obsidian$/) < 6) re = /^lava$/;
+      if (!re) return 'nada';
+      const c = o.claves.cercano(re, pos, 150);
+      if (!c) return 'nada';
+      const b = bot.blockAt(new Vec3(c.x, c.y, c.z));
+      if (b && !re.test(b.name)) { o.claves.olvidar(c); return 'nada'; }
+      if (Math.hypot(c.x - pos.x, c.z - pos.z) < 6 && Math.abs(c.y - pos.y) < 4) { o.claves.olvidar(c); return 'nada'; }
+      return cavar(c.x, c.y, c.z, 40000);
+    }],
     ['cuerda', async () => {
       if (tiene(/^(bow|crossbow)$/)) return 'nada';
       if (cuenta(/^string$/) >= 3 && cuenta(/^stick$/) >= 3) return craftear('bow');
@@ -423,6 +439,7 @@ function crearAbasto(bot, o) {
     if (!armaduraCompleta() && cuenta(/^iron_ingot$/) >= 4) frente.push('equipo');
     const hayJugadores = Object.keys(bot.players || {}).length > 1;
     if (hayJugadores && tiene(/^(bow|crossbow)$/) && cuenta(/^arrow$/) < 8) frente.push('flechas');
+    if (bot._modoEquipo > Date.now()) frente.push('equipo', 'botin', 'hierro', 'mina', 'claves', 'carbon', 'piedra', 'madera', 'comida');
     const rank = (n) => { const i = frente.indexOf(n); return i < 0 ? 100 : i; };
     return necesidades.map((x, i) => [x, i]).sort((p, q) => (rank(p[0][0]) - rank(q[0][0])) || (p[1] - q[1])).map((x) => x[0]);
   }

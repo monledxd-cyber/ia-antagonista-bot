@@ -10,6 +10,7 @@ const { crearTrampero } = require('./trampas');
 const { crearMemoria } = require('./memoria');
 const { crearAbasto } = require('./abasto');
 const diag = require('./diag');
+const { crearClaves } = require('./claves');
 const { status: statusPing } = require('minecraft-server-util');
 const express = require('express');
 const { parseFlatSnbt } = require('./snbt');
@@ -268,8 +269,9 @@ function iniciarHuida(bot) {
   });
 
   // Autoabastecimiento: junta y fabrica solo cuando nadie anda cerca (IA_ABASTO=0 lo apaga).
+  bot._claves = crearClaves(bot);
   bot._abasto = crearAbasto(bot, {
-    goals,
+    goals, claves: bot._claves,
     tranquilo: () => !objetivoActual && !(bot.pvp && bot.pvp.target) && bot.health > 12 && !enemigoCerca(14),
     irCerca, recolectar: recolectarBloque, mejorar: mejorarEquipoCrafteando,
     Movements, base: () => bot._movBase, herramienta: equiparMejorHerramienta,
@@ -324,6 +326,7 @@ function iniciarHuida(bot) {
       )
     );
   }
+  let persec = null;
   const chequeoInterval = setInterval(() => {
     if (!bot.entity) { clearInterval(chequeoInterval); return; }
 
@@ -393,6 +396,21 @@ function iniciarHuida(bot) {
 
     if (objetivo) {
       const dist = objetivo.position.distanceTo(bot.entity.position);
+      // Perseguir en vano -> retirarse a equiparse. Triggers: 25 s sin acercarse, o rival muy superior en armadura.
+      if (objetivo.type === 'player') {
+        const ahora = Date.now();
+        if (!persec || persec.id !== objetivo.id) persec = { id: objetivo.id, minD: dist, ult: ahora };
+        else if (dist < persec.minD - 1.5) { persec.minD = dist; persec.ult = ahora; }
+        const pts = (arr) => arr.reduce((acc, it) => acc + (it ? tierDe(it.name) + 1 : 0), 0);
+        const superior = Array.isArray(objetivo.equipment) && pts(objetivo.equipment.slice(2, 6)) - pts([5, 6, 7, 8].map((i) => bot.inventory.slots[i])) >= 6;
+        const recienGolpeado = diag.estado.vida.ultimoDano && ahora - diag.estado.vida.ultimoDano < 6000;
+        if ((!bot._modoEquipo || bot._modoEquipo < ahora) && !recienGolpeado && dist > 5 && ((ahora - persec.ult > 25_000) || (superior && dist > 8))) {
+          bot._modoEquipo = ahora + 4 * 60_000;
+          diag.log('info', 'estrategia', 'persecucion inutil (' + (superior ? 'rival superior' : 'sin acercarse') + '): se retira a conseguir equipo 4 min');
+          objetivoActual = null; try { if (bot.pvp) bot.pvp.stop(); bot.pathfinder.setGoal(null); } catch (e) { /* ignorar */ }
+        }
+        if (bot._modoEquipo > ahora && dist > 5 && !recienGolpeado) return; // no persigue: a equiparse
+      }
       if (dist < 3) atacar(objetivo);
       else perseguir(objetivo);
     } else {
@@ -792,7 +810,6 @@ async function crearBot() {
       });
       bot.on('death', () => diag.log('error', 'vida', 'murio | atacante: ' + diag.estado.vida.atacante));
     }
-    bot.chat(`La vigilancia de ${PERSONAJE} ha comenzado.`);
     console.log('[bot] Recordatorio: para que las trampas (/function) funcionen, ' +
       `dale OP al usuario tecnico "${BOT_USERNAME}" desde la consola de Aternos: /op ${BOT_USERNAME}`);
     if (!bot.pathfinder) bot.loadPlugin(pathfinder);
@@ -1251,7 +1268,7 @@ async function smashAttack(bot) {
         return { ok: true };
       }
       // predice a donde ira: apunta un poco por delante de su velocidad
-      if (objetivo.velocity) bot.lookAt(o.offset(objetivo.velocity.x * 3, 0.9, objetivo.velocity.z * 3), true).catch(() => {});
+      { const vv = bot._vel ? bot._vel(objetivo) : null; if (vv) { const tt = Math.min(8, p.distanceTo(o) / 0.9); bot.lookAt(o.offset(vv.x * tt, 0.9, vv.z * tt), true).catch(() => {}); } }
       if (bot.entity.onGround && t > 5) break;
     }
     return { ok: false, motivo: 'cayo sin alcanzar al jugador' };

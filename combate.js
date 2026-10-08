@@ -33,14 +33,38 @@ function calcularPitch(dx, dy, v) {
 
 function iniciarCombate(bot, api) {
   const hist = new Map(); // id -> {p, ts} para estimar velocidad (mineflayer no la da en jugadores)
-  const velocidad = (e) => {
+  // Tracker continuo (cada 50 ms): la velocidad de los otros jugadores NO viene del servidor, hay que medirla.
+  // Promedia ~250 ms de posiciones; devuelve bloques/tick (x,z,y). En el aire se aplica gravedad al predecir.
+  const muestras = new Map();
+  const tracker = setInterval(() => {
+    if (!bot.entity) { clearInterval(tracker); return; }
     const ahora = Date.now();
-    const h = hist.get(e.id);
-    hist.set(e.id, { p: e.position.clone(), ts: ahora });
-    if (!h || ahora - h.ts < 20 || ahora - h.ts > 600) return new Vec3(0, 0, 0);
-    const ticks = (ahora - h.ts) / 50;
-    const d = e.position.minus(h.p).scaled(1 / ticks);
-    return new Vec3(d.x, 0, d.z);
+    for (const e of Object.values(bot.entities)) {
+      if (e === bot.entity || (e.type !== 'player' && e.type !== 'hostile') || e.position.distanceTo(bot.entity.position) > 45) continue;
+      let a = muestras.get(e.id);
+      if (!a) { a = []; muestras.set(e.id, a); }
+      a.push({ p: e.position.clone(), ts: ahora, g: e.onGround !== false });
+      while (a.length > 8 || (a.length && ahora - a[0].ts > 400)) a.shift();
+    }
+    for (const id of muestras.keys()) if (!bot.entities[id]) muestras.delete(id);
+  }, 50);
+  api.intervalos.push(tracker);
+  const velocidad = (e) => {
+    const a = muestras.get(e.id);
+    if (!a || a.length < 3) return new Vec3(0, 0, 0);
+    const f = a[0], l = a[a.length - 1], ticks = (l.ts - f.ts) / 50;
+    if (ticks < 1.5) return new Vec3(0, 0, 0);
+    const v = l.p.minus(f.p).scaled(1 / ticks);
+    if (l.g) v.y = 0; // en el suelo no se predice vertical
+    return v;
+  };
+  bot._vel = velocidad;
+  // Posicion futura tras t ticks: lineal en x/z; en el aire, y con gravedad (0.08/tick^2, rozamiento 0.98), sin bajar del suelo conocido.
+  const futura = (e, base, t) => {
+    const v = velocidad(e), aire = !(e.onGround !== false);
+    let y = base.y + v.y * t;
+    if (aire) y -= 0.04 * t * t;
+    return new Vec3(base.x + v.x * t, Math.max(y, base.y - 4), base.z + v.z * t);
   };
   // Lectura del rival. metadata[8] = estados de mano de LivingEntity (bit0 = mano activa: comiendo,
   // cargando arco o bloqueando; bit1 = mano secundaria). Indice segun el protocolo 1.21.x, sin probar en juego.
@@ -67,13 +91,13 @@ function iniciarCombate(bot, api) {
 
   function apuntar(t, v) {
     const ojo = bot.entity.position.offset(0, 1.62, 0);
-    const vel = velocidad(t);
-    let obj = t.position.offset(0, 1.0, 0), sol = null;
-    for (let i = 0; i < 3; i++) {
+    const base = t.position.offset(0, 1.0, 0);
+    let obj = base, sol = null;
+    for (let i = 0; i < 4; i++) {            // iterar: el tiempo de vuelo depende de donde apuntas
       const d = obj.minus(ojo);
       sol = calcularPitch(Math.hypot(d.x, d.z), d.y, v);
       if (!sol) return false;
-      obj = t.position.offset(0, 1.0, 0).plus(vel.scaled(sol.t)); // adelanto segun hacia donde corre
+      obj = futura(t, base, sol.t + 2);      // +2 ticks de latencia/reaccion
     }
     const d = obj.minus(ojo);
     bot.look(Math.atan2(-d.x, -d.z), sol.pitch, true);
