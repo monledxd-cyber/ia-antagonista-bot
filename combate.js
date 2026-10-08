@@ -89,6 +89,22 @@ function iniciarCombate(bot, api) {
     return !bot.world.raycast(ojo, d.normalize(), len - 0.3);
   };
 
+  // Linea de vision/alcance: del ojo al punto SOLO puede haber aire (nada que tape el golpe).
+  const lineaLibre = (pos) => {
+    const ojo = bot.entity.position.offset(0, 1.62, 0);
+    const d = pos.minus(ojo), len = d.norm();
+    if (len < 0.5) return true;
+    try { return !bot.world.raycast(ojo, d.normalize(), len - 0.2); } catch (e) { return true; }
+  };
+  bot._lineaLibre = lineaLibre;
+  // Cara superior de la obsidiana p visible y alcanzable (el rayo desde el ojo debe dar en ese bloque, cara +Y)
+  const caraSuperior = (p) => {
+    const ojo = bot.entity.position.offset(0, 1.62, 0);
+    const d = p.offset(0.5, 1, 0.5).minus(ojo), len = d.norm();
+    if (len > 4.5) return false;
+    try { const r = bot.world.raycast(ojo, d.normalize(), 5); return !!(r && r.position.x === p.x && r.position.y === p.y && r.position.z === p.z && r.face === 1); } catch (e) { return false; }
+  };
+
   function apuntar(t, v) {
     const ojo = bot.entity.position.offset(0, 1.62, 0);
     const base = t.position.offset(0, 1.0, 0);
@@ -222,7 +238,8 @@ function iniciarCombate(bot, api) {
       if (propio >= bot.health - 3 || (propio > 9 && rival < propio * 1.2)) continue; // demasiado caro
       if (ahora - ultRomper < 120) return;
       ultRomper = ahora;
-      try { await bot.lookAt(k.position, true); bot.attack(k); } catch (e) { /* ignorar */ }
+      if (!lineaLibre(k.position.offset(0, 0.5, 0))) continue;
+      try { await bot.lookAt(k.position.offset(0, 0.5, 0), true); bot.attack(k); } catch (e) { /* ignorar */ }
       return;
     }
     // 2) colocar: mejor obsidiana (dano al rival - dano propio), sin cristal ya puesto encima y con 2 de aire
@@ -240,6 +257,7 @@ function iniciarCombate(bot, api) {
       if (!a1 || !a2 || a1.name !== 'air' || a2.name !== 'air') continue;
       const c = centro(p);
       if (c.distanceTo(ojos) > 3.6) continue;                      // tiene que poder romperlo despues
+      if (!caraSuperior(p)) continue;                              // la cara de arriba debe verse y no estar tapada
       if (Object.values(bot.entities).some((e) => esCristal(e) && e.position.distanceTo(c) < 1.1)) continue;
       const propio = danoEn(bot.entity, c), rival = danoEn(t, c);
       if (propio >= bot.health - 5) continue;
@@ -251,6 +269,7 @@ function iniciarCombate(bot, api) {
     if (!mano) await bot.equip(cris, 'hand');
     const bloque = bot.blockAt(mejor);
     await bot.lookAt(mejor.offset(0.5, 1, 0.5), true);
+    if (!caraSuperior(mejor)) return;
     try { await bot.activateBlock(bloque, new Vec3(0, 1, 0)); ponerCuenta++; } catch (e) { /* intento perdido */ }
   }
   const cristalMotor = setInterval(async () => {

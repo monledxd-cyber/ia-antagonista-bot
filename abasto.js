@@ -6,7 +6,7 @@ const diag = require('./diag');
 function crearAbasto(bot, o) {
   const { goals } = o;
   const ON = process.env.IA_ABASTO !== '0';
-  let activo = false, ultima = 0, fallos = {}, sinHallazgo = 0;
+  let activo = false, ultima = 0, fallos = {}, sinHallazgo = 0, ultimoOk = false;
   const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
   const items = () => bot.inventory.items();
   const cuenta = (re) => items().filter((i) => re.test(i.name)).reduce((a, i) => a + i.count, 0);
@@ -445,18 +445,20 @@ function crearAbasto(bot, o) {
   }
 
   const intervalo = setInterval(async () => {
-    if (!ON || activo || !bot.entity || Date.now() - ultima < 8000) return;
+    if (!ON || activo || !bot.entity || Date.now() - ultima < (ultimoOk ? 1200 : 6000)) return; // tras un exito sigue enseguida: siempre persigue la siguiente mejora
     if (!libre() || bot.health <= 12) return;
-    activo = true; o.ocupar(true);
+    activo = true; o.ocupar(true); ultimoOk = false;
     try {
-      for (const [nombre, paso] of ordenar()) {
+      const orden = ordenar();
+      diag.estado.metas = orden.filter((x) => (fallos[x[0]] || 0) <= Date.now()).slice(0, 4).map((x) => x[0]); // varias metas a la vista
+      for (const [nombre, paso] of orden) {
         if (!libre()) break;
         if ((fallos[nombre] || 0) > Date.now()) continue;
         let r, motivo = 'no pudo completarlo (falta algo o no hay objetivo cerca)';
         try { r = await paso(); } catch (e) { r = false; motivo = 'error: ' + e.message; diag.log('error', 'abasto', nombre + ': ' + e.message); }
         if (r === 'nada') continue;
         if (!r) { fallos[nombre] = Date.now() + 120_000; const p = diag.estado.fallosPaso[nombre] || { n: 0 }; diag.estado.fallosPaso[nombre] = { n: p.n + 1, t: Date.now(), motivo }; diag.log('warn', 'abasto', nombre + ' fallo: ' + motivo); }
-        else { delete diag.estado.fallosPaso[nombre]; diag.log('info', 'abasto', 'paso ' + nombre); console.log('[abasto] paso:', nombre); }
+        else { ultimoOk = true; delete diag.estado.fallosPaso[nombre]; diag.log('info', 'abasto', 'paso ' + nombre); console.log('[abasto] paso:', nombre); }
         break; // un paso por ciclo
       }
     } finally {

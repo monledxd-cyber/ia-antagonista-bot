@@ -69,7 +69,7 @@ al suelo que se abre al pisar; aplastador = 2 pistones enfrentados con redstone_
 cable_tnt = hilo entre dos TNT; lluvia_yunques = yunques a 12 bloques que caen al pasar debajo;
 foso_estalagmitas = pozo de 12 con dripstone; railgun = pilar de obsidiana que lanza un TNT con explosiones de carga (tu codigo calcula carga,
 angulo y mecha y aprende la potencia midiendola).
-[PLANO:cmd;cmd] disena la tuya: <= 24 comandos, solo setblock/fill/summon tnt con coordenadas ~
+[PLANO:cmd;cmd] disena la tuya: <= 24 comandos, solo setblock/fill/summon tnt con coordenadas ~ (se construye A MANO con bloques de tu inventario, max 90 bloques, sin OP; usa solo lo que lleves)
 relativas al ancla (~ ~ ~ = aire sobre el suelo; ~ ~-1 ~ = suelo), +-12, fill <= 2000. Ej:
 [PLANO:fill ~ ~-4 ~ ~ ~-2 ~ tnt;setblock ~ ~ ~ stone_pressure_plate]. [PLANO:nombre::cmds] lo nombra;
 si sale bien se guarda y [PLANO_GUARDADO:nombre] lo repite (ver planos_guardados). Se revisa antes

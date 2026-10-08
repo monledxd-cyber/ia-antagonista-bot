@@ -281,6 +281,73 @@ function crearTrampero(bot, opts = {}) {
     }, 500);
   }
 
+  // ---- Construccion A MANO (sin comandos): coloca cada bloque con placeBlock usando lo que lleva en el inventario ----
+  let manualActivo = false;
+  function celdasDePlano(cmds, anc) {
+    const lista = [], vistos = new Set();
+    const rel = (tok, b) => b + (tok === '~' ? 0 : Number(tok.slice(1)));
+    const add = (x, y, z, spec) => {
+      const k = x + ',' + y + ',' + z; if (vistos.has(k)) return; vistos.add(k);
+      lista.push({ p: new Vec3(x, y, z), name: spec.split('[')[0] });
+    };
+    for (const c of cmds) {
+      const t = c.split(/\s+/);
+      if (t[0] === 'setblock') add(rel(t[1], anc.x), rel(t[2], anc.y), rel(t[3], anc.z), t[4]);
+      else if (t[0] === 'fill') {
+        const a = [rel(t[1], anc.x), rel(t[2], anc.y), rel(t[3], anc.z)], b = [rel(t[4], anc.x), rel(t[5], anc.y), rel(t[6], anc.z)];
+        const modo = t[8] || '';
+        for (let x = Math.min(a[0], b[0]); x <= Math.max(a[0], b[0]); x++) for (let y = Math.min(a[1], b[1]); y <= Math.max(a[1], b[1]); y++) for (let z = Math.min(a[2], b[2]); z <= Math.max(a[2], b[2]); z++) {
+          const borde = x === Math.min(a[0], b[0]) || x === Math.max(a[0], b[0]) || y === Math.min(a[1], b[1]) || y === Math.max(a[1], b[1]) || z === Math.min(a[2], b[2]) || z === Math.max(a[2], b[2]);
+          if ((modo === 'hollow' || modo === 'outline') && !borde) continue;
+          add(x, y, z, t[7]);
+        }
+      } // summon tnt: no se puede a mano
+    }
+    return lista;
+  }
+  async function irA(p, ms = 9000) {
+    try {
+      const PF = require('mineflayer-pathfinder');
+      if (bot._movBase) bot.pathfinder.setMovements(bot._movBase);
+      await Promise.race([bot.pathfinder.goto(new PF.goals.GoalNear(p.x, p.y, p.z, 3)), dormir(ms)]);
+    } catch (e) { /* sigue */ }
+    try { bot.pathfinder.setGoal(null); } catch (e) { /* ignorar */ }
+  }
+  async function construirAMano(celdas, opciones) {
+    manualActivo = true;
+    const items = () => bot.inventory.items();
+    let pend = celdas.slice();
+    try {
+      for (let pasada = 0; pasada < 3 && pend.length; pasada++) {
+        pend.sort((a, b) => (a.p.y - b.p.y) || (a.p.distanceTo(bot.entity.position) - b.p.distanceTo(bot.entity.position)));
+        for (const op of pend.slice()) {
+          if (!bot.entity || (opts.tranquilo && !opts.tranquilo())) throw new Error('interrumpido (enemigo cerca)');
+          const act = bloque(op.p.x, op.p.y, op.p.z);
+          if (!act) continue;
+          const quitar = () => { pend = pend.filter((q) => q !== op); };
+          if (sinAire(op.name)) { if (sinAire(act.name)) { quitar(); continue; } await irA(op.p); try { await bot.dig(act); quitar(); } catch (e) { /* reintenta */ } continue; }
+          if (act.name === op.name) { quitar(); continue; }
+          if (!sinAire(act.name) && !/^(water|lava|short_grass|tall_grass|snow)$/.test(act.name)) { await irA(op.p); try { await bot.dig(act); } catch (e) { continue; } }
+          const ref = [[0, -1, 0], [1, 0, 0], [-1, 0, 0], [0, 0, 1], [0, 0, -1], [0, 1, 0]].map((d) => ({ b: bloque(op.p.x + d[0], op.p.y + d[1], op.p.z + d[2]), d }))
+            .find((r) => r.b && r.b.boundingBox === 'block');
+          if (!ref) continue;
+          const it = items().find((i) => i.name === op.name);
+          if (!it) throw new Error('se quedo sin ' + op.name);
+          await irA(op.p);
+          if (bot.entity.position.floored().equals(op.p) || bot.entity.position.floored().offset(0, 1, 0).equals(op.p)) continue; // estoy dentro de la celda
+          try { await bot.equip(it, 'hand'); await bot.placeBlock(ref.b, new Vec3(-ref.d[0], -ref.d[1], -ref.d[2])); quitar(); } catch (e) { /* reintenta en la siguiente pasada */ }
+          await dormir(120);
+        }
+      }
+      const msg = pend.length ? `PLANO a mano: ${celdas.length - pend.length}/${celdas.length} bloques colocados (faltan ${pend.length}: sin apoyo o sin alcance).` : `PLANO a mano completo (${celdas.length} bloques).`;
+      console.log('[trampas] ' + msg);
+      if (opciones.avisar) opciones.avisar(msg);
+    } catch (e) {
+      console.log('[trampas] plano a mano abortado:', e.message);
+      if (opciones.avisar) opciones.avisar('PLANO a mano abortado: ' + e.message);
+    } finally { manualActivo = false; ultConstruccion = Date.now(); try { bot.pathfinder.setGoal(null); } catch (e) { /* ignorar */ } }
+  }
+
   // Plano diseñado por la IA: ~ relativo al ancla (execute positioned); se revisa con el conocimiento de bloques.
   function construirPlano(texto, g, opciones = {}) {
     if (!HABILITADO) return { ok: false, motivo: 'trampas desactivadas (IA_TRAMPAS=0)' };
@@ -290,6 +357,18 @@ function crearTrampero(bot, opts = {}) {
     if (!v.ok) return v;
     const ev = analizador.evaluar(v.cmds, new Vec3(g.x, g.y + 1, g.z));
     if (ev.errores.length) return { ok: false, motivo: 'plano rechazado: ' + ev.errores.join('; ') };
+    if (process.env.IA_PLANO_CMD !== '1') { // por defecto: a mano, sin comandos ni OP
+      if (manualActivo) return { ok: false, motivo: 'ya estoy construyendo otro plano a mano' };
+      const celdas = celdasDePlano(v.cmds, new Vec3(g.x, g.y + 1, g.z));
+      if (celdas.length > 90) return { ok: false, motivo: 'plano demasiado grande para hacerlo a mano (max 90 bloques)' };
+      const falta = {};
+      for (const c of celdas) if (!sinAire(c.name)) falta[c.name] = (falta[c.name] || 0) + 1;
+      const faltan = Object.keys(falta).filter((n) => bot.inventory.items().filter((i) => i.name === n).reduce((a, i) => a + i.count, 0) < falta[n]);
+      if (faltan.length) return { ok: false, motivo: 'a mano necesito en el inventario: ' + faltan.map((n) => falta[n] + ' ' + n).join(', ') + ' (usa solo bloques que lleve)' };
+      construirAMano(celdas, opciones);
+      console.log(`[trampas] plano de la IA a mano (${celdas.length} bloques) en ${g.x} ${g.y + 1} ${g.z}`);
+      return { ok: true, avisos: ev.avisos, manual: true };
+    }
     for (const c of v.cmds) cmd(`execute positioned ${g.x} ${g.y + 1} ${g.z} run ${c}`);
     ultConstruccion = Date.now();
     console.log(`[trampas] plano de la IA (${v.cmds.length} comandos) en ${g.x} ${g.y + 1} ${g.z}`);

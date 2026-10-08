@@ -689,7 +689,12 @@ function protegerAutoAtaque(bot) {
   if (!bot._atqGuardado && typeof bot.attack === 'function') { // los plugins de mineflayer se cargan despues de createBot: antes del spawn attack no existe
     bot._atqGuardado = true;
     const _atacar = bot.attack.bind(bot);
-    bot.attack = (e, ...r) => { if (propio(e)) { diag.log('warn', 'combate', 'intento de auto-ataque bloqueado'); return; } return _atacar(e, ...r); };
+    bot.attack = (e, ...r) => {
+      if (propio(e)) { diag.log('warn', 'combate', 'intento de auto-ataque bloqueado'); return; }
+      // Reach: solo golpea si entre el ojo y el rival hay aire (ningun bloque tapa el golpe)
+      try { if (bot._lineaLibre && e && e.position && !bot._lineaLibre(e.position.offset(0, (e.height || 1.8) * 0.5, 0))) return; } catch (x) { /* ignorar */ }
+      return _atacar(e, ...r);
+    };
   }
   if (bot.pvp && !bot.pvp._guardado) {
     bot.pvp._guardado = true;
