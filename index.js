@@ -333,7 +333,27 @@ function iniciarHuida(bot) {
       )
     );
   }
-  let persec = null;
+  let persec = null, fintando = false, ultFinta = 0;
+  // Finta: en plena persecucion se desvia a picar madera/tierra/hojas unos segundos para despistar, y vuelve.
+  async function fintaBloques() {
+    fintando = true; ultFinta = Date.now();
+    try {
+      const ids = Object.values(bot.registry.blocksByName).filter((b) => /(_log$|^dirt$|^grass_block$|_leaves$|_planks$)/.test(b.name)).map((b) => b.id);
+      const b = bot.findBlock({ matching: ids, maxDistance: 12 });
+      if (!b) return;
+      diag.log('info', 'estrategia', 'finta: se desvia a picar ' + b.name);
+      if (bot.pvp) bot.pvp.stop();
+      await Promise.race([bot.pathfinder.goto(new goals.GoalNear(b.position.x, b.position.y, b.position.z, 2)), dormir(6000)]).catch(() => {});
+      for (let n = 0, k = 1 + Math.floor(Math.random() * 3); n < k; n++) {
+        const t = bot.blockAt(b.position);
+        if (!t || /^(air|cave_air)$/.test(t.name) || (diag.estado.vida.ultimoDano && Date.now() - diag.estado.vida.ultimoDano < 3000)) break;
+        await Promise.race([bot.dig(t), dormir(4000)]).catch(() => {});
+        await dormir(200 + Math.random() * 600);
+        const o = [b.position.offset(0, 1, 0), b.position.offset(1, 0, 0), b.position.offset(-1, 0, 0)].map((p) => bot.blockAt(p)).find((x) => x && /(_log|dirt|grass_block|_leaves|_planks)/.test(x.name));
+        if (!o) break; b.position = o.position;
+      }
+    } catch (e) { /* ignorar */ } finally { fintando = false; try { bot.pathfinder.setGoal(null); } catch (e) { /* ignorar */ } }
+  }
   const chequeoInterval = setInterval(() => {
     if (!bot.entity) { clearInterval(chequeoInterval); return; }
 
@@ -418,6 +438,9 @@ function iniciarHuida(bot) {
         }
         if (bot._modoEquipo > ahora && dist > 5 && !recienGolpeado) return; // no persigue: a equiparse
       }
+      if (fintando) return;
+      if (objetivo.type === 'player' && dist > 7 && bot.health >= 12 && Date.now() - ultFinta > 45_000 && Math.random() < 0.18 &&
+          !(diag.estado.vida.ultimoDano && Date.now() - diag.estado.vida.ultimoDano < 6000)) { fintaBloques(); return; }
       if (dist < 3) atacar(objetivo);
       else perseguir(objetivo);
     } else {
@@ -1240,9 +1263,10 @@ async function recolectarBloque(bot, nombre, cantidad = 1) {
 // anula el dano de caida si conecta. Sin elytra, el impulso viene de un wind charge
 // lanzado a los pies. Si falla, el bot se come la caida: por eso exige vida >= 14.
 const dormir = (ms) => new Promise(r => setTimeout(r, ms));
-let ultimoSmash = 0;
+let ultimoSmash = 0, cdSmash = 8000; // el enfriamiento cambia en cada uso (5-30 s) para que no sea predecible
 async function smashAttack(bot) {
-  if (Date.now() - ultimoSmash < 8_000) return { ok: false, motivo: 'smash en enfriamiento' };
+  if (Date.now() - ultimoSmash < cdSmash) return { ok: false, motivo: 'smash en enfriamiento' };
+  if (Math.random() < 0.2) { ultimoSmash = Date.now(); cdSmash = 3000 + Math.random() * 12000; return { ok: false, motivo: 'finta: no usa la mace esta vez' }; } // impredecible
   const inv = bot.inventory.items();
   const maza = inv.find(i => i.name === 'mace');
   const carga = inv.find(i => i.name === 'wind_charge');
@@ -1255,7 +1279,7 @@ async function smashAttack(bot) {
     e.position.distanceTo(bot.entity.position) < 8
   );
   if (!objetivo) return { ok: false, motivo: 'no habia jugador a menos de 8 bloques' };
-  ultimoSmash = Date.now();
+  ultimoSmash = Date.now(); cdSmash = 5000 + Math.random() * 25000;
   manoOcupada = true;
   try {
     await bot.equip(carga, 'hand');
@@ -1635,6 +1659,8 @@ let _botEstado = () => ({});
 app.get('/estado', (_req, res) => res.json({ version: BOT_VERSION, uptime: Math.round(process.uptime()), llm_ultima_hora: usoLLM(), llm_max_hora: MAX_LLM_HORA, errores: erroresVistos, ..._botEstado() }));
 app.get('/health', (_req, res) => res.json({ status: 'ok', version: BOT_VERSION, uptime: process.uptime(), diagnostico: stats }));
 app.listen(process.env.PORT || 3000, () => console.log(`[http] servidor de salud escuchando (${BOT_VERSION})`));
+// Render gratis duerme el servicio tras 15 min sin trafico HTTP (y el bot se desconecta): se auto-visita cada 8 min mientras este despierto.
+if (process.env.RENDER_EXTERNAL_URL) setInterval(() => { fetch(process.env.RENDER_EXTERNAL_URL + '/health').catch(() => {}); }, 8 * 60_000);
 
 // Red de seguridad: si por cualquier bug quedo sin bot ni intento en curso, reintenta.
 setInterval(() => {
