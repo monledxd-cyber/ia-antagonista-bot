@@ -211,13 +211,21 @@ function iniciarCombate(bot, api) {
     const obs = tiene('obsidian');
     if (!obs) return false;
     const base = t.position.floored().offset(0, -1, 0);
-    const lado = [[1, 0], [-1, 0], [0, 1], [0, -1], [2, 0], [-2, 0], [0, 2], [0, -2]].map(([x, z]) => base.offset(x, 0, z)).find((p) => {
-      const b = bot.blockAt(p), a = bot.blockAt(p.offset(0, 1, 0)), a2 = bot.blockAt(p.offset(0, 2, 0));
-      return b && a && a2 && b.boundingBox === 'block' && a.name === 'air' && a2.name === 'air' &&
-        p.distanceTo(bot.entity.position.offset(0, 1.6, 0)) < 4.5;
-    });
+    const ojos = bot.entity.position.offset(0, 1.62, 0);
+    let lado = null, mejorV = 1.5;
+    for (let dx = -3; dx <= 3; dx++) for (let dz = -3; dz <= 3; dz++) {
+      if (!dx && !dz) continue;
+      const p = base.offset(dx, 0, dz);
+      const b = bot.blockAt(p), a1 = bot.blockAt(p.offset(0, 1, 0)), a2 = bot.blockAt(p.offset(0, 2, 0)), a3 = bot.blockAt(p.offset(0, 3, 0));
+      if (!b || !a1 || !a2 || !a3 || b.boundingBox !== 'block' || a1.name !== 'air' || a2.name !== 'air' || a3.name !== 'air') continue;
+      if (p.offset(0.5, 2, 0.5).distanceTo(ojos) > 3.6 || !caraSuperior(p)) continue;
+      const c = centro(p.offset(0, 1, 0));
+      const v = danoEn(t, c) - danoEn(bot.entity, c) * 0.8;
+      if (v > mejorV) { mejorV = v; lado = p; }
+    }
     if (!lado) return false;
     await bot.equip(obs, 'hand');
+    await bot.lookAt(lado.offset(0.5, 1, 0.5), true);
     await bot.placeBlock(bot.blockAt(lado), new Vec3(0, 1, 0));
     return true;
   }
