@@ -6,6 +6,7 @@ const diag = require('./diag');
 function crearAbasto(bot, o) {
   const { goals } = o;
   const ON = process.env.IA_ABASTO !== '0';
+  const tratos = new Map();
   let activo = false, ultima = 0, fallos = {}, sinHallazgo = 0, ultimoOk = false;
   const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
   const items = () => bot.inventory.items();
@@ -472,6 +473,47 @@ function crearAbasto(bot, o) {
       return true;
     }],
     ['pan', async () => (cuenta(/^wheat$/) >= 3 && cuenta(/^bread$/) < 8) ? craftear('bread', 1) : 'nada'],
+    ['comerciar', async () => {
+      const yo = bot.entity.position;
+      const al = Object.values(bot.entities).filter((e) => (e.name === 'villager' || e.name === 'wandering_trader') && e.position.distanceTo(yo) < 40 && (tratos.get(e.id) || 0) < Date.now())
+        .sort((p, q) => p.position.distanceTo(yo) - q.position.distanceTo(yo))[0];
+      if (!al) return 'nada';
+      tratos.set(al.id, Date.now() + 300_000);
+      if (al.position.distanceTo(yo) > 3.2 && !(await o.irCerca(bot, al.position))) return false;
+      let v;
+      try { v = await bot.openVillager(al); } catch (e) { return false; }
+      try {
+        if (!v.trades || !v.trades.length) await Promise.race([new Promise((r) => v.once('ready', r)), dormir(5000)]);
+        let hecho = false;
+        const tiene2 = (n) => cuenta(new RegExp('^' + n + '$'));
+        const quiere = (n) => {
+          if (/^(diamond_(helmet|chestplate|leggings|boots|sword|axe|pickaxe)|iron_(helmet|chestplate|leggings|boots|sword|pickaxe)|shield|bow|crossbow)$/.test(n)) return tiene2(n) ? 0 : 1;
+          const tope = { arrow: 64, bread: 16, cooked_beef: 16, golden_apple: 3, ender_pearl: 4, experience_bottle: 8 }[n];
+          return tope ? Math.max(0, tope - tiene2(n)) : 0;
+        };
+        const vende = { wheat: 20, carrot: 16, potato: 16, coal: 12, paper: 0, string: 6, bone: 16, gold_ingot: 8, rotten_flesh: 0, stick: 16, flint: 8, feather: 8 };
+        for (let i = 0; i < v.trades.length; i++) {
+          const t = v.trades[i];
+          if (t.disabled || !t.firstInput || !t.output) continue;
+          const usos = (t.maxTradeuses || 1) - (t.tooluses || 0);
+          const a1 = t.firstInput, a2 = t.hasSecondItem ? t.secondaryInput : null;
+          let veces = Math.min(usos, Math.floor(tiene2(a1.name) / a1.count));
+          if (a2) veces = Math.min(veces, Math.floor(tiene2(a2.name) / a2.count));
+          if (veces < 1) continue;
+          if (t.output.name === 'emerald') {
+            if (!(a1.name in vende) || a2) continue;
+            veces = Math.min(veces, Math.floor((tiene2(a1.name) - vende[a1.name]) / a1.count));
+          } else {
+            if (a1.name !== 'emerald' && !(a2 && a2.name === 'emerald') && !/^(emerald|diamond|iron_ingot)$/.test(a1.name)) continue;
+            veces = Math.min(veces, Math.floor(quiere(t.output.name) / t.output.count));
+          }
+          if (veces < 1) continue;
+          try { await bot.trade(v, i, veces); hecho = true; diag.log('info', 'comercio', 'trato ' + t.output.name + ' x' + veces); } catch (e) { diag.log('warn', 'comercio', 'trato fallo: ' + e.message); }
+          await dormir(300);
+        }
+        return hecho ? true : 'nada';
+      } finally { try { v.close(); } catch (e) { /* ignorar */ } }
+    }],
     ['flechas', async () => {
       if (!tiene(/^(bow|crossbow)$/) || cuenta(/^arrow$/) >= 24) return 'nada';
       if (cuenta(/^flint$/) >= 1 && cuenta(/^feather$/) >= 1 && cuenta(/^stick$/) >= 1) return craftear('arrow', 1);
@@ -492,7 +534,7 @@ function crearAbasto(bot, o) {
     if (!armaduraCompleta() && cuenta(/^iron_ingot$/) >= 4) frente.push('equipo');
     const hayJugadores = Object.keys(bot.players || {}).length > 1;
     if (hayJugadores && tiene(/^(bow|crossbow)$/) && cuenta(/^arrow$/) < 8) frente.push('flechas');
-    if (bot._modoEquipo > Date.now()) frente.push('equipo', 'botin', 'hierro', 'mina', 'claves', 'carbon', 'piedra', 'madera', 'comida');
+    if (bot._modoEquipo > Date.now()) frente.push('equipo', 'comerciar', 'botin', 'hierro', 'mina', 'claves', 'carbon', 'piedra', 'madera', 'comida');
     const rank = (n) => { const i = frente.indexOf(n); return i < 0 ? 100 : i; };
     return necesidades.map((x, i) => [x, i]).sort((p, q) => (rank(p[0][0]) - rank(q[0][0])) || (p[1] - q[1])).map((x) => x[0]);
   }
