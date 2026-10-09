@@ -427,6 +427,51 @@ function crearAbasto(bot, o) {
       if (!pl || pl.count < 2) return 'nada';
       return craftear(pl.name.replace('_planks', '_pressure_plate'), 1);
     }],
+    ['cama', async () => {
+      if (tiene(/_bed$/) || bloqueN(/_bed$/, 48)) return 'nada';
+      const lana = items().find((i) => /_wool$/.test(i.name) && i.count >= 3);
+      if (lana && cuenta(/_planks$/) >= 3) return craftear(lana.name.replace('_wool', '_bed'), 1);
+      if (cuenta(/_planks$/) >= 3 && !noche() && cuenta(/_wool$/) < 3) return cazar(/^sheep$/);
+      return 'nada';
+    }],
+    ['dormir', async () => {
+      if (!noche() || bot.isSleeping) return 'nada';
+      let cama = bloqueN(/_bed$/, 48);
+      if (!cama) {
+        const it = items().find((i) => /_bed$/.test(i.name));
+        if (!it) return 'nada';
+        if (!(await colocar(it.name))) return false;
+        cama = bloqueN(/_bed$/, 8);
+      }
+      if (!cama) return false;
+      if (cama.position.distanceTo(bot.entity.position) > 3 && !(await o.irCerca(bot, cama.position))) return false;
+      try { await bot.sleep(cama); } catch (e) { return false; }
+      const fin = Date.now() + 300_000;
+      while (bot.isSleeping && Date.now() < fin) await dormir(2000);
+      return true;
+    }],
+    ['basura', async () => {
+      const mantener = { cobblestone: 64, dirt: 32, gravel: 16, andesite: 0, diorite: 0, granite: 0, tuff: 0, netherrack: 0, cobbled_deepslate: 0, rotten_flesh: 0, poisonous_potato: 0, spider_eye: 0, pufferfish: 0 };
+      const lleno = items().length >= 32;
+      for (const it of items()) {
+        if (!(it.name in mantener)) continue;
+        const sobra = it.count - mantener[it.name];
+        if (sobra > 0 && (lleno || mantener[it.name] === 0 && /rotten|poison|spider|puffer/.test(it.name) || sobra > 64)) { try { await bot.toss(it.type, null, sobra); return true; } catch (e) { return false; } }
+      }
+      return 'nada';
+    }],
+    ['cosecha', async () => {
+      const b = bot.findBlock({ maxDistance: 28, matching: (x) => x && /^(wheat|carrots|potatoes)$/.test(x.name) && x.metadata === 7 });
+      if (!b) return 'nada';
+      if (b.position.distanceTo(bot.entity.position) > 3.5 && !(await o.irCerca(bot, b.position))) return false;
+      const semilla = { wheat: 'wheat_seeds', carrots: 'carrot', potatoes: 'potato' }[b.name];
+      try { await bot.dig(b); } catch (e) { return false; }
+      const it = items().find((i) => i.name === semilla);
+      const suelo = bot.blockAt(b.position.offset(0, -1, 0));
+      if (it && suelo && suelo.name === 'farmland') { try { await bot.equip(it, 'hand'); await bot.placeBlock(suelo, new Vec3(0, 1, 0)); } catch (e) { /* sin replantar */ } }
+      return true;
+    }],
+    ['pan', async () => (cuenta(/^wheat$/) >= 3 && cuenta(/^bread$/) < 8) ? craftear('bread', 1) : 'nada'],
     ['flechas', async () => {
       if (!tiene(/^(bow|crossbow)$/) || cuenta(/^arrow$/) >= 24) return 'nada';
       if (cuenta(/^flint$/) >= 1 && cuenta(/^feather$/) >= 1 && cuenta(/^stick$/) >= 1) return craftear('arrow', 1);
@@ -441,7 +486,9 @@ function crearAbasto(bot, o) {
   function ordenar() {
     const frente = [];
     if (muerte) frente.push('recuperar');
-    if (cuenta(COMIDA) < 3) frente.push('comida', 'carne');
+    if (cuenta(COMIDA) < 3) frente.push('comida', 'carne', 'cosecha', 'pan');
+    if (noche() && (tiene(/_bed$/) || bloqueN(/_bed$/, 48))) frente.push('dormir');
+    if (items().length >= 32) frente.push('basura');
     if (!armaduraCompleta() && cuenta(/^iron_ingot$/) >= 4) frente.push('equipo');
     const hayJugadores = Object.keys(bot.players || {}).length > 1;
     if (hayJugadores && tiene(/^(bow|crossbow)$/) && cuenta(/^arrow$/) < 8) frente.push('flechas');

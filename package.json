@@ -1,6 +1,6 @@
 {
   "name": "ia-antagonista-bot",
-  "version": "1.054.00",
+  "version": "1.054.01",
   "description": "Bot mineflayer que conecta antagonista de IA (OpenRouter) al server Aternos",
   "main": "index.js",
   "type": "commonjs",
