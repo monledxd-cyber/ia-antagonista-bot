@@ -417,7 +417,7 @@ function crearAbasto(bot, o) {
     }],
     ['agua', async () => (tiene(/^bucket$/) && !tiene(/^water_bucket$/) && bloqueN(/^water$/, 24)) ? llenarCubo() : 'nada'],
     ['tnt', async () => {
-      if (cuenta(/^tnt$/) >= 8) return 'nada';
+      if (cuenta(/^tnt$/) >= 12) return 'nada';
       if (cuenta(/^gunpowder$/) >= 5 && cuenta(/^sand$/) >= 4) return craftear('tnt');
       if (cuenta(/^gunpowder$/) >= 5 && bloqueN(/^sand$/, 24)) return (await o.recolectar(bot, 'sand', 4)).ok;
       return 'nada';

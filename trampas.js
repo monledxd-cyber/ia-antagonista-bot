@@ -231,10 +231,14 @@ function crearTrampero(bot, opts = {}) {
   const manualPosible = () => process.env.IA_PLANO_CMD !== '1' && !!bot.inventory;
   const cuentaItem = (n) => bot.inventory.items().filter((i) => i.name === n).reduce((a, i) => a + i.count, 0);
   const placaDisponible = () => { const i = bot.inventory.items().find((x) => /_pressure_plate$/.test(x.name) && !/weighted/.test(x.name)); return i ? i.name : null; };
-  function celdasMina(g, placa) {
+  function celdasMina(g, placa, n) {
     const rest = { grass_block: 'dirt', podzol: 'dirt', stone: 'cobblestone', deepslate: 'cobbled_deepslate' }[g.name] || g.name;
     const P = (dy) => new Vec3(g.x, g.y + dy, g.z);
-    return [{ p: P(0), name: 'air' }, { p: P(-1), name: 'air' }, { p: P(-2), name: 'air' }, { p: P(-2), name: 'tnt' }, { p: P(-1), name: 'tnt' }, { p: P(0), name: rest }, { p: P(1), name: placa }];
+    const c = [];
+    for (let k = 0; k <= n; k++) c.push({ p: P(-k), name: 'air' });
+    for (let k = n; k >= 1; k--) c.push({ p: P(-k), name: 'tnt' });
+    c.push({ p: P(0), name: rest }, { p: P(1), name: placa });
+    return c;
   }
   const tipos = () => (memoria.tipos = memoria.tipos || {});
   const marca = (k, campo) => { const m = tipos(); m[k] = m[k] || { disp: 0, kills: 0 }; m[k][campo]++; guardar(); };
@@ -268,7 +272,9 @@ function crearTrampero(bot, opts = {}) {
       if (manualActivo) return { ok: false, motivo: 'ya estoy construyendo a mano' };
       const placa = placaDisponible();
       if (cuentaItem('tnt') < 2 || !placa) return { ok: false, motivo: 'mina a mano: necesito 2 tnt y una placa de presion' };
-      construirAMano(celdasMina(g, placa), { sinOrden: true });
+      const n = Math.min(Number(process.env.IA_MINA_TNT) || 4, cuentaItem('tnt'));
+      if (g.y - n <= minY() + 2) return { ok: false, motivo: 'demasiado profundo' };
+      construirAMano(celdasMina(g, placa, n), { sinOrden: true });
     } else if (process.env.IA_PLANO_CMD !== '1' && bot.inventory && !plano.cmds.some((c) => /\[|^summon/.test(c))) {
       if (manualActivo) return { ok: false, motivo: 'ya estoy construyendo a mano' };
       const celdas = celdasDePlano(plano.cmds);
