@@ -29,10 +29,10 @@ function crearClaves(bot) {
   [t1, t2].forEach((t) => t.unref && t.unref());
   bot.once('end', () => { clearInterval(t1); clearInterval(t2); });
   return {
-    cercano(re, desde, max = 150) {
+    cercano(re, desde, max = 150, peligro) {
       let mejor = null, md = max;
       for (const c of mapa.values()) {
-        if (!re.test(c.name)) continue;
+        if (!re.test(c.name) || (peligro && peligro(c, 12))) continue;
         const d = Math.hypot(c.x - desde.x, c.y - desde.y, c.z - desde.z);
         if (d < md) { md = d; mejor = c; }
       }

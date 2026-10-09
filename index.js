@@ -88,6 +88,7 @@ const RUTAS_MEM = [process.env.IA_MEMORIA || 'memoria_jugadores.json', process.e
 persist.restaurar(RUTAS_MEM); // Render: disco efimero -> recupera la memoria del gist si esta configurado
 const memoria = crearMemoria();
 const diario = require('./diario').crearDiario();
+const ultimoMsgMuerte = { txt: '', t: 0 };
 persist.iniciar(RUTAS_MEM, () => { memoria.guardar(); diario.guardar(); });
 let erroresVistos = 0;
 process.on('uncaughtException', (e) => { erroresVistos++; console.error('[fatal evitado]', e && e.stack || e); diag.estado.erroresCodigo.push({ t: Date.now(), msg: String(e && e.stack || e).slice(0, 900) }); diag.estado.erroresCodigo.splice(0, Math.max(0, diag.estado.erroresCodigo.length - 10)); diag.log('error', 'codigo', e && e.message || e); });
@@ -277,7 +278,10 @@ function iniciarHuida(bot) {
 
   // Autoabastecimiento: junta y fabrica solo cuando nadie anda cerca (IA_ABASTO=0 lo apaga).
   bot._claves = crearClaves(bot);
+  bot.on('messagestr', (m) => { if (m.includes(bot.username) && /fell|lava|drown|burn|fire|blew|explo|starv|suffocat|cactus|void|magma|hit the ground|berry/i.test(m)) { ultimoMsgMuerte.txt = m.replace(bot.username, '').trim(); ultimoMsgMuerte.t = Date.now(); } });
+  require('./vuelo').crearVuelo(bot, { tierDe, equipar: () => equiparAutomatico(bot), objetivo: () => (bot.pvp && bot.pvp.target) || objetivoActual });
   bot._abasto = crearAbasto(bot, {
+    peligro: (p, r) => diario.peligro(p, r),
     goals, claves: bot._claves,
     tranquilo: () => !objetivoActual && !(bot.pvp && bot.pvp.target) && bot.health > 12 && !enemigoCerca(14),
     irCerca, recolectar: recolectarBloque, mejorar: mejorarEquipoCrafteando,
@@ -891,6 +895,7 @@ async function crearBot() {
       if (p) memoria.mato(p.username);
       const ar = p && p.heldItem && p.heldItem.name;
       const ultimo = diag.estado.vida.atacante;
+      if (!p && bot.entity) diario.zona(bot.entity.position, String(ultimoMsgMuerte.txt || ultimo || 'entorno').slice(0, 30));
       diario.muerte(p ? { por: 'jugador', quien: p.username, arma: ar || null } : { por: 'entorno', causa: String(ultimo || 'desconocida').slice(0, 24) });
       if (diario.muertesRecientes(30) >= 2) { bot._modoEquipo = Date.now() + 6 * 60_000; diag.log('info', 'estrategia', 'murio 2 veces en 30 min: se reequipa antes de volver a pelear'); diario.equipo(); }
     });
@@ -1336,6 +1341,7 @@ async function smashAttack(bot) {
 }
 
 function equiparAutomatico(bot) {
+  if (bot._volando || (bot.entity && bot.entity.elytraFlying)) return;
   equiparArma(bot);
   try {
     const piezas = [

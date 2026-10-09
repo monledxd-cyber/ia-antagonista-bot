@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 function crearDiario() {
   const ARCH = process.env.IA_DIARIO || path.join(__dirname, 'diario_am.json');
-  let d = { sesiones: 0, inicio: Date.now(), muertes: [], kills: 0, huidas: 0, modoEquipo: 0, hitos: [] };
+  let d = { sesiones: 0, inicio: Date.now(), muertes: [], kills: 0, huidas: 0, zonas: [], modoEquipo: 0, hitos: [] };
   try { d = { ...d, ...JSON.parse(fs.readFileSync(ARCH, 'utf8')) }; } catch (e) { /* primera vez */ }
   let sucio = true;
   const guardar = () => { if (!sucio) return; try { fs.writeFileSync(ARCH, JSON.stringify(d)); sucio = false; } catch (e) { /* solo lectura */ } };
@@ -13,6 +13,8 @@ function crearDiario() {
   return {
     ARCH,
     muerte: (m) => { d.muertes.push({ t: Date.now(), ...m }); if (d.muertes.length > 30) d.muertes.shift(); sucio = true; },
+    zona: (p, causa) => { d.zonas.push({ x: Math.round(p.x), y: Math.round(p.y), z: Math.round(p.z), causa, t: Date.now() }); if (d.zonas.length > 25) d.zonas.shift(); sucio = true; },
+    peligro: (p, r = 12) => d.zonas.some((z) => Math.hypot(z.x - p.x, z.y - p.y, z.z - p.z) < r),
     kill: () => { d.kills++; sucio = true; },
     huida: () => { d.huidas++; sucio = true; },
     equipo: () => { d.modoEquipo++; sucio = true; },

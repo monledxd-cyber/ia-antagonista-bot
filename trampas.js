@@ -228,6 +228,32 @@ function crearTrampero(bot, opts = {}) {
   const jugadoresValidos = () => Object.values(bot.entities).filter((e) =>
     e.type === 'player' && e.username && e.username !== bot.username && e.gameMode !== 'creative' && e.gameMode !== 'spectator');
 
+  const manualPosible = () => process.env.IA_PLANO_CMD !== '1' && !!bot.inventory;
+  const cuentaItem = (n) => bot.inventory.items().filter((i) => i.name === n).reduce((a, i) => a + i.count, 0);
+  const placaDisponible = () => { const i = bot.inventory.items().find((x) => /_pressure_plate$/.test(x.name) && !/weighted/.test(x.name)); return i ? i.name : null; };
+  function celdasMina(g, placa) {
+    const rest = { grass_block: 'dirt', podzol: 'dirt', stone: 'cobblestone', deepslate: 'cobbled_deepslate' }[g.name] || g.name;
+    const P = (dy) => new Vec3(g.x, g.y + dy, g.z);
+    return [{ p: P(0), name: 'air' }, { p: P(-1), name: 'air' }, { p: P(-2), name: 'air' }, { p: P(-2), name: 'tnt' }, { p: P(-1), name: 'tnt' }, { p: P(0), name: rest }, { p: P(1), name: placa }];
+  }
+  const tipos = () => (memoria.tipos = memoria.tipos || {});
+  const marca = (k, campo) => { const m = tipos(); m[k] = m[k] || { disp: 0, kills: 0 }; m[k][campo]++; guardar(); };
+  const disparadas = [];
+  bot.on('entitySpawn', (e) => {
+    if (!e || e.name !== 'tnt') return;
+    for (let i = armadas.length - 1; i >= 0; i--) {
+      const a = armadas[i];
+      if (a.gatillo === 'placa' && Math.abs(e.position.x - a.x) < 4 && Math.abs(e.position.z - a.z) < 4 && Math.abs(e.position.y - a.y) < 8) {
+        marca(a.tipo, 'disp'); disparadas.push({ tipo: a.tipo, x: a.x, z: a.z, t: Date.now() }); armadas.splice(i, 1); break;
+      }
+    }
+  });
+  bot.on('entityDead', (e) => {
+    if (!e || e.type !== 'player' || e.username === bot.username) return;
+    const d = disparadas.find((x) => Date.now() - x.t < 25_000 && Math.hypot(e.position.x - x.x, e.position.z - x.z) < 14);
+    if (d) { marca(d.tipo, 'kills'); disparadas.splice(disparadas.indexOf(d), 1); }
+  });
+
   // ---- Construccion ----
   function construir(tipo, g, ctx) {
     if (!HABILITADO) return { ok: false, motivo: 'trampas desactivadas (IA_TRAMPAS=0)' };
@@ -238,7 +264,12 @@ function crearTrampero(bot, opts = {}) {
     if (bot.game && bot.game.dimension && !/overworld/.test(bot.game.dimension)) return { ok: false, motivo: 'solo en el overworld' };
     const plano = f(g, ctx);
     if (!plano) return { ok: false, motivo: 'no cabe aqui' };
-    if (process.env.IA_PLANO_CMD !== '1' && bot.inventory && !plano.cmds.some((c) => /\[|^summon/.test(c))) {
+    if (tipo === 'mina_tnt' && manualPosible()) {
+      if (manualActivo) return { ok: false, motivo: 'ya estoy construyendo a mano' };
+      const placa = placaDisponible();
+      if (cuentaItem('tnt') < 2 || !placa) return { ok: false, motivo: 'mina a mano: necesito 2 tnt y una placa de presion' };
+      construirAMano(celdasMina(g, placa), { sinOrden: true });
+    } else if (process.env.IA_PLANO_CMD !== '1' && bot.inventory && !plano.cmds.some((c) => /\[|^summon/.test(c))) {
       if (manualActivo) return { ok: false, motivo: 'ya estoy construyendo a mano' };
       const celdas = celdasDePlano(plano.cmds);
       const falta = {};
@@ -328,7 +359,7 @@ function crearTrampero(bot, opts = {}) {
     let pend = celdas.slice();
     try {
       for (let pasada = 0; pasada < 3 && pend.length; pasada++) {
-        pend.sort((a, b) => (a.p.y - b.p.y) || (a.p.distanceTo(bot.entity.position) - b.p.distanceTo(bot.entity.position)));
+        if (!opciones.sinOrden) pend.sort((a, b) => (a.p.y - b.p.y) || (a.p.distanceTo(bot.entity.position) - b.p.distanceTo(bot.entity.position)));
         for (const op of pend.slice()) {
           if (!bot.entity || (opts.tranquilo && !opts.tranquilo())) throw new Error('interrumpido (enemigo cerca)');
           const act = bloque(op.p.x, op.p.y, op.p.z);
@@ -545,6 +576,9 @@ function crearTrampero(bot, opts = {}) {
     if (p.elytra >= 15) { w.canon += 6; }
     if (p.escudo >= 30) { w.mina_tnt += 3; w.cable_tnt += 3; w.foso_lava += 1; }
     if (p.arco >= 30) { w.lluvia_yunques += 2; w.foso_estalagmitas += 3; }
+    const m = tipos();
+    for (const k of Object.keys(w)) if (m[k]) w[k] += m[k].kills * 3 + m[k].disp;
+    if (manualPosible()) { for (const k of Object.keys(w)) if (k !== 'mina_tnt') delete w[k]; }
     let r = Math.random() * Object.values(w).reduce((a, b) => a + b, 0);
     for (const [k, v] of Object.entries(w)) { if ((r -= v) < 0) return k; }
     return 'mina_tnt';
@@ -561,7 +595,8 @@ function crearTrampero(bot, opts = {}) {
     const g = sitioPara(j);
     if (!g) return;
     const tipo = elegirTipo(j.username);
-    construir(tipo, g, { dir: rumbo(j) });
+    const r = construir(tipo, g, { dir: rumbo(j) });
+    if (!r.ok) ultConstruccion = ahora - 110_000;
   }, 5000);
 
   function detener() { [envio, seguimiento, trampaVigilar, autonomo].forEach(clearInterval); }

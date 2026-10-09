@@ -366,7 +366,7 @@ function crearAbasto(bot, o) {
       else if (tiene(/^bucket$/) && !tiene(/^water_bucket$/)) re = /^water$/;
       else if (tiene(/^diamond_pickaxe$/) && tiene(/^water_bucket$/) && cuenta(/^obsidian$/) < 6) re = /^lava$/;
       if (!re) return 'nada';
-      const c = o.claves.cercano(re, pos, 150);
+      const c = o.claves.cercano(re, pos, 150, o.peligro);
       if (!c) return 'nada';
       const b = bot.blockAt(new Vec3(c.x, c.y, c.z));
       if (b && !re.test(b.name)) { o.claves.olvidar(c); return 'nada'; }
@@ -420,6 +420,12 @@ function crearAbasto(bot, o) {
       if (cuenta(/^gunpowder$/) >= 5 && cuenta(/^sand$/) >= 4) return craftear('tnt');
       if (cuenta(/^gunpowder$/) >= 5 && bloqueN(/^sand$/, 24)) return (await o.recolectar(bot, 'sand', 4)).ok;
       return 'nada';
+    }],
+    ['placa', async () => {
+      if (cuenta(/^tnt$/) < 2 || tiene(/_pressure_plate$/)) return 'nada';
+      const pl = items().find((i) => /_planks$/.test(i.name));
+      if (!pl || pl.count < 2) return 'nada';
+      return craftear(pl.name.replace('_planks', '_pressure_plate'), 1);
     }],
     ['flechas', async () => {
       if (!tiene(/^(bow|crossbow)$/) || cuenta(/^arrow$/) >= 24) return 'nada';
