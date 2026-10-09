@@ -97,7 +97,7 @@ const extrasCtx = (bot, nombre, falla) => {
   return {
     planosGuardados: t ? t.nombresGuardados() : [],
     memoriaJugador: memoria.resumen(nombre),
-    yo: (() => { try { const eq = bot.inventory.items().length; return diario.resumen() + `; items=${eq}` + (diag.estado.metas && diag.estado.metas.length ? '; metas=' + diag.estado.metas.slice(0, 3).join('>') : '') + (bot._modoEquipo > Date.now() ? '; modo=reequipandome' : ''); } catch (e) { return ''; } })(),
+    yo: (() => { try { const eq = bot.inventory.items().length; const tg = bot.pvp && bot.pvp.target; return `nombre=AM (usuario tecnico ${BOT_USERNAME})` + (tg && tg.username ? `; atacando a ${tg.username}` : '; sin objetivo') + '; ' + diario.resumen() + `; items=${eq}` + (diag.estado.metas && diag.estado.metas.length ? '; metas=' + diag.estado.metas.slice(0, 3).join('>') : '') + (bot._modoEquipo > Date.now() ? '; modo=reequipandome' : ''); } catch (e) { return ''; } })(),
     puedeConstruir: !!(t && t.listo()) || /PLANO|TRAMPERO/.test(falla || ''),
   };
 };
@@ -426,12 +426,12 @@ function iniciarHuida(bot) {
       // Perseguir en vano -> retirarse a equiparse. Triggers: 25 s sin acercarse, o rival muy superior en armadura.
       if (objetivo.type === 'player') {
         const ahora = Date.now();
-        if (!persec || persec.id !== objetivo.id) persec = { id: objetivo.id, minD: dist, ult: ahora };
+        if (!persec || persec.id !== objetivo.id) persec = { id: objetivo.id, minD: dist, ult: ahora, lim: 18_000 + Math.random() * 16_000 };
         else if (dist < persec.minD - 1.5) { persec.minD = dist; persec.ult = ahora; }
         const pts = (arr) => arr.reduce((acc, it) => acc + (it ? tierDe(it.name) + 1 : 0), 0);
         const superior = Array.isArray(objetivo.equipment) && pts(objetivo.equipment.slice(2, 6)) - pts([5, 6, 7, 8].map((i) => bot.inventory.slots[i])) >= 6;
         const recienGolpeado = diag.estado.vida.ultimoDano && ahora - diag.estado.vida.ultimoDano < 6000;
-        if ((!bot._modoEquipo || bot._modoEquipo < ahora) && !recienGolpeado && dist > 5 && ((ahora - persec.ult > 25_000) || (superior && dist > 8))) {
+        if ((!bot._modoEquipo || bot._modoEquipo < ahora) && !recienGolpeado && dist > 5 && ((ahora - persec.ult > (persec.lim || 25_000)) || (superior && dist > 8))) {
           bot._modoEquipo = ahora + 4 * 60_000;
           diario.equipo(); diag.log('info', 'estrategia', 'persecucion inutil (' + (superior ? 'rival superior' : 'sin acercarse') + '): se retira a conseguir equipo 4 min');
           objetivoActual = null; try { if (bot.pvp) bot.pvp.stop(); bot.pathfinder.setGoal(null); } catch (e) { /* ignorar */ }
@@ -532,6 +532,17 @@ function iniciarHuida(bot) {
     if (!enLiquido) return;
     const ahora = Date.now();
     const sinAire = typeof bot.oxygenLevel === 'number' && bot.oxygenLevel <= 12;
+    const aireN = typeof bot.oxygenLevel === 'number' ? bot.oxygenLevel : 20;
+    const tg = bot.pvp && bot.pvp.target;
+    if (!enLava && tg && tg.position && aireN > 9 && tg.position.distanceTo(bot.entity.position) < 24) {
+      const bajo = tg.position.y < bot.entity.position.y - 1.2;
+      bot.setControlState('sprint', true);
+      bot.setControlState('forward', true);
+      bot.setControlState('jump', !bajo);
+      bot.lookAt(tg.position.offset(0, bajo ? 0.5 : 1.2, 0), true).catch(() => {});
+      return;
+    }
+    if (aireN <= 7) { bot.setControlState('jump', true); bot.look(bot.entity.yaw, Math.PI / 2, true).catch(() => {}); }
     const moviendose = bot.pathfinder && bot.pathfinder.isMoving && bot.pathfinder.isMoving();
     if (moviendose && !enLava && !sinAire) return; // persigue algo: dejarlo
     if (ahora - ultimoRescate < 1500) return;
@@ -547,7 +558,7 @@ function iniciarHuida(bot) {
         bot.setControlState('sprint', true);
       }
     } catch (e) { /* ignorar */ }
-  }, 250);
+  }, 100);
   intervalos.push(nadoInterval);
 
   // Re-equipar cada 10s por si consigue armadura/espada nueva durante la partida

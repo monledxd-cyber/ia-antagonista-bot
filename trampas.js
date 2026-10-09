@@ -238,7 +238,15 @@ function crearTrampero(bot, opts = {}) {
     if (bot.game && bot.game.dimension && !/overworld/.test(bot.game.dimension)) return { ok: false, motivo: 'solo en el overworld' };
     const plano = f(g, ctx);
     if (!plano) return { ok: false, motivo: 'no cabe aqui' };
-    plano.cmds.forEach(cmd);
+    if (process.env.IA_PLANO_CMD !== '1' && bot.inventory && !plano.cmds.some((c) => /\[|^summon/.test(c))) {
+      if (manualActivo) return { ok: false, motivo: 'ya estoy construyendo a mano' };
+      const celdas = celdasDePlano(plano.cmds);
+      const falta = {};
+      for (const c of celdas) if (!sinAire(c.name)) falta[c.name] = (falta[c.name] || 0) + 1;
+      const faltan = Object.keys(falta).filter((n) => bot.inventory.items().filter((i) => i.name === n).reduce((a, i) => a + i.count, 0) < falta[n]);
+      if (faltan.length) return { ok: false, motivo: 'a mano necesito: ' + faltan.map((n) => falta[n] + ' ' + n).join(', ') };
+      construirAMano(celdas, {});
+    } else plano.cmds.forEach(cmd);
     const t = { id: ++seq, tipo, x: g.x, y: g.y, z: g.z, creada: Date.now(), ult: 0, ...plano.datos };
     armadas.push(t);
     while (armadas.length > 4) armadas.shift();
@@ -284,8 +292,9 @@ function crearTrampero(bot, opts = {}) {
   // ---- Construccion A MANO (sin comandos): coloca cada bloque con placeBlock usando lo que lleva en el inventario ----
   let manualActivo = false;
   function celdasDePlano(cmds, anc) {
+    anc = anc || { x: 0, y: 0, z: 0 };
     const lista = [], vistos = new Set();
-    const rel = (tok, b) => b + (tok === '~' ? 0 : Number(tok.slice(1)));
+    const rel = (tok, b) => (tok[0] === '~' ? b + (tok === '~' ? 0 : Number(tok.slice(1))) : Number(tok));
     const add = (x, y, z, spec) => {
       const k = x + ',' + y + ',' + z; if (vistos.has(k)) return; vistos.add(k);
       lista.push({ p: new Vec3(x, y, z), name: spec.split('[')[0] });
