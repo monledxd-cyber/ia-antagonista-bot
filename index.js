@@ -257,7 +257,7 @@ function iniciarHuida(bot) {
     },
     pausar: () => { objetivoActual = null; try { bot.pvp.stop(); bot.pathfinder.setGoal(null); } catch (e) { /* ignorar */ } },
     reanudar: (t) => { try { bot.pvp.attack(t); } catch (e) { /* ignorar */ } },
-    huir: (t) => { objetivoActual = null; try { bot.pvp.stop(); bot.pathfinder.setGoal(new goals.GoalInvert(new goals.GoalFollow(t, 14)), true); } catch (e) { /* ignorar */ } },
+    huir: (t) => { objetivoActual = null; if (!bot._retirada || bot._retirada < Date.now()) { bot._retirada = Date.now() + 35_000; diario.huida(); diag.log('info', 'estrategia', 'retirada estrategica para curarse'); } try { bot.pvp.stop(); bot.pathfinder.setGoal(new goals.GoalInvert(new goals.GoalFollow(t, 14)), true); } catch (e) { /* ignorar */ } },
     equiparArma: () => equiparArma(bot),
     fijarHacha: (v) => { if (preferirHacha !== v) { preferirHacha = v; equiparArma(bot); } },
     tierDe,
@@ -421,6 +421,11 @@ function iniciarHuida(bot) {
       return;
     }
 
+    if (bot._retirada > Date.now() && objetivo && bot.health < 16) {
+      const dr = objetivo.position.distanceTo(bot.entity.position);
+      if (dr > 13) { try { bot.pathfinder.setGoal(null); } catch (e) { /* ignorar */ } return; }
+      if (dr > 6) return;
+    } else if (bot._retirada && bot.health >= 16) bot._retirada = 0;
     if (objetivo) {
       const dist = objetivo.position.distanceTo(bot.entity.position);
       // Perseguir en vano -> retirarse a equiparse. Triggers: 25 s sin acercarse, o rival muy superior en armadura.
@@ -593,9 +598,13 @@ function iniciarHuida(bot) {
 
   // Comida de emergencia: con poca vida come lo mejor que tenga (la regeneracion natural exige hambre alta).
   // Sin enemigo encima come ya; con enemigo pegado solo si esta realmente mal (<= 6).
+  let umbralComer = null;
   const emergenciaInterval = setInterval(async () => {
     if (!bot.entity) { clearInterval(emergenciaInterval); return; }
-    if (comiendo || bot.health === undefined || bot.health > 12 || bot.food === undefined || bot.food >= 20) return;
+    if (!umbralComer || Date.now() > umbralComer.t) umbralComer = { v: 12 + Math.floor(Math.random() * 5), t: Date.now() + 30_000 };
+    if (comiendo || bot.health === undefined || bot.food === undefined || bot.food >= 20) return;
+    const util = bot.health < umbralComer.v && (bot.food < 18 || bot.health <= 8);
+    if (!util) return;
     const pegado = enemigoCerca(3);
     if (pegado && bot.health > 6) return;
     await comerAlgo(bot, null);
