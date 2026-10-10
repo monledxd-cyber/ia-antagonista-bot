@@ -359,6 +359,61 @@ function crearAbasto(bot, o) {
   }
 
   // Cada necesidad devuelve: true si avanzo, false si no pudo (se enfria), 'nada' si no aplica.
+
+  const invMapa = () => { const m = new Map(); for (const i of items()) m.set(i.type, (m.get(i.type) || 0) + i.count); return m; };
+  function planear(id, n, inv, prof, pila) {
+    if (prof > 4 || pila.has(id)) return null;
+    let recs;
+    try { recs = bot.recipesAll(id, null, true); } catch (e) { return null; }
+    if (!recs || !recs.length) return null;
+    const puntaje = (r) => r.delta.filter((d) => d.count < 0).reduce((a, d) => a + Math.min(inv.get(d.id) || 0, -d.count), 0);
+    let mejor = null;
+    for (const rec of recs.sort((a, b) => puntaje(b) - puntaje(a)).slice(0, 14)) {
+      const res = rec.result ? rec.result.count : 1;
+      const veces = Math.ceil(n / res);
+      let copia = new Map(inv), pasos = [], ok = true;
+      for (const d of rec.delta.filter((x) => x.count < 0)) {
+        const need = -d.count * veces, have = copia.get(d.id) || 0;
+        copia.set(d.id, Math.max(0, have - need));
+        if (have >= need) continue;
+        const sub = planear(d.id, need - have, copia, prof + 1, new Set([...pila, id]));
+        if (!sub) { ok = false; break; }
+        pasos = pasos.concat(sub.pasos); copia = sub.inv;
+        copia.set(d.id, Math.max(0, (copia.get(d.id) || 0) - (need - have)));
+      }
+      if (!ok) continue;
+      copia.set(id, (copia.get(id) || 0) + res * veces);
+      const total = pasos.concat([{ id, veces, mesa: !!rec.requiresTable }]);
+      if (!mejor || total.length < mejor.pasos.length) mejor = { pasos: total, inv: copia };
+    }
+    return mejor;
+  }
+  async function fabricar(nombre, n = 1) {
+    const def = bot.registry.itemsByName[nombre];
+    if (!def) return false;
+    const plan = planear(def.id, n, invMapa(), 0, new Set());
+    if (!plan) return false;
+    if (plan.pasos.some((p) => p.mesa) && !(await mesa())) return false;
+    for (const p of plan.pasos) {
+      const nom = bot.registry.items[p.id].name;
+      if (!(await craftear(nom, p.veces))) return false;
+    }
+    return true;
+  }
+  bot._planear = planear;
+  const DESEOS = [
+    { item: 'bow', cuando: () => !tiene(/^(bow|crossbow)$/) },
+    { item: 'crossbow', cuando: () => tiene(/^bow$/) && !tiene(/^crossbow$/) },
+    { item: 'golden_apple', cuando: () => cuenta(/^golden_apple$/) < 2 },
+    { item: 'flint_and_steel', cuando: () => !tiene(/^flint_and_steel$/) },
+    { item: 'fishing_rod', cuando: () => !tiene(/^fishing_rod$/) },
+    { item: 'piston', n: 4, cuando: () => cuenta(/^piston$/) < 4 },
+    { item: 'tripwire_hook', n: 2, cuando: () => cuenta(/^tripwire_hook$/) < 2 },
+    { item: 'lever', n: 2, cuando: () => cuenta(/^lever$/) < 2 },
+    { item: 'anvil', cuando: () => !tiene(/^anvil$/) && !bloqueN(/anvil$/, 24) && items().some((i) => i.durabilityUsed > 0), despues: () => colocar('anvil') },
+  ];
+  let ultDeseo = {};
+
   const necesidades = [
     ['recuperar', paso_recuperar],
     ['base', paso_base],
@@ -615,6 +670,14 @@ function crearAbasto(bot, o) {
       try { bot.pathfinder.setGoal(new goals.GoalNear(c.p.x, y, c.p.z, 24)); } catch (e) { return false; }
       for (let k = 0; k < 40 && libre(); k++) { await dormir(1000); if (!bot.pathfinder.isMoving()) break; }
       return true;
+    }],
+    ['avanzado', async () => {
+      for (const d of DESEOS) {
+        if ((ultDeseo[d.item] || 0) > Date.now() || !d.cuando()) continue;
+        ultDeseo[d.item] = Date.now() + 5 * 60_000;
+        if (await fabricar(d.item, d.n || 1)) { if (d.despues) await d.despues(); diag.log('info', 'abasto', 'fabrico ' + d.item); return true; }
+      }
+      return 'nada';
     }],
     ['sondeo', async () => {
       if (!(cuenta(/^gunpowder$/) >= 5 && cuenta(/^(red_)?sand$/) < 4)) return 'nada';
