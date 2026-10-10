@@ -543,6 +543,52 @@ function iniciarCombate(bot, api) {
     if (tiene('golden_apple') || tiene('enchanted_golden_apple')) u -= 1;
     return Math.max(3, Math.min(14, u));
   };
+  let ultPerlaOfensiva = 0;
+  function mejorAnguloPerla(ojo, dest, yaw) {
+    let mejor = null, md = 1e9;
+    for (let g = -70; g <= 55; g += 1.5) {
+      const pitch = g * Math.PI / 180, cp = Math.cos(pitch);
+      let px = ojo.x, py = ojo.y, pz = ojo.z;
+      let vx = -Math.sin(yaw) * cp * 1.5, vy = Math.sin(pitch) * 1.5, vz = -Math.cos(yaw) * cp * 1.5;
+      for (let t = 0; t < 140; t++) {
+        px += vx; py += vy; pz += vz; vx *= 0.99; vy = vy * 0.99 - 0.03; vz *= 0.99;
+        const d = Math.hypot(px - dest.x, py - dest.y, pz - dest.z);
+        if (d < md) { md = d; mejor = pitch; }
+        if (vy < 0 && py < dest.y - 2) break;
+      }
+    }
+    return md < 2.5 ? mejor : null;
+  }
+  const perlaOfensiva = setInterval(async () => {
+    if (!bot.entity || api.ocupado() || enMLG || ocupado) return;
+    const ahora = Date.now();
+    if (ahora - ultPerlaOfensiva < 12_000 || bot.health < 11) return;
+    const t = api.obtenerObjetivo();
+    const perla = tiene('ender_pearl');
+    if (!perla || !valido(t) || t.type !== 'player') return;
+    const d = dist(t);
+    if (d < 12 || d > 40) return;
+    const v = velocidad(t);
+    const alejando = ((t.position.x - bot.entity.position.x) * v.x + (t.position.z - bot.entity.position.z) * v.z) / (d || 1) > 0.12;
+    if (!alejando) return;
+    const ojo = bot.entity.position.offset(0, 1.62, 0);
+    const dest = futura(t, t.position.offset(0, 0.2, 0), Math.min(40, d * 0.9));
+    const suelo = bot.blockAt(dest.offset(0, -1, 0).floored()), cuerpo = bot.blockAt(dest.floored());
+    if (!suelo || !cuerpo || suelo.name === 'air' || /lava|water/.test(suelo.name) || /lava/.test(cuerpo.name)) return;
+    const yaw = Math.atan2(-(dest.x - ojo.x), -(dest.z - ojo.z));
+    const pitch = mejorAnguloPerla(ojo, dest, yaw);
+    if (pitch === null) return;
+    ultPerlaOfensiva = ahora; ocupado = true; api.ocupar(true);
+    try {
+      api.pausar();
+      await bot.equip(perla, 'hand');
+      await bot.look(yaw, pitch, true);
+      bot.activateItem();
+      await dormir(250);
+    } catch (e) { /* ignorar */ } finally { ocupado = false; api.ocupar(false); api.equiparArma(); }
+  }, 400);
+  api.intervalos.push(perlaOfensiva);
+
   const escape = setInterval(async () => {
     if (!bot.entity) { clearInterval(escape); return; }
     if (api.ocupado() || enMLG || ocupado) return;

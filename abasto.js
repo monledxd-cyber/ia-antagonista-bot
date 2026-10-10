@@ -140,7 +140,7 @@ function crearAbasto(bot, o) {
   try { base = JSON.parse(fs.readFileSync(ARCH_BASE, 'utf8')); } catch (e) { base = null; }
   const guardarBase = () => { try { fs.writeFileSync(ARCH_BASE, JSON.stringify(base)); } catch (e) { /* disco de solo lectura */ } };
   bot.on('death', () => { if (bot.entity) muerte = { p: bot.entity.position.clone(), t: Date.now() }; mina = null; });
-  const COMIDA = /^(cooked_beef|cooked_porkchop|cooked_mutton|cooked_chicken|bread|apple|golden_apple|carrot|baked_potato)$/;
+  const COMIDA = /^(cooked_beef|cooked_porkchop|cooked_mutton|cooked_chicken|cooked_cod|cooked_salmon|bread|apple|golden_apple|carrot|baked_potato)$/;
   const noche = () => bot.time && bot.time.timeOfDay >= 13000 && bot.time.timeOfDay < 23000;
   const enSuperficie = () => bot.entity.position.y > 50;
   const armaduraCompleta = () => [5, 6, 7, 8].every((s) => bot.inventory.slots[s]);
@@ -408,7 +408,7 @@ function crearAbasto(bot, o) {
       return (await o.recolectar(bot, b.name, 6)).ok;
     }],
     ['fundir', async () => tiene(/^raw_iron$/) ? cocinar('raw_iron') : 'nada'],
-    ['carne', async () => tiene(/^(beef|porkchop|mutton|chicken)$/) ? cocinar(items().find((i) => /^(beef|porkchop|mutton|chicken)$/.test(i.name)).name) : 'nada'],
+    ['carne', async () => tiene(/^(beef|porkchop|mutton|chicken|cod|salmon)$/) ? cocinar(items().find((i) => /^(beef|porkchop|mutton|chicken|cod|salmon)$/.test(i.name)).name) : 'nada'],
     ['comida', async () => (cuenta(COMIDA) >= 6 || (noche() && enSuperficie())) ? 'nada' : cazar(/^(cow|pig|sheep|chicken)$/)],
     ['escudo', async () => (tiene(/^shield$/) || !tiene(/^iron_ingot$/) || cuenta(/_planks$/) < 6) ? 'nada' : craftear('shield')],
     ['cubo', async () => {
@@ -513,6 +513,27 @@ function crearAbasto(bot, o) {
         }
         return hecho ? true : 'nada';
       } finally { try { v.close(); } catch (e) { /* ignorar */ } }
+    }],
+    ['cana', async () => {
+      if (tiene(/^fishing_rod$/) || cuenta(/^stick$/) < 3 || cuenta(/^string$/) < 2) return 'nada';
+      return craftear('fishing_rod', 1);
+    }],
+    ['pescar', async () => {
+      if (!tiene(/^fishing_rod$/) || cuenta(COMIDA) >= 10 || (noche() && enSuperficie())) return 'nada';
+      const agua = bloqueN(/^water$/, 28);
+      if (!agua) return 'nada';
+      if (agua.position.distanceTo(bot.entity.position) > 4 && !(await o.irCerca(bot, agua.position))) return false;
+      const antes = cuenta(/^(cod|salmon|tropical_fish|pufferfish)$/);
+      const fin = Date.now() + 150_000;
+      try {
+        await bot.equip(items().find((i) => i.name === 'fishing_rod'), 'hand');
+        while (Date.now() < fin && libre() && cuenta(/^(cod|salmon)$/) - antes < 3) {
+          await bot.lookAt(agua.position.offset(0.5, 0.9, 0.5), true);
+          try { await Promise.race([bot.fish(), new Promise((_, rej) => setTimeout(() => rej(new Error('sin picar')), 40_000))]); }
+          catch (e) { try { bot.activateItem(); } catch (x) { /* ignorar */ } await dormir(500); }
+        }
+      } catch (e) { return false; }
+      return cuenta(/^(cod|salmon|tropical_fish|pufferfish)$/) > antes;
     }],
     ['flechas', async () => {
       if (!tiene(/^(bow|crossbow)$/) || cuenta(/^arrow$/) >= 24) return 'nada';

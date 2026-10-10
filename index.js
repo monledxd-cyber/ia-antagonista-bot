@@ -107,6 +107,8 @@ const extrasCtx = (bot, nombre, falla) => {
   return {
     planosGuardados: t ? t.nombresGuardados() : [],
     memoriaJugador: memoria.resumen(nombre),
+    animo: (() => { try { const hp = bot.health, golpe = diag.estado.vida.ultimoDano && Date.now() - diag.estado.vida.ultimoDano < 8000; const rivales = Object.values(bot.entities).filter((e) => e.type === 'player' && e.username !== BOT_USERNAME && bot.entity && e.position.distanceTo(bot.entity.position) < 14).length;
+      if (hp < 8) return 'herido'; if (golpe && rivales > 1) return 'acorralado'; if (diario.muertesRecientes(30) > 0) return 'vengativo'; if (golpe) return 'en_pelea'; return 'frio'; } catch (e) { return 'frio'; } })(),
     yo: (() => { try { const eq = bot.inventory.items().length; const tg = bot.pvp && bot.pvp.target; return `nombre=AM (usuario tecnico ${BOT_USERNAME})` + (tg && tg.username ? `; atacando a ${tg.username}` : '; sin objetivo') + '; ' + diario.resumen() + `; items=${eq}` + (diag.estado.metas && diag.estado.metas.length ? '; metas=' + diag.estado.metas.slice(0, 3).join('>') : '') + (bot._modoEquipo > Date.now() ? '; modo=reequipandome' : ''); } catch (e) { return ''; } })(),
     puedeConstruir: !!(t && t.listo()) || /PLANO|TRAMPERO/.test(falla || ''),
   };
@@ -289,6 +291,9 @@ function iniciarHuida(bot) {
   bot._claves = crearClaves(bot);
   bot.on('messagestr', (m) => { if (m.includes(bot.username) && /fell|lava|drown|burn|fire|blew|explo|starv|suffocat|cactus|void|magma|hit the ground|berry/i.test(m)) { ultimoMsgMuerte.txt = m.replace(bot.username, '').trim(); ultimoMsgMuerte.t = Date.now(); } });
   require('./vuelo').crearVuelo(bot, { tierDe, equipar: () => equiparAutomatico(bot), objetivo: () => (bot.pvp && bot.pvp.target) || objetivoActual });
+  const autotest = require('./autotest').crearAutotest(bot, { recolectar: recolectarBloque, ocupar: (v) => { manoOcupada = v; } });
+  _autotestFn = () => autotest.ejecutar();
+  if (process.env.IA_AUTOTEST === '1') setTimeout(() => autotest.ejecutar(), 20_000);
   bot._abasto = crearAbasto(bot, {
     peligro: (p, r) => diario.peligro(p, r),
     goals, claves: bot._claves,
@@ -1349,6 +1354,10 @@ async function smashAttack(bot) {
   } finally { bot.setControlState('forward', false); manoOcupada = false; }
 }
 
+function vidaUtil(it) {
+  try { return it && it.maxDurability ? 1 - (it.durabilityUsed || 0) / it.maxDurability : 1; } catch (e) { return 1; }
+}
+
 function equiparAutomatico(bot) {
   if (bot._volando || (bot.entity && bot.entity.elytraFlying)) return;
   equiparArma(bot);
@@ -1365,13 +1374,17 @@ function equiparAutomatico(bot) {
       // sin esperar a que la IA lo pida explicitamente.
       const candidatos = bot.inventory.items().filter(i => p.match.test(i.name));
       if (candidatos.length === 0) continue;
-      candidatos.sort((a, b) => tierDe(b.name) - tierDe(a.name));
+      candidatos.sort((a, b) => (tierDe(b.name) - tierDe(a.name)) || (vidaUtil(b) - vidaUtil(a)));
       const mejor = candidatos[0];
       const yaEquipado = p.dest === 'hand'
         ? bot.heldItem
         : bot.inventory.slots[{ head: 5, torso: 6, legs: 7, feet: 8 }[p.dest]];
-      if (yaEquipado && yaEquipado.name === mejor.name) continue; // ya tiene lo mejor puesto
-      if (yaEquipado && p.dest !== 'hand' && tierDe(yaEquipado.name) >= tierDe(mejor.name)) continue;
+      if (yaEquipado && yaEquipado === mejor) continue;
+      if (yaEquipado) {
+        const rotoEq = vidaUtil(yaEquipado) < 0.12, rotoMejor = vidaUtil(mejor) < 0.12;
+        if (tierDe(yaEquipado.name) > tierDe(mejor.name) && !(rotoEq && !rotoMejor && vidaUtil(mejor) > 0.3)) continue;
+        if (tierDe(yaEquipado.name) === tierDe(mejor.name) && !(vidaUtil(yaEquipado) < 0.15 && vidaUtil(mejor) > vidaUtil(yaEquipado) + 0.3)) continue;
+      }
       bot.equip(mejor, p.dest).catch(() => {});
     }
   } catch (e) { console.error('[bot] error equipando:', e.message); }
@@ -1691,6 +1704,12 @@ app.get('/panel', (req, res) => {
   res.send(diag.html({ version: BOT_VERSION, usuario: BOT_USERNAME, estado: plano }));
 });
 let _botEstado = () => ({});
+let _autotestFn = null;
+app.get('/autotest', async (req, res) => {
+  if (process.env.PANEL_TOKEN && req.query.token !== process.env.PANEL_TOKEN) return res.status(403).json({ error: 'token' });
+  if (!_autotestFn) return res.status(503).json({ error: 'bot no conectado' });
+  res.json({ resultado: (await _autotestFn()) || 'ocupado' });
+});
 app.get('/estado', (_req, res) => res.json({ version: BOT_VERSION, uptime: Math.round(process.uptime()), llm_ultima_hora: usoLLM(), llm_max_hora: MAX_LLM_HORA, errores: erroresVistos, ia_proveedores: estadoProveedores(), ..._botEstado() }));
 app.get('/health', (_req, res) => res.json({ status: 'ok', version: BOT_VERSION, uptime: process.uptime(), diagnostico: stats }));
 app.listen(process.env.PORT || 3000, () => console.log(`[http] servidor de salud escuchando (${BOT_VERSION})`));
