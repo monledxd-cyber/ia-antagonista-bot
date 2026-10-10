@@ -1453,6 +1453,12 @@ async function manejarRespuesta(bot, ctx, respuestaCruda) {
   const mCmd = texto.match(/\[CMD:((?:[^\[\]]|\[[^\]]*\])+)\]/);
   if (mCmd) texto = texto.replace(mCmd[0], '').trim();
 
+  texto = texto.replace(/\[[A-Z_]+:[^\]]*$/, '').replace(/\[[A-Z_]+:[^\]]*\]/g, '').trim();
+  if (texto.length > 240) {
+    const corte = texto.slice(0, 240);
+    const i = Math.max(corte.lastIndexOf('. '), corte.lastIndexOf('! '), corte.lastIndexOf('? '));
+    texto = i > 80 ? corte.slice(0, i + 1) : corte.replace(/\s+\S*$/, '') + '…';
+  }
   if (texto) bot.chat(texto);
 
   const COOLDOWN_TRAMPA_MS = 20_000;
