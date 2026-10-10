@@ -1311,7 +1311,7 @@ function equiparArma(bot) {
 // Recolecta N bloques de un tipo (solo materiales naturales, para no desmontar
 // construcciones): va hasta el bloque y lo rompe con la herramienta correcta.
 const RECOLECTABLE = /(_log$|_ore$|^stone$|^cobblestone$|^dirt$|^sand$|^gravel$|^netherrack$|_leaves$|^clay$)/;
-async function recolectarBloque(bot, nombre, cantidad = 1) {
+async function recolectarBloque(bot, nombre, cantidad = 1, radio = 24) {
   const def = require('minecraft-data')(bot.version).blocksByName[nombre];
   if (!def) return { ok: false, motivo: 'ese bloque no existe' };
   if (!RECOLECTABLE.test(nombre)) return { ok: false, motivo: 'solo recolectas materiales naturales (troncos, piedra, menas, tierra...)' };
@@ -1319,10 +1319,12 @@ async function recolectarBloque(bot, nombre, cantidad = 1) {
   manoOcupada = true;
   try {
     for (let k = 0; k < Math.min(cantidad, 16); k++) {
-      const b = bot.findBlock({ matching: def.id, maxDistance: 24 });
-      if (!b) return { ok: n > 0, motivo: 'no hay mas ' + nombre + ' a 24 bloques' };
-      if (!(await irCerca(bot, b.position, 15000))) return { ok: n > 0, motivo: 'no pudo llegar hasta el bloque' };
-      const bloque = bot.blockAt(b.position);
+      const yo = bot.entity.position;
+      const lista = bot.findBlocks({ matching: def.id, maxDistance: Math.min(radio, 128), count: 24 });
+      const b = lista.sort((p, q) => (p.distanceTo(yo) + 2 * Math.max(0, p.y - yo.y - 1)) - (q.distanceTo(yo) + 2 * Math.max(0, q.y - yo.y - 1)))[0];
+      if (!b) return { ok: n > 0, motivo: 'no hay mas ' + nombre + ' a ' + radio + ' bloques' };
+      if (!(await irCerca(bot, b, 12000 + b.distanceTo(yo) * 400))) return { ok: n > 0, motivo: 'no pudo llegar hasta el bloque' };
+      const bloque = bot.blockAt(b);
       if (!bloque || !bot.canDigBlock(bloque)) return { ok: n > 0, motivo: 'no alcanzo el bloque' };
       try { await equiparMejorHerramienta(bot, bloque); } catch (e) { /* sigue con lo que tenga */ }
       await bot.dig(bloque);

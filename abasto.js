@@ -450,28 +450,36 @@ function crearAbasto(bot, o) {
     ['mina', paso_mina],
     ['obsidiana', paso_obsidiana],
     ['madera', async () => {
-      if (cuenta(/_log$|_planks$/) >= (base ? 14 : 24) || (noche() && enSuperficie())) return 'nada';
+      const tengo = cuenta(/_log$|_planks$/);
+      if (tengo >= (base ? 14 : 24) || (noche() && enSuperficie())) return 'nada';
       const b = buscarVar('madera', /_log$/, 24);
-      if (!b) { alcance.madera = Math.min(6, (alcance.madera || 0) + 1); return explorar().then(() => false); }
+      if (!b) { alcance.madera = Math.min(8, (alcance.madera || 0) + 1); if (tengo >= 6) return 'nada'; await explorar(30, 100); return true; }
       alcance.madera = 0;
-      return (await o.recolectar(bot, b.name, 5)).ok;
+      return (await o.recolectar(bot, b.name, 5, Math.ceil(distA(b.position)) + 10)).ok;
     }],
     ['mesa', async () => (bloqueN(/^crafting_table$/, 24) || cuenta(/_log$|_planks$/) < 6) ? 'nada' : mesa()],
     ['palos', async () => (cuenta(/^stick$/) >= 4 || cuenta(/_planks$/) < 2) ? 'nada' : craftear('stick', 1)],
     ['piedra', async () => {
-      if (cuenta(/^cobblestone$/) >= 24 || !bloqueN(/^stone$/, 24)) return 'nada';
-      return (await o.recolectar(bot, 'stone', 8)).ok;
+      if (cuenta(/^cobblestone$/) >= 24) return 'nada';
+      const b = buscarVar('piedra', /^stone$/, 24);
+      if (!b) return 'nada';
+      return (await o.recolectar(bot, 'stone', 8, Math.ceil(distA(b.position)) + 10)).ok;
     }],
     ['equipo', async () => {
       if (!bloqueN(/^crafting_table$/, 24)) { if (tiene(/^crafting_table$/)) await colocar('crafting_table'); else return 'nada'; }
       await irBase(); await o.mejorar(bot); return true;
     }],
-    ['carbon', async () => (cuenta(/^coal$/) >= 6 || !bloqueN(/^(deepslate_)?coal_ore$/, 24)) ? 'nada' : (await o.recolectar(bot, bloqueN(/^(deepslate_)?coal_ore$/, 24).name, 4)).ok],
+    ['carbon', async () => {
+      if (cuenta(/^coal$/) >= 6) return 'nada';
+      const b = buscarVar('carbon', /^(deepslate_)?coal_ore$/, 24);
+      if (!b) return 'nada';
+      return (await o.recolectar(bot, b.name, 4, Math.ceil(distA(b.position)) + 10)).ok;
+    }],
     ['hierro', async () => {
       if (cuenta(/^(raw_iron|iron_ingot)$/) >= 26) return 'nada';
-      const b = bloqueN(/^(deepslate_)?iron_ore$/, 28);
+      const b = buscarVar('hierro', /^(deepslate_)?iron_ore$/, 28);
       if (!b) return 'nada';
-      return (await o.recolectar(bot, b.name, 6)).ok;
+      return (await o.recolectar(bot, b.name, 6, Math.ceil(distA(b.position)) + 10)).ok;
     }],
     ['fundir', async () => tiene(/^raw_iron$/) ? cocinar('raw_iron') : 'nada'],
     ['carne', async () => tiene(/^(beef|porkchop|mutton|chicken|cod|salmon)$/) ? cocinar(items().find((i) => /^(beef|porkchop|mutton|chicken|cod|salmon)$/.test(i.name)).name) : 'nada'],
@@ -491,7 +499,7 @@ function crearAbasto(bot, o) {
         if (!b) return 'nada';
         alcance.arena = 0;
         if (distA(b.position) > 6) await o.irCerca(bot, b.position);
-        return (await o.recolectar(bot, b.name, 4)).ok;
+        return (await o.recolectar(bot, b.name, 4, Math.ceil(distA(b.position)) + 10)).ok;
       }
       return 'nada';
     }],
@@ -680,10 +688,16 @@ function crearAbasto(bot, o) {
       return 'nada';
     }],
     ['sondeo', async () => {
-      if (!(cuenta(/^gunpowder$/) >= 5 && cuenta(/^(red_)?sand$/) < 4)) return 'nada';
-      const b = buscarVar('arena', /^(red_)?sand$/, 32);
-      if (b) { alcance.arena = 0; return o.irCerca(bot, b.position); }
-      alcance.arena = Math.min(6, (alcance.arena || 0) + 1);
+      const falt = [];
+      if (cuenta(/^gunpowder$/) >= 5 && cuenta(/^(red_)?sand$/) < 4) falt.push(['arena', /^(red_)?sand$/]);
+      if (cuenta(/^cobblestone$/) < 24) falt.push(['piedra', /^stone$/]);
+      if (cuenta(/^coal$/) < 6) falt.push(['carbon', /^(deepslate_)?coal_ore$/]);
+      if (cuenta(/^(raw_iron|iron_ingot)$/) < 26) falt.push(['hierro', /^(deepslate_)?iron_ore$/]);
+      if (!falt.length) return 'nada';
+      const [n, re] = falt[Math.floor(Math.random() * falt.length)];
+      const b = buscarVar(n, re, 32);
+      if (b) { alcance[n] = 0; return o.irCerca(bot, b.position, 20000); }
+      alcance[n] = Math.min(6, (alcance[n] || 0) + 1);
       await explorar(30, 90);
       return true;
     }],
@@ -701,6 +715,7 @@ function crearAbasto(bot, o) {
   function ordenar() {
     const frente = [];
     if (muerte) frente.push('recuperar');
+    if (cuenta(/_log$|_planks$/) < 6) frente.push('madera');
     if (cuenta(COMIDA) < 3) frente.push('comida', 'carne', 'cosecha', 'pan', 'azada', 'semillas', 'granja');
     if (noche() && (tiene(/_bed$/) || bloqueN(/_bed$/, 48))) frente.push('dormir');
     else if (noche() && bot.health >= 16 && tiene(/_(sword|axe)$/)) frente.push('polvora', 'cuerda', 'esqueletos');
