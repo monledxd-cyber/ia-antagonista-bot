@@ -625,18 +625,37 @@ function crearAbasto(bot, o) {
   }
 
 
-  let ocupadoBg = false;
-  const segundoPlano = setInterval(async () => {
-    if (!ON || !activo || ocupadoBg || !bot.entity || bot.currentWindow) return;
-    ocupadoBg = true;
-    try {
+  const recursos = new Set();
+  bot._recursos = recursos;
+  const MANT = { cobblestone: 64, dirt: 32, gravel: 16, andesite: 0, diorite: 0, granite: 0, tuff: 0, netherrack: 0, cobbled_deepslate: 0, rotten_flesh: 0, poisonous_potato: 0, spider_eye: 0, pufferfish: 0 };
+  const paralelas = [
+    { n: 'crafteo', res: ['inv'], cuando: () => true, fn: async () => {
       const tr = items().find((i) => /_log$/.test(i.name));
       const tabl = cuenta(/_planks$/);
-      if (tr && tabl < 8) await craftear(tr.name.replace('_log', '_planks'), 1);
-      else if (tabl >= 2 && cuenta(/^stick$/) < 8) await craftear('stick', 1);
-      else if (cuenta(/^coal$|^charcoal$/) >= 1 && cuenta(/^stick$/) >= 1 && cuenta(/^torch$/) < 16) await craftear('torch', 1);
-    } catch (e) { /* ignorar */ } finally { ocupadoBg = false; }
-  }, 3000);
+      if (tr && tabl < 8) return craftear(tr.name.replace('_log', '_planks'), 1);
+      if (tabl >= 2 && cuenta(/^stick$/) < 8) return craftear('stick', 1);
+      if (cuenta(/^coal$|^charcoal$/) >= 1 && cuenta(/^stick$/) >= 1 && cuenta(/^torch$/) < 16) return craftear('torch', 1);
+      const pl = items().find((i) => /_planks$/.test(i.name));
+      if (pl && pl.count >= 2 && cuenta(/^tnt$/) >= 2 && !tiene(/_pressure_plate$/)) return craftear(pl.name.replace('_planks', '_pressure_plate'), 1);
+      return false;
+    } },
+    { n: 'basura', res: ['inv'], cuando: () => items().length >= 30, fn: async () => {
+      for (const it of items()) {
+        if (!(it.name in MANT)) continue;
+        const sobra = it.count - MANT[it.name];
+        if (sobra > 0 && (MANT[it.name] === 0 || sobra > 64)) { await bot.toss(it.type, null, sobra); return true; }
+      }
+      return false;
+    } },
+  ];
+  const segundoPlano = setInterval(() => {
+    if (!ON || !bot.entity || bot.currentWindow) return;
+    for (const t of paralelas) {
+      if (t.res.some((r) => recursos.has(r)) || !t.cuando()) continue;
+      t.res.forEach((r) => recursos.add(r));
+      Promise.resolve().then(t.fn).then((ok) => { if (ok) diag.estado.tareas = [t.n, Date.now()]; }).catch(() => {}).finally(() => t.res.forEach((r) => recursos.delete(r)));
+    }
+  }, 2000);
   bot.once('end', () => clearInterval(segundoPlano));
 
   const intervalo = setInterval(async () => {
