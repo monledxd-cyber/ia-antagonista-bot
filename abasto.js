@@ -490,6 +490,20 @@ function crearAbasto(bot, o) {
       return craftear('bucket');
     }],
     ['agua', async () => (tiene(/^bucket$/) && !tiene(/^water_bucket$/) && bloqueN(/^water$/, 24)) ? llenarCubo() : 'nada'],
+    ['cubo2', async () => (tiene(/^water_bucket$/) && !tiene(/^(bucket|lava_bucket)$/) && cuenta(/^iron_ingot$/) >= 3 ? craftear('bucket') : 'nada')],
+    ['lava', async () => {
+      const cubo = items().find((i) => i.name === 'bucket');
+      if (!cubo || !tiene(/^water_bucket$/) || tiene(/^lava_bucket$/) || bot.health < 16) return 'nada';
+      const b = buscarVar('lava', /^lava$/, 24);
+      if (!b) return 'nada';
+      const src = bot.findBlock({ maxDistance: Math.ceil(distA(b.position)) + 6, matching: (x) => x && x.name === 'lava' && x.metadata === 0 });
+      if (!src) return 'nada';
+      if (distA(src.position) > 4 && !(await o.irCerca(bot, src.position, 20000))) return false;
+      await bot.equip(cubo, 'hand');
+      await bot.lookAt(src.position.offset(0.5, 1, 0.5), true);
+      bot.activateItem(); await dormir(400);
+      return tiene(/^lava_bucket$/) ? true : false;
+    }],
     ['tnt', async () => {
       if (cuenta(/^tnt$/) >= 12) return 'nada';
       const arena = cuenta(/^(red_)?sand$/);

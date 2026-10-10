@@ -723,6 +723,64 @@ function iniciarCombate(bot, api) {
     setTimeout(() => { try { bot.setControlState(lado, false); bot.setControlState('back', false); } catch (e) { /* ignorar */ } }, caida ? 320 : 180 + Math.random() * 100);
   }, 90);
   api.intervalos.push(anticipar);
+  let ultTerreno = 0, cdTerreno = 5000, pendRec = null;
+  const sueloDe = (c) => { const b = bot.blockAt(c.offset(0, -1, 0)); return b && b.boundingBox === 'block' ? b : null; };
+  const celdaRival = (t, k = 0) => {
+    const f = futura(t, t.position, 3), dx = t.position.x - bot.entity.position.x, dz = t.position.z - bot.entity.position.z, m = Math.hypot(dx, dz) || 1;
+    return new Vec3(Math.floor(f.x + (dx / m) * k), Math.floor(t.position.y + 0.01), Math.floor(f.z + (dz / m) * k));
+  };
+  const alcanzable = (base) => base.position.offset(0.5, 1, 0.5).distanceTo(bot.entity.position.offset(0, 1.62, 0)) <= 4.4;
+  async function recogerFluido() {
+    const p = pendRec; pendRec = null;
+    const vacio = tiene('bucket');
+    const b = bot.blockAt(p.c);
+    if (!vacio || !b || !/lava|water/.test(b.name)) return;
+    const c = p.c.offset(0.5, 0.5, 0.5);
+    if (c.distanceTo(bot.entity.position.offset(0, 1.62, 0)) > 4.4) { if (p.n < 3) pendRec = { ...p, n: p.n + 1, t: Date.now() + 500 }; return; }
+    ocupado = true; api.ocupar(true);
+    try { await bot.equip(vacio, 'hand'); await bot.lookAt(c, true); bot.activateItem(); await dormir(150); } catch (e) { /* ignorar */ }
+    finally { ocupado = false; api.ocupar(false); api.equiparArma(); }
+  }
+  const terreno = setInterval(async () => {
+    if (!bot.entity || ocupado || api.ocupado() || enMLG || crisActivo) return;
+    const ahora = Date.now();
+    if (pendRec && ahora >= pendRec.t) { await recogerFluido(); return; }
+    if (ahora - ultTerreno < cdTerreno || bot.health < 9) return;
+    const t = api.obtenerObjetivo();
+    if (!valido(t) || t.type !== 'player') return;
+    const d = dist(t);
+    if (d < 2.2 || d > 4.4) return;
+    const web = tiene('cobweb'), lava = tiene('lava_bucket'), agua = tiene('water_bucket'), fuego = tiene('flint_and_steel');
+    const op = [];
+    if (web) op.push('web', 'web');
+    if (lava && d >= 3 && bot.health >= 12) op.push('lava');
+    if (fuego && bot.health >= 10) op.push('fuego');
+    if (agua && bot._intencion === 'carga') op.push('agua');
+    if (!op.length) return;
+    ultTerreno = ahora; cdTerreno = 5000 + Math.random() * 15000;
+    if (Math.random() < 0.4) return;
+    const eleg = op[Math.floor(Math.random() * op.length)];
+    const celda = celdaRival(t, eleg === 'lava' ? 1 : 0);
+    const base = sueloDe(celda), aire = bot.blockAt(celda);
+    if (!base || !aire || !/^(air|cave_air)$/.test(aire.name) || !alcanzable(base)) return;
+    if (celda.distanceTo(bot.entity.position.floored()) < (eleg === 'lava' ? 3 : 1.5)) return;
+    ocupado = true; api.pausar(); api.ocupar(true);
+    try {
+      const punto = base.position.offset(0.5, 1, 0.5);
+      if (eleg === 'web') { await bot.equip(web, 'hand'); await bot.lookAt(punto, true); await bot.placeBlock(base, new Vec3(0, 1, 0)); }
+      else if (eleg === 'fuego') { await bot.equip(fuego, 'hand'); await bot.lookAt(punto, true); bot.activateBlock(base, new Vec3(0, 1, 0)).catch(() => {}); }
+      else if (eleg === 'lava' || eleg === 'agua') {
+        await bot.equip(eleg === 'lava' ? lava : agua, 'hand'); await bot.lookAt(punto, true); bot.activateItem(); await dormir(120);
+        pendRec = { c: celda, t: Date.now() + (eleg === 'lava' ? 700 + Math.random() * 500 : 1500), n: 0 };
+        if (eleg === 'lava') { bot.setControlState('back', true); setTimeout(() => { try { bot.setControlState('back', false); } catch (e) { /* ignorar */ } }, 600); }
+      }
+      if (bot._tactica) bot._tactica('terreno_' + eleg);
+      try { require('./diag').log('info', 'combate', 'terreno: ' + eleg); } catch (e) { /* ignorar */ }
+    } catch (e) { /* ignorar */ }
+    finally { ocupado = false; api.ocupar(false); api.equiparArma(); if (valido(t)) api.reanudar(t); }
+  }, 150);
+  api.intervalos.push(terreno);
+
 
 
   api.intervalos.push(loop);

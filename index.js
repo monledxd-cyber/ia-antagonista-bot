@@ -654,7 +654,7 @@ function iniciarHuida(bot) {
   intervalos.push(emergenciaInterval);
 
   // Recoger items importantes sueltos (loot de un jugador caido, drops de mobs, lo que se le cayo) cuando no hay peligro.
-  const IMPORTANTE = /(diamond|netherite|iron_ingot|raw_iron|gold_ingot|emerald|ender_pearl|golden_apple|totem_of_undying|obsidian|^tnt$|gunpowder|^arrow$|^bow$|crossbow|^shield$|^mace$|trident|wind_charge|end_crystal|elytra|experience_bottle|cooked_|^bread$|_sword$|_pickaxe$|_axe$|_helmet$|_chestplate$|_leggings$|_boots$|^bucket$|water_bucket)/;
+  const IMPORTANTE = /(diamond|netherite|iron_ingot|raw_iron|gold_ingot|emerald|ender_pearl|golden_apple|totem_of_undying|obsidian|^tnt$|gunpowder|^arrow$|^bow$|crossbow|^shield$|^mace$|trident|wind_charge|end_crystal|elytra|experience_bottle|cooked_|^bread$|_sword$|_pickaxe$|_axe$|_helmet$|_chestplate$|_leggings$|_boots$|^bucket$|water_bucket|cobweb|lava_bucket|flint_and_steel)/;
   const intentosItem = new Map();
   let ultRecoger = 0;
   const recogerInterval = setInterval(() => {
