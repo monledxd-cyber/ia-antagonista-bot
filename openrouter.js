@@ -177,6 +177,8 @@ let ultimoProveedor = null;
 const muertoHasta = new Map();
 function proveedoresActivos(keyOpenRouter) {
   const lista = [
+    { nombre: 'xai', etiqueta: 'xAI', url: 'https://api.x.ai/v1/chat/completions', key: process.env.XAI_API_KEY,
+      model: process.env.XAI_MODEL || 'grok-4.6', maxTokens: 400 },
     { nombre: 'openrouter', etiqueta: 'OpenRouter', url: OPENROUTER_URL, key: keyOpenRouter || process.env.OPENROUTER_API_KEY,
       model: process.env.OPENROUTER_MODEL || 'meta-llama/llama-3.3-70b-instruct:free', maxTokens: 200 },
     { nombre: 'gemini', etiqueta: 'Gemini', url: 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', key: process.env.GEMINI_API_KEY,
@@ -190,5 +192,5 @@ function proveedoresActivos(keyOpenRouter) {
   return lista.filter(p => p.key && p.model);
 }
 
-const estadoProveedores = () => ({ openrouter: !!process.env.OPENROUTER_API_KEY, gemini: !!process.env.GEMINI_API_KEY, groq: !!process.env.GROQ_API_KEY, activos: proveedoresActivos().map((p) => p.nombre) });
+const estadoProveedores = () => ({ openrouter: !!process.env.OPENROUTER_API_KEY, gemini: !!process.env.GEMINI_API_KEY, xai: !!process.env.XAI_API_KEY, groq: !!process.env.GROQ_API_KEY, activos: proveedoresActivos().map((p) => p.nombre) });
 module.exports = { preguntarIA, estadoProveedores };
