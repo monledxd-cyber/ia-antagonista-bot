@@ -82,7 +82,7 @@ const VERSION = process.env.MC_VERSION && process.env.MC_VERSION !== 'false' && 
   : '1.21.4'; // version fija: el ping de auto-deteccion (version:false) falla consistentemente
              // contra este server, aunque el login directo con version fija si funciona.
 
-if (!HOST || !(OPENROUTER_KEY || process.env.GEMINI_API_KEY || process.env.GROQ_API_KEY)) {
+if (!HOST || !(OPENROUTER_KEY || process.env.GEMINI_API_KEY || process.env.GROQ_API_KEY || process.env.XAI_API_KEY)) {
   console.error('Faltan variables de entorno: MC_HOST y al menos una key (OPENROUTER_API_KEY, GEMINI_API_KEY o GROQ_API_KEY)');
   process.exit(1);
 }
