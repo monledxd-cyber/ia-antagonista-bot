@@ -272,7 +272,7 @@ function iniciarHuida(bot) {
     },
     pausar: () => { objetivoActual = null; try { bot.pvp.stop(); bot.pathfinder.setGoal(null); } catch (e) { /* ignorar */ } },
     reanudar: (t) => { try { bot.pvp.attack(t); } catch (e) { /* ignorar */ } },
-    huir: (t) => { objetivoActual = null; if (!bot._retirada || bot._retirada < Date.now()) { bot._retirada = Date.now() + 35_000; diario.huida(); diag.log('info', 'estrategia', 'retirada estrategica para curarse'); } try { bot.pvp.stop(); bot.pathfinder.setGoal(new goals.GoalInvert(new goals.GoalFollow(t, 14)), true); } catch (e) { /* ignorar */ } },
+    huir: (t) => { objetivoActual = null; if (!bot._retirada || bot._retirada < Date.now()) { bot._retirada = Date.now() + 25_000 + Math.random() * 20_000; bot._reanuda = 0.55 + Math.random() * 0.3; bot._panico = 0; diario.huida(); diag.log('info', 'estrategia', 'retirada estrategica para curarse'); } try { bot.pvp.stop(); bot.pathfinder.setGoal(new goals.GoalInvert(new goals.GoalFollow(t, 14)), true); } catch (e) { /* ignorar */ } },
     equiparArma: () => equiparArma(bot),
     fijarHacha: (v) => { if (preferirHacha !== v) { preferirHacha = v; equiparArma(bot); } },
     tierDe,
@@ -429,7 +429,7 @@ function iniciarHuida(bot) {
 
     // Retirada calculada: con vida baja y un enemigo real cerca, se retira a
     // vez de seguir peleando -- control frio de la situacion, no panico.
-    if (bot.health !== undefined && bot.health <= 6 && objetivo) {
+    if (bot.health !== undefined && bot.health <= 20 * (bot._panico || (bot._panico = 0.2 + Math.random() * 0.15)) && objetivo) {
       if (objetivoActual !== null) { objetivoActual = null; if (bot.pvp) bot.pvp.stop(); }
       const dx = bot.entity.position.x - objetivo.position.x;
       const dz = bot.entity.position.z - objetivo.position.z;
@@ -443,11 +443,11 @@ function iniciarHuida(bot) {
       return;
     }
 
-    if (bot._retirada > Date.now() && objetivo && bot.health < 16) {
+    if (bot._retirada > Date.now() && objetivo && bot.health < 20 * (bot._reanuda || 0.8)) {
       const dr = objetivo.position.distanceTo(bot.entity.position);
       if (dr > 13) { try { bot.pathfinder.setGoal(null); } catch (e) { /* ignorar */ } return; }
       if (dr > 6) return;
-    } else if (bot._retirada && bot.health >= 16) bot._retirada = 0;
+    } else if (bot._retirada && bot.health >= 20 * (bot._reanuda || 0.8)) bot._retirada = 0;
     if (objetivo) {
       const dist = objetivo.position.distanceTo(bot.entity.position);
       // Perseguir en vano -> retirarse a equiparse. Triggers: 25 s sin acercarse, o rival muy superior en armadura.

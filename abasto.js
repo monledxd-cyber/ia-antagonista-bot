@@ -599,6 +599,21 @@ function crearAbasto(bot, o) {
     return necesidades.map((x, i) => [x, i]).sort((p, q) => (rank(p[0][0]) - rank(q[0][0])) || (p[1] - q[1])).map((x) => x[0]);
   }
 
+
+  let ocupadoBg = false;
+  const segundoPlano = setInterval(async () => {
+    if (!ON || !activo || ocupadoBg || !bot.entity || bot.currentWindow) return;
+    ocupadoBg = true;
+    try {
+      const tr = items().find((i) => /_log$/.test(i.name));
+      const tabl = cuenta(/_planks$/);
+      if (tr && tabl < 8) await craftear(tr.name.replace('_log', '_planks'), 1);
+      else if (tabl >= 2 && cuenta(/^stick$/) < 8) await craftear('stick', 1);
+      else if (cuenta(/^coal$|^charcoal$/) >= 1 && cuenta(/^stick$/) >= 1 && cuenta(/^torch$/) < 16) await craftear('torch', 1);
+    } catch (e) { /* ignorar */ } finally { ocupadoBg = false; }
+  }, 3000);
+  bot.once('end', () => clearInterval(segundoPlano));
+
   const intervalo = setInterval(async () => {
     if (!ON || bot._pausaAbasto || activo || !bot.entity || Date.now() - ultima < (ultimoOk ? 1200 : 6000)) return; // tras un exito sigue enseguida: siempre persigue la siguiente mejora
     if (!libre() || bot.health <= 12) return;
