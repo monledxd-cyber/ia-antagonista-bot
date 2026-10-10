@@ -124,13 +124,23 @@ function crearAbasto(bot, o) {
     return !!items().find((i) => i.name === 'water_bucket');
   }
 
-  async function explorar() {
-    const p = bot.entity.position, a = Math.random() * Math.PI * 2;
-    try { bot.pathfinder.setGoal(new goals.GoalNear(p.x + Math.cos(a) * 35, p.y, p.z + Math.sin(a) * 35, 3)); } catch (e) { /* ignorar */ }
-    await dormir(9000);
+  let ultRumbo = null;
+  async function explorar(min = 25, max = 80) {
+    const p = bot.entity.position, d = min + Math.random() * (max - min);
+    const a = ultRumbo !== null && Math.random() < 0.35 ? ultRumbo + (Math.random() - 0.5) * 0.8 : Math.random() * Math.PI * 2;
+    ultRumbo = a;
+    try { bot.pathfinder.setGoal(new goals.GoalNear(p.x + Math.cos(a) * d, p.y, p.z + Math.sin(a) * d, 3)); } catch (e) { /* ignorar */ }
+    for (let t = 0, tope = 4 + d * 0.35; t < tope; t += 0.7) {
+      await dormir(500 + Math.random() * 400);
+      if (!libre() || !bot.pathfinder.isMoving()) break;
+    }
     try { bot.pathfinder.setGoal(null); } catch (e) { /* ignorar */ }
   }
-
+  const alcance = {};
+  function buscarVar(nombre, re, min = 24) {
+    const r = Math.min(96, Math.round(min * (1 + Math.random() * 1.2) + (alcance[nombre] || 0) * 12));
+    return bot.findBlock({ maxDistance: r, matching: (x) => x && re.test(x.name) });
+  }
 
   // ===== Mineria real, obsidiana, base con cofre, recuperacion tras morir y prioridades =====
   const fs = require('fs');
@@ -386,8 +396,9 @@ function crearAbasto(bot, o) {
     ['obsidiana', paso_obsidiana],
     ['madera', async () => {
       if (cuenta(/_log$|_planks$/) >= (base ? 14 : 24) || (noche() && enSuperficie())) return 'nada';
-      const b = bloqueN(/_log$/, 24);
-      if (!b) return explorar().then(() => false);
+      const b = buscarVar('madera', /_log$/, 24);
+      if (!b) { alcance.madera = Math.min(6, (alcance.madera || 0) + 1); return explorar().then(() => false); }
+      alcance.madera = 0;
       return (await o.recolectar(bot, b.name, 5)).ok;
     }],
     ['mesa', async () => (bloqueN(/^crafting_table$/, 24) || cuenta(/_log$|_planks$/) < 6) ? 'nada' : mesa()],
@@ -418,9 +429,15 @@ function crearAbasto(bot, o) {
     ['agua', async () => (tiene(/^bucket$/) && !tiene(/^water_bucket$/) && bloqueN(/^water$/, 24)) ? llenarCubo() : 'nada'],
     ['tnt', async () => {
       if (cuenta(/^tnt$/) >= 12) return 'nada';
-      if (cuenta(/^gunpowder$/) >= 5 && cuenta(/^sand$/) >= 4) return craftear('tnt');
-      if (cuenta(/^gunpowder$/) >= 5 && bloqueN(/^sand$/, 24)) return (await o.recolectar(bot, 'sand', 4)).ok;
-      if (cuenta(/^gunpowder$/) >= 5 && cuenta(/^sand$/) < 4) return explorar().then(() => false);
+      const arena = cuenta(/^(red_)?sand$/);
+      if (cuenta(/^gunpowder$/) >= 5 && arena >= 4) return craftear('tnt');
+      if (cuenta(/^gunpowder$/) >= 5) {
+        const b = buscarVar('arena', /^(red_)?sand$/, 24);
+        if (!b) return 'nada';
+        alcance.arena = 0;
+        if (distA(b.position) > 6) await o.irCerca(bot, b.position);
+        return (await o.recolectar(bot, b.name, 4)).ok;
+      }
       return 'nada';
     }],
     ['placa', async () => {
@@ -597,6 +614,14 @@ function crearAbasto(bot, o) {
       diag.log('info', 'rastreo', 'va hacia la ultima posicion de ' + c.n);
       try { bot.pathfinder.setGoal(new goals.GoalNear(c.p.x, y, c.p.z, 24)); } catch (e) { return false; }
       for (let k = 0; k < 40 && libre(); k++) { await dormir(1000); if (!bot.pathfinder.isMoving()) break; }
+      return true;
+    }],
+    ['sondeo', async () => {
+      if (!(cuenta(/^gunpowder$/) >= 5 && cuenta(/^(red_)?sand$/) < 4)) return 'nada';
+      const b = buscarVar('arena', /^(red_)?sand$/, 32);
+      if (b) { alcance.arena = 0; return o.irCerca(bot, b.position); }
+      alcance.arena = Math.min(6, (alcance.arena || 0) + 1);
+      await explorar(30, 90);
       return true;
     }],
     ['flechas', async () => {
