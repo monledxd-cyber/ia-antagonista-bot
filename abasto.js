@@ -420,6 +420,7 @@ function crearAbasto(bot, o) {
       if (cuenta(/^tnt$/) >= 12) return 'nada';
       if (cuenta(/^gunpowder$/) >= 5 && cuenta(/^sand$/) >= 4) return craftear('tnt');
       if (cuenta(/^gunpowder$/) >= 5 && bloqueN(/^sand$/, 24)) return (await o.recolectar(bot, 'sand', 4)).ok;
+      if (cuenta(/^gunpowder$/) >= 5 && cuenta(/^sand$/) < 4) return explorar().then(() => false);
       return 'nada';
     }],
     ['placa', async () => {
@@ -614,6 +615,7 @@ function crearAbasto(bot, o) {
     if (muerte) frente.push('recuperar');
     if (cuenta(COMIDA) < 3) frente.push('comida', 'carne', 'cosecha', 'pan', 'azada', 'semillas', 'granja');
     if (noche() && (tiene(/_bed$/) || bloqueN(/_bed$/, 48))) frente.push('dormir');
+    else if (noche() && bot.health >= 16 && tiene(/_(sword|axe)$/)) frente.push('polvora', 'cuerda', 'esqueletos');
     if (items().length >= 32) frente.push('basura');
     if (bot.experience && bot.experience.level >= 3 && bot.inventory.items().some((i) => i.durabilityUsed > 0)) frente.push('yunque');
     if (!armaduraCompleta() && cuenta(/^iron_ingot$/) >= 4) frente.push('equipo');

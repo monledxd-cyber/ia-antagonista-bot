@@ -36,6 +36,7 @@ function crearAcecho(bot, o) {
     if (!ON || !bot.entity) return;
     if (bot._tormento || (bot.pvp && bot.pvp.target) || bot.health < 14 || (bot._modoEquipo || 0) > Date.now()) { st = null; return; }
     if (bot._abasto && bot._abasto.activo()) return;
+    if (bot.time && bot.time.timeOfDay >= 12500 && bot.time.timeOfDay <= 23000) { st = null; return; }
     if (bot.game && bot.game.dimension && !/overworld/.test(bot.game.dimension)) return;
     const now = Date.now();
     if (!st) {

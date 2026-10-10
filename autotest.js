@@ -52,6 +52,30 @@ function crearAutotest(bot, o) {
         if (b && b.name !== 'air') { await bot.dig(b); return 'coloco y rompio'; }
         return false;
       });
+      await paso('modulos', async () => {
+        const falta = ['_acecho', '_abasto', '_trampero', '_recursos', '_tactica'].filter((k) => !bot[k]);
+        return falta.length ? 'faltan: ' + falta.join(',') : 'acecho/abasto/trampero/recursos ok';
+      });
+      await paso('dinamita', async () => {
+        const id = bot.registry.itemsByName.tnt && bot.registry.itemsByName.tnt.id;
+        const receta = id ? bot.recipesFor(id, null, 1, true).length : 0;
+        const arena = bot.findBlock({ maxDistance: 32, matching: (b) => b && /^(sand|red_sand)$/.test(b.name) });
+        const mesa = bot.findBlock({ maxDistance: 16, matching: (b) => b && b.name === 'crafting_table' });
+        const det = `receta=${receta ? 'si' : 'NO'} tnt=${cuenta(/^tnt$/)} polvora=${cuenta(/^gunpowder$/)} arena=${cuenta(/^sand$/)} arena_cerca=${arena ? 'si' : 'no'} mesa_cerca=${mesa ? 'si' : 'no'} placa=${cuenta(/_pressure_plate$/)}`;
+        return receta ? det : false;
+      });
+      await paso('trampas', async () => {
+        const t = bot._trampero;
+        if (!t) return false;
+        return `listo=${t.listo()} minas_pendientes=${t.minasPendientes()} cubo_agua=${cuenta(/^water_bucket$/) ? 'si' : 'no'}`;
+      });
+      await paso('radar', async () => `radar: ${bot._acecho ? bot._acecho.radar() || 'sin jugadores' : false}`);
+      await paso('vida_rival', async () => {
+        const j = Object.values(bot.entities).find((e) => e.type === 'player' && e.username !== bot.username);
+        if (!j) return 'sin jugadores a la vista (omitido)';
+        const h = j.metadata && j.metadata[9];
+        return typeof h === 'number' ? 'vida rival visible: ' + h : false;
+      });
     } finally {
       corriendo = false; o.ocupar(false);
       diag.estado.autotest = { t: Date.now(), pasos };
