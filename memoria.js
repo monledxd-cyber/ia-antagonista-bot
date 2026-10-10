@@ -22,6 +22,10 @@ function crearMemoria(ruta) {
     mato: (n) => marca(n, 'mato'),
     trampa: (n) => marca(n, 'trampas'),
     huyo: (n) => marca(n, 'huyo'),
+    dijo: (n, txt) => {
+      if (!/(mat|voy a|te voy|ya ver|cuidado|muere|maldit|odio|vengar|kill|gonna|will |destroy|noob|miedo|cobarde)/i.test(txt)) return;
+      const j = get(n); j.dijo = j.dijo || []; j.dijo.push({ t: Date.now(), s: String(txt).slice(0, 80) }); if (j.dijo.length > 5) j.dijo.shift(); sucio = true;
+    },
     arma: (n, item) => { if (!item) return; const a = get(n).armas; a[item] = (a[item] || 0) + 1; sucio = true; },
     // Observacion periodica del jugador: tags = ['escudo','arco','sprint','agachado','elytra',...], pos = {x,z}
     observa: (n, tags, pos) => {
@@ -47,7 +51,7 @@ function crearMemoria(ruta) {
       const tend = ['escudo', 'arco', 'elytra', 'agachado', 'sprint'].filter((k) => pct(k) >= 15).map((k) => `${k}${pct(k)}%`).join(',');
       const base = Object.entries(j.lugares || {}).sort((a, b) => b[1] - a[1])[0];
       const zona = base && base[1] > 20 ? ` zona_habitual=${base[0].split(',').map((v) => v * 32 + 16).join(',')}(x,z)` : '';
-      return `${j.visitas} visitas, visto hace ${dias(j.ultima)}d; murio ${j.muertes}x, me mato ${j.mato}x, ${j.trampas} trampas sufridas` + (arma ? `; usa ${arma[0]}` : '') + (tend ? `; tendencias ${tend}` : '') + zona;
+      return `${j.visitas} visitas, visto hace ${dias(j.ultima)}d; murio ${j.muertes}x, me mato ${j.mato}x, ${j.trampas} trampas sufridas` + (j.dijo && j.dijo.length ? `; dijo: "${j.dijo[j.dijo.length - 1].s}" hace ${dias(j.dijo[j.dijo.length - 1].t)}d` : '') + (arma ? `; usa ${arma[0]}` : '') + (tend ? `; tendencias ${tend}` : '') + zona;
     },
     guardar,
     detener: () => { clearInterval(timer); guardar(); },

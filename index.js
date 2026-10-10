@@ -41,6 +41,7 @@ function avisarFalloIA(bot, e) {
   const motivos = { 401: 'la API key no es valida o expiro', 402: 'la cuenta no tiene creditos', 404: 'el modelo no existe', 429: 'demasiadas peticiones' };
   if (!motivos[codigo]) return;
   ultimoAvisoIA = Date.now();
+  alertar(`IA caida: ${proveedor} ${codigo} (${motivos[codigo]})`, 'ia' + codigo, 60);
   try { bot.chat(`[aviso tecnico] No puedo pensar: ${proveedor} ${codigo}, ${motivos[codigo]}.`); } catch (err) { /* ignorar */ }
 }
 // Presupuesto de llamadas a la IA por hora: lo espontaneo y la voluntad propia se cortan al 60 % para dejar margen a chat directo y reflejos.
@@ -97,6 +98,7 @@ const RUTAS_MEM = [process.env.IA_MEMORIA || 'memoria_jugadores.json', process.e
 persist.restaurar(RUTAS_MEM); // Render: disco efimero -> recupera la memoria del gist si esta configurado
 const memoria = crearMemoria();
 const diario = require('./diario').crearDiario();
+const { alertar } = require('./alertas');
 const ultimoMsgMuerte = { txt: '', t: 0 };
 persist.iniciar(RUTAS_MEM, () => { memoria.guardar(); diario.guardar(); });
 let erroresVistos = 0;
@@ -107,6 +109,7 @@ const extrasCtx = (bot, nombre, falla) => {
   return {
     planosGuardados: t ? t.nombresGuardados() : [],
     memoriaJugador: memoria.resumen(nombre),
+    fase: (() => { try { const tg = bot.pvp && bot.pvp.target; if (Date.now() - diario.ultKill() < 60_000) return 'rival_muerto'; if (bot._retirada > Date.now()) return 'retirada'; if (!tg) return ''; const d = tg.position.distanceTo(bot.entity.position); if (d > 14) return 'rival_huye'; if (diag.estado.vida.ultimoDano && Date.now() - diag.estado.vida.ultimoDano < 5000) return 'intercambio'; return 'inicio'; } catch (e) { return ''; } })(),
     animo: (() => { try { const hp = bot.health, golpe = diag.estado.vida.ultimoDano && Date.now() - diag.estado.vida.ultimoDano < 8000; const rivales = Object.values(bot.entities).filter((e) => e.type === 'player' && e.username !== BOT_USERNAME && bot.entity && e.position.distanceTo(bot.entity.position) < 14).length;
       if (hp < 8) return 'herido'; if (golpe && rivales > 1) return 'acorralado'; if (diario.muertesRecientes(30) > 0) return 'vengativo'; if (golpe) return 'en_pelea'; return 'frio'; } catch (e) { return 'frio'; } })(),
     yo: (() => { try { const eq = bot.inventory.items().length; const tg = bot.pvp && bot.pvp.target; return `nombre=AM (usuario tecnico ${BOT_USERNAME})` + (tg && tg.username ? `; atacando a ${tg.username}` : '; sin objetivo') + '; ' + diario.resumen() + `; items=${eq}` + (diag.estado.metas && diag.estado.metas.length ? '; metas=' + diag.estado.metas.slice(0, 3).join('>') : '') + (bot._modoEquipo > Date.now() ? '; modo=reequipandome' : ''); } catch (e) { return ''; } })(),
@@ -293,6 +296,7 @@ function iniciarHuida(bot) {
   require('./vuelo').crearVuelo(bot, { tierDe, equipar: () => equiparAutomatico(bot), objetivo: () => (bot.pvp && bot.pvp.target) || objetivoActual });
   const autotest = require('./autotest').crearAutotest(bot, { recolectar: recolectarBloque, ocupar: (v) => { manoOcupada = v; } });
   _autotestFn = () => autotest.ejecutar();
+  _botActual = bot;
   if (process.env.IA_AUTOTEST === '1') setTimeout(() => autotest.ejecutar(), 20_000);
   bot._abasto = crearAbasto(bot, {
     peligro: (p, r) => diario.peligro(p, r),
@@ -404,7 +408,7 @@ function iniciarHuida(bot) {
     const jugadoresCercanos = Object.values(bot.entities).filter(e =>
       e.type === 'player' && e.username !== BOT_USERNAME &&
       e.gameMode !== 'spectator' && e.gameMode !== 'creative' &&
-      e.position.distanceTo(bot.entity.position) < RANGO_VIGILANCIA
+      e.position.distanceTo(bot.entity.position) < (bot._emboscadaHasta > Date.now() ? 9 : RANGO_VIGILANCIA)
     );
     const mobsCercanos = Object.values(bot.entities).filter(e =>
       esMobHostil(e) &&
@@ -912,6 +916,7 @@ async function crearBot() {
       if (!p && bot.entity) diario.zona(bot.entity.position, String(ultimoMsgMuerte.txt || ultimo || 'entorno').slice(0, 30));
       diario.muerte(p ? { por: 'jugador', quien: p.username, arma: ar || null } : { por: 'entorno', causa: String(ultimo || 'desconocida').slice(0, 24) });
       if (diario.muertesRecientes(30) >= 2) { bot._modoEquipo = Date.now() + 6 * 60_000; diag.log('info', 'estrategia', 'murio 2 veces en 30 min: se reequipa antes de volver a pelear'); diario.equipo(); }
+      if (diario.muertesRecientes(30) >= 3) alertar('AM murio 3 veces en 30 min', 'muertes', 30);
     });
     if (!bot._memoriaHooks) {
       bot._memoriaHooks = true;
@@ -1026,6 +1031,7 @@ async function crearBot() {
   // Responde cuando un jugador real escribe en el chat (no reportes del datapack)
 
   bot.on('chat', async (username, mensaje) => {
+    if (username !== BOT_USERNAME) memoria.dijo(username, mensaje);
     console.log(`[diag] evento chat recibido: username="${username}" mensaje="${mensaje}"`);
     try {
       if (username === BOT_USERNAME) return; // ignora sus propios mensajes
@@ -1128,7 +1134,7 @@ async function crearBot() {
   });
   bot.on('end', (razon) => {
     console.log('[bot] fin de conexion, razon:', razon || '(sin razon)');
-    const cx = diag.estado.conexion; cx.estado = 'desconectado'; cx.caidas++; cx.ultimaCaida = Date.now(); if (razon) cx.ultimoMotivo = String(razon);
+    const cx = diag.estado.conexion; cx.estado = 'desconectado'; cx.caidas++; cx.ultimaCaida = Date.now(); if (cx.caidas % 5 === 0) alertar(`El bot lleva ${cx.caidas} caidas (motivo: ${razon || '?'})`, 'caidas', 30); if (razon) cx.ultimoMotivo = String(razon);
     diag.log('error', 'conexion', 'fin de conexion: ' + (razon || '(sin razon)') + ' | vida=' + diag.estado.vida.ultima);
     botConectadoOEnCurso = false;
     ultimoEnd = Date.now();
@@ -1707,10 +1713,23 @@ app.get('/panel', (req, res) => {
   const plano = {};
   for (const [k, v] of Object.entries(est)) plano[k] = v;
   plano.ia_ultima_hora = usoLLM() + '/' + MAX_LLM_HORA;
-  res.send(diag.html({ version: BOT_VERSION, usuario: BOT_USERNAME, estado: plano }));
+  res.send(diag.html({ version: BOT_VERSION, usuario: BOT_USERNAME, estado: plano, token: tk || '' }));
 });
 let _botEstado = () => ({});
 let _autotestFn = null;
+app.get('/accion', (req, res) => {
+  const tk = process.env.PANEL_TOKEN;
+  if (tk && req.query.k !== tk) return res.status(401).send('falta ?k=TOKEN');
+  const b = _botActual, a = req.query.a;
+  if (!b) return res.status(503).send('bot no conectado');
+  if (a === 'pausar') b._pausaAbasto = true;
+  else if (a === 'reanudar') b._pausaAbasto = false;
+  else if (a === 'retirada') { b._retirada = Date.now() + 35_000; try { if (b.pvp) b.pvp.stop(); b.pathfinder.setGoal(null); } catch (e) { /* ignorar */ } }
+  else if (a === 'autotest' && _autotestFn) _autotestFn();
+  else return res.status(400).send('accion desconocida');
+  res.redirect('/panel' + (tk ? '?k=' + encodeURIComponent(tk) : ''));
+});
+let _botActual = null;
 app.get('/autotest', async (req, res) => {
   if (process.env.PANEL_TOKEN && req.query.token !== process.env.PANEL_TOKEN) return res.status(403).json({ error: 'token' });
   if (!_autotestFn) return res.status(503).json({ error: 'bot no conectado' });

@@ -535,6 +535,44 @@ function crearAbasto(bot, o) {
       } catch (e) { return false; }
       return cuenta(/^(cod|salmon|tropical_fish|pufferfish)$/) > antes;
     }],
+    ['yunque', async () => {
+      if ((bot.experience && bot.experience.level || 0) < 3) return 'nada';
+      const yq = bloqueN(/^(chipped_|damaged_)?anvil$/, 24);
+      if (!yq) return 'nada';
+      const ratio = (i) => (i.maxDurability ? 1 - (i.durabilityUsed || 0) / i.maxDurability : 1);
+      const dañados = items().filter((i) => i.maxDurability && ratio(i) < 0.6 && ratio(i) > 0);
+      let par = null;
+      for (const a1 of dañados) { const b1 = dañados.find((x) => x !== a1 && x.name === a1.name && x.slot !== a1.slot); if (b1) { par = [a1, b1]; break; } }
+      if (!par) return 'nada';
+      if (yq.position.distanceTo(bot.entity.position) > 3 && !(await o.irCerca(bot, yq.position))) return false;
+      let w;
+      try { w = await bot.openAnvil(yq); await w.combine(par[0], par[1]); return true; } catch (e) { return false; } finally { try { if (w) w.close(); } catch (e) { /* ignorar */ } }
+    }],
+    ['azada', async () => (tiene(/_hoe$/) || cuenta(/_planks$/) < 2 || cuenta(/^stick$/) < 2 || !bloqueN(/^crafting_table$/, 24)) ? 'nada' : craftear('wooden_hoe', 1)],
+    ['semillas', async () => {
+      if (cuenta(/^(wheat_seeds|wheat)$/) >= 6 || !tiene(/_hoe$/) || (noche() && enSuperficie())) return 'nada';
+      const g = bloqueN(/^(short_grass|tall_grass|grass)$/, 24);
+      if (!g) return 'nada';
+      return (await o.recolectar(bot, g.name, 10)).ok;
+    }],
+    ['granja', async () => {
+      if (!tiene(/_hoe$/) || cuenta(/^wheat_seeds$/) < 3) return 'nada';
+      const agua = bloqueN(/^water$/, 28);
+      if (!agua) return 'nada';
+      if (agua.position.distanceTo(bot.entity.position) > 4 && !(await o.irCerca(bot, agua.position))) return false;
+      const azada = items().find((i) => /_hoe$/.test(i.name));
+      let hechos = 0;
+      for (let dx = -3; dx <= 3 && hechos < 6; dx++) for (let dz = -3; dz <= 3 && hechos < 6; dz++) {
+        const p = agua.position.offset(dx, 0, dz), b = bot.blockAt(p), arriba = bot.blockAt(p.offset(0, 1, 0));
+        if (!b || !arriba || !/^(grass_block|dirt)$/.test(b.name) || arriba.name !== 'air') continue;
+        try {
+          await bot.equip(azada, 'hand'); await bot.activateBlock(b, new Vec3(0, 1, 0));
+          const sem = items().find((i) => i.name === 'wheat_seeds'); if (!sem) return hechos > 0;
+          await bot.equip(sem, 'hand'); await bot.placeBlock(bot.blockAt(p), new Vec3(0, 1, 0)); hechos++;
+        } catch (e) { /* siguiente bloque */ }
+      }
+      return hechos > 0;
+    }],
     ['flechas', async () => {
       if (!tiene(/^(bow|crossbow)$/) || cuenta(/^arrow$/) >= 24) return 'nada';
       if (cuenta(/^flint$/) >= 1 && cuenta(/^feather$/) >= 1 && cuenta(/^stick$/) >= 1) return craftear('arrow', 1);
@@ -549,9 +587,10 @@ function crearAbasto(bot, o) {
   function ordenar() {
     const frente = [];
     if (muerte) frente.push('recuperar');
-    if (cuenta(COMIDA) < 3) frente.push('comida', 'carne', 'cosecha', 'pan');
+    if (cuenta(COMIDA) < 3) frente.push('comida', 'carne', 'cosecha', 'pan', 'azada', 'semillas', 'granja');
     if (noche() && (tiene(/_bed$/) || bloqueN(/_bed$/, 48))) frente.push('dormir');
     if (items().length >= 32) frente.push('basura');
+    if (bot.experience && bot.experience.level >= 3 && bot.inventory.items().some((i) => i.durabilityUsed > 0)) frente.push('yunque');
     if (!armaduraCompleta() && cuenta(/^iron_ingot$/) >= 4) frente.push('equipo');
     const hayJugadores = Object.keys(bot.players || {}).length > 1;
     if (hayJugadores && tiene(/^(bow|crossbow)$/) && cuenta(/^arrow$/) < 8) frente.push('flechas');
@@ -561,7 +600,7 @@ function crearAbasto(bot, o) {
   }
 
   const intervalo = setInterval(async () => {
-    if (!ON || activo || !bot.entity || Date.now() - ultima < (ultimoOk ? 1200 : 6000)) return; // tras un exito sigue enseguida: siempre persigue la siguiente mejora
+    if (!ON || bot._pausaAbasto || activo || !bot.entity || Date.now() - ultima < (ultimoOk ? 1200 : 6000)) return; // tras un exito sigue enseguida: siempre persigue la siguiente mejora
     if (!libre() || bot.health <= 12) return;
     activo = true; o.ocupar(true); ultimoOk = false;
     try {

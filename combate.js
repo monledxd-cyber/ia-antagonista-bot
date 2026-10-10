@@ -637,6 +637,42 @@ function iniciarCombate(bot, api) {
     if (e) api.irA(e.position);
   }, 1000);
   api.intervalos.push(recoger);
+  const columnaPeligro = (x, y, z) => {
+    for (let k = 0; k <= 7; k++) {
+      const b = bot.blockAt(new Vec3(x, y - k, z));
+      if (!b) return false;
+      if (/lava|fire|magma/.test(b.name)) return true;
+      if (b.boundingBox === 'block' || /water/.test(b.name)) return false;
+    }
+    return true;
+  };
+  let ultEmpuje = 0;
+  const empuje = setInterval(() => {
+    if (!bot.entity || api.ocupado() || ocupado || enMLG || bot.health < 12) return;
+    const t = api.obtenerObjetivo();
+    if (!valido(t) || t.type !== 'player' || Date.now() - ultEmpuje < 2500) return;
+    const d = dist(t);
+    if (d > 6 || d < 1.5) return;
+    const tp = t.position.floored(), bp = bot.entity.position;
+    const dx = t.position.x - bp.x, dz = t.position.z - bp.z, m = Math.hypot(dx, dz) || 1;
+    const ux = dx / m, uz = dz / m;
+    for (let k = 1; k <= 3; k++) if (columnaPeligro(Math.floor(t.position.x + ux * k), tp.y, Math.floor(t.position.z + uz * k))) return;
+    let mejor = null;
+    for (const [hx, hz] of [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [-1, -1], [1, -1], [-1, 1]]) {
+      if (!columnaPeligro(tp.x + hx * 2, tp.y, tp.z + hz * 2) || !columnaPeligro(tp.x + hx * 3, tp.y, tp.z + hz * 3)) continue;
+      const px = t.position.x - hx * 2, pz = t.position.z - hz * 2;
+      const suelo = bot.blockAt(new Vec3(Math.floor(px), tp.y - 1, Math.floor(pz)));
+      const pie = bot.blockAt(new Vec3(Math.floor(px), tp.y, Math.floor(pz)));
+      if (!suelo || suelo.boundingBox !== 'block' || !pie || pie.boundingBox !== 'empty') continue;
+      if (columnaPeligro(Math.floor(px), tp.y, Math.floor(pz))) continue;
+      const c = Math.hypot(px - bp.x, pz - bp.z);
+      if (!mejor || c < mejor.c) mejor = { px, pz, c };
+    }
+    if (!mejor || mejor.c > 4.5) return;
+    ultEmpuje = Date.now();
+    api.irA(new Vec3(mejor.px, tp.y, mejor.pz));
+  }, 500);
+  api.intervalos.push(empuje);
   api.intervalos.push(loop);
 }
 

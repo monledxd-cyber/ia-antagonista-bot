@@ -274,7 +274,7 @@ function crearTrampero(bot, opts = {}) {
       if (cuentaItem('tnt') < 2 || !placa) return { ok: false, motivo: 'mina a mano: necesito 2 tnt y una placa de presion' };
       const n = Math.min(Number(process.env.IA_MINA_TNT) || 4, cuentaItem('tnt'));
       if (g.y - n <= minY() + 2) return { ok: false, motivo: 'demasiado profundo' };
-      construirAMano(celdasMina(g, placa, n), { sinOrden: true });
+      construirAMano(celdasMina(g, placa, n), { sinOrden: true }).then(() => cebo(g)).catch(() => {});
     } else if (process.env.IA_PLANO_CMD !== '1' && bot.inventory && !plano.cmds.some((c) => /\[|^summon/.test(c))) {
       if (manualActivo) return { ok: false, motivo: 'ya estoy construyendo a mano' };
       const celdas = celdasDePlano(plano.cmds);
@@ -358,6 +358,21 @@ function crearTrampero(bot, opts = {}) {
       await Promise.race([bot.pathfinder.goto(new PF.goals.GoalNear(p.x, p.y, p.z, 3)), dormir(ms)]);
     } catch (e) { /* sigue */ }
     try { bot.pathfinder.setGoal(null); } catch (e) { /* ignorar */ }
+  }
+
+  async function cebo(g) {
+    try {
+      if (!bot.entity || !bot.inventory) return;
+      const it = bot.inventory.items().find((i) => /^(gold_nugget|iron_nugget|gold_ingot|iron_ingot|cooked_beef|bread)$/.test(i.name));
+      if (it) {
+        await irA(new Vec3(g.x + 3, g.y, g.z));
+        await bot.lookAt(new Vec3(g.x + 0.5, g.y + 0.3, g.z + 0.5), true);
+        await bot.toss(it.type, null, 1);
+      }
+      const yaw = Math.random() * Math.PI * 2;
+      bot._emboscadaHasta = Date.now() + 90_000;
+      await irA(new Vec3(Math.round(g.x + Math.sin(yaw) * 14), g.y, Math.round(g.z + Math.cos(yaw) * 14)));
+    } catch (e) { /* ignorar */ }
   }
   async function construirAMano(celdas, opciones) {
     manualActivo = true;

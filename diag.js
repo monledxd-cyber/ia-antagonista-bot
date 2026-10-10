@@ -52,6 +52,7 @@ function html(extra) {
 <h1>Panel AM <span class=s>${esc(extra.version || '')}</span></h1>
 <h2>Que esta pasando (diagnostico)</h2>
 ${dx.map((d) => `<div class=c style="border-color:${col[d.gravedad]}"><b>${esc(d.causa)}</b>${d.solucion ? `<div class=s>Que hacer: ${esc(d.solucion)}</div>` : ''}</div>`).join('')}
+<h2>Acciones</h2><p>${['pausar', 'reanudar', 'retirada', 'autotest'].map((a) => `<a href="/accion?a=${a}${extra.token ? '&k=' + encodeURIComponent(extra.token) : ''}" style="margin-right:12px">${a}</a>`).join('')}</p>
 <h2>Estado</h2><table>
 ${fila('Conexion', c.estado + ' | caidas: ' + c.caidas + ' | ultima hace ' + hace(c.ultimaCaida))}
 ${fila('Ultimo motivo de caida', c.ultimoMotivo || '-')}${fila('Ultimo kick', c.ultimoKick || '-')}
