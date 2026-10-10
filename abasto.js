@@ -430,11 +430,12 @@ function crearAbasto(bot, o) {
     }],
     ['rearmar', async () => {
       const t = bot._trampero;
-      if (!t || !t.pendientes() || cuenta(/^tnt$/) < 2 || !tiene(/_pressure_plate$/)) return 'nada';
+      if (!t || !t.minasPendientes() || cuenta(/^tnt$/) < 2 || !tiene(/_pressure_plate$/)) return 'nada';
       const r = t.rearmar();
       if (r.ok) await dormir(15000);
       return !!r.ok;
     }],
+    ['cofre', async () => (cuenta(/^tnt$/) >= 2 && !tiene(/^(chest|barrel)$/) && cuenta(/_planks$/) >= 8 && bloqueN(/^crafting_table$/, 16) ? craftear('chest') : 'nada')],
     ['cama', async () => {
       if (tiene(/_bed$/) || bloqueN(/_bed$/, 48)) return 'nada';
       const lana = items().find((i) => /_wool$/.test(i.name) && i.count >= 3);

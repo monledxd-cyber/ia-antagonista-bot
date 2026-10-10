@@ -28,6 +28,7 @@ function crearMemoria(ruta) {
       const j = get(n); j.dijo = j.dijo || []; j.dijo.push({ t: Date.now(), s: String(txt).slice(0, 80) }); if (j.dijo.length > 5) j.dijo.shift(); sucio = true;
     },
     pos: (n, p) => { const j = get(n); j.ult = { x: Math.round(p.x), y: Math.round(p.y), z: Math.round(p.z), t: Date.now() }; j.horas = j.horas || new Array(24).fill(0); j.horas[new Date().getHours()]++; sucio = true; },
+    ultDijo: (n) => { const d = datos[n] && datos[n].dijo; return d && d.length ? d[d.length - 1].s : ''; },
     ultimo: (n) => (datos[n] && datos[n].ult) || null,
     zonaHabitual: (n) => { const b = Object.entries((datos[n] && datos[n].lugares) || {}).sort((a, c) => c[1] - a[1])[0]; return b && b[1] > 20 ? { x: b[0].split(',')[0] * 32 + 16, z: b[0].split(',')[1] * 32 + 16 } : null; },
     rencor: (n) => (datos[n] ? datos[n].mato * 2 + datos[n].trampas : 0),

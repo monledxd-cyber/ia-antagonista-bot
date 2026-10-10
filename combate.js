@@ -678,6 +678,28 @@ function iniciarCombate(bot, api) {
     api.irA(new Vec3(mejor.px, tp.y, mejor.pz));
   }, 500);
   api.intervalos.push(empuje);
+  let ladoArco = 0;
+  const lector = setInterval(() => {
+    if (!bot.entity) { clearInterval(lector); return; }
+    const t = api.obtenerObjetivo();
+    if (!valido(t) || t.type !== 'player') { bot._intencion = ''; return; }
+    const v = velocidad(t), d = dist(t) || 1;
+    const rx = (t.position.x - bot.entity.position.x) / d, rz = (t.position.z - bot.entity.position.z) / d;
+    const cierre = -(v.x * rx + v.z * rz), lat = Math.abs(v.x * -rz + v.z * rx);
+    const it = sosteniendo(t);
+    let i = '';
+    if (/^(bow|crossbow)$/.test(it) && usando(t)) i = 'apunta_arco';
+    else if (it === 'ender_pearl') i = 'perla';
+    else if (cierre > 0.12) i = 'carga';
+    else if (cierre < -0.12) i = 'retrocede';
+    else if (lat > 0.1) i = 'strafe';
+    bot._intencion = i;
+    if (i === 'apunta_arco' && d > 7 && !ocupado && !api.ocupado()) {
+      if (Date.now() - ladoArco > 450) { ladoArco = Date.now(); const l = Math.random() < 0.5; bot.setControlState('left', l); bot.setControlState('right', !l); }
+    } else if (ladoArco) { ladoArco = 0; bot.setControlState('left', false); bot.setControlState('right', false); }
+  }, 150);
+  api.intervalos.push(lector);
+
   api.intervalos.push(loop);
 }
 

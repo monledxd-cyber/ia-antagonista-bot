@@ -17,6 +17,7 @@ function crearDiario() {
     peligro: (p, r = 12) => d.zonas.some((z) => Math.hypot(z.x - p.x, z.y - p.y, z.z - p.z) < r),
     kill: () => { d.kills++; d.ultKill = Date.now(); sucio = true; },
     ultKill: () => d.ultKill || 0,
+    contadores: () => ({ muertes: d.muertes.length, kills: d.kills, huidas: d.huidas, ultimaCausa: (d.muertes[d.muertes.length - 1] || {}).causa || (d.muertes[d.muertes.length - 1] || {}).arma || '' }),
     huida: () => { d.huidas++; sucio = true; },
     equipo: () => { d.modoEquipo++; sucio = true; },
     hito: (txt) => { if (d.hitos.includes(txt)) return; d.hitos.push(txt); if (d.hitos.length > 12) d.hitos.shift(); sucio = true; },

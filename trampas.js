@@ -364,7 +364,19 @@ function crearTrampero(bot, opts = {}) {
     try {
       if (!bot.entity || !bot.inventory) return;
       const it = bot.inventory.items().find((i) => /^(gold_nugget|iron_nugget|gold_ingot|iron_ingot|cooked_beef|bread)$/.test(i.name));
-      if (it) {
+      const cofre = bot.inventory.items().find((i) => /^(chest|barrel)$/.test(i.name));
+      if (cofre && it) {
+        try {
+          await irA(new Vec3(g.x + 3, g.y, g.z + 1));
+          const base = bloque(g.x + 2, g.y - 1, g.z + 1), aire = bloque(g.x + 2, g.y, g.z + 1);
+          if (base && base.boundingBox === 'block' && aire && aire.boundingBox === 'empty') {
+            await bot.equip(cofre, 'hand');
+            await bot.placeBlock(base, new Vec3(0, 1, 0));
+            const c = bloque(g.x + 2, g.y, g.z + 1);
+            if (c && /chest|barrel/.test(c.name)) { const w = await bot.openContainer(c); try { await w.deposit(it.type, null, Math.min(2, it.count)); } finally { w.close(); } }
+          }
+        } catch (e) { /* ignorar */ }
+      } else if (it) {
         await irA(new Vec3(g.x + 3, g.y, g.z));
         await bot.lookAt(new Vec3(g.x + 0.5, g.y + 0.3, g.z + 0.5), true);
         await bot.toss(it.type, null, 1);
@@ -624,7 +636,7 @@ function crearTrampero(bot, opts = {}) {
   bot.once('end', detener);
 
   return {
-    pendientes: () => pendientes.filter((x) => Date.now() - x.t < 20 * 60_000).length,
+    minasPendientes: () => pendientes.filter((x) => Date.now() - x.t < 20 * 60_000).length,
     rearmar: () => {
       while (pendientes.length && Date.now() - pendientes[0].t > 20 * 60_000) pendientes.shift();
       const p = pendientes[0];

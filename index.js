@@ -109,7 +109,9 @@ const extrasCtx = (bot, nombre, falla) => {
   return {
     planosGuardados: t ? t.nombresGuardados() : [],
     memoriaJugador: memoria.resumen(nombre),
-    fase: (() => { try { const tg = bot.pvp && bot.pvp.target; if (Date.now() - diario.ultKill() < 60_000) return 'rival_muerto'; if (bot._retirada > Date.now()) return 'retirada'; if (!tg) return ''; const d = tg.position.distanceTo(bot.entity.position); if (d > 14) return 'rival_huye'; if (diag.estado.vida.ultimoDano && Date.now() - diag.estado.vida.ultimoDano < 5000) return 'intercambio'; return 'inicio'; } catch (e) { return ''; } })(),
+    radar: (() => { try { return bot._acecho ? bot._acecho.radar() : ''; } catch (e) { return ''; } })(),
+    intencion: bot._intencion || '',
+    fase: (() => { try { if (bot._acecho && bot._acecho.fase()) return bot._acecho.fase(); const tg = bot.pvp && bot.pvp.target; if (Date.now() - diario.ultKill() < 60_000) return 'rival_muerto'; if (bot._retirada > Date.now()) return 'retirada'; if (!tg) return ''; const d = tg.position.distanceTo(bot.entity.position); if (d > 14) return 'rival_huye'; if (diag.estado.vida.ultimoDano && Date.now() - diag.estado.vida.ultimoDano < 5000) return 'intercambio'; return 'inicio'; } catch (e) { return ''; } })(),
     animo: (() => { try { const hp = bot.health, golpe = diag.estado.vida.ultimoDano && Date.now() - diag.estado.vida.ultimoDano < 8000; const rivales = Object.values(bot.entities).filter((e) => e.type === 'player' && e.username !== BOT_USERNAME && bot.entity && e.position.distanceTo(bot.entity.position) < 14).length;
       if (hp < 8) return 'herido'; if (golpe && rivales > 1) return 'acorralado'; if (diario.muertesRecientes(30) > 0) return 'vengativo'; if (golpe) return 'en_pelea'; return 'frio'; } catch (e) { return 'frio'; } })(),
     yo: (() => { try { const eq = bot.inventory.items().length; const tg = bot.pvp && bot.pvp.target; return `nombre=AM (usuario tecnico ${BOT_USERNAME})` + (tg && tg.username ? `; atacando a ${tg.username}` : '; sin objetivo') + '; ' + diario.resumen() + `; items=${eq}` + (diag.estado.metas && diag.estado.metas.length ? '; metas=' + diag.estado.metas.slice(0, 3).join('>') : '') + (bot._modoEquipo > Date.now() ? '; modo=reequipandome' : ''); } catch (e) { return ''; } })(),
@@ -293,6 +295,8 @@ function iniciarHuida(bot) {
   // Autoabastecimiento: junta y fabrica solo cuando nadie anda cerca (IA_ABASTO=0 lo apaga).
   bot._claves = crearClaves(bot);
   bot.on('messagestr', (m) => { if (m.includes(bot.username) && /fell|lava|drown|burn|fire|blew|explo|starv|suffocat|cactus|void|magma|hit the ground|berry/i.test(m)) { ultimoMsgMuerte.txt = m.replace(bot.username, '').trim(); ultimoMsgMuerte.t = Date.now(); } });
+  bot._acecho = require('./acecho').crearAcecho(bot, { memoria, diag });
+  require('./superviv').crearSuperviv(bot, { diag });
   require('./vuelo').crearVuelo(bot, { tierDe, equipar: () => equiparAutomatico(bot), objetivo: () => (bot.pvp && bot.pvp.target) || objetivoActual });
   const autotest = require('./autotest').crearAutotest(bot, { recolectar: recolectarBloque, ocupar: (v) => { manoOcupada = v; } });
   _autotestFn = () => autotest.ejecutar();
@@ -778,6 +782,7 @@ function protegerAutoAtaque(bot) {
     const _atacar = bot.attack.bind(bot);
     bot.attack = (e, ...r) => {
       if (propio(e)) { diag.log('warn', 'combate', 'intento de auto-ataque bloqueado'); return; }
+      if (bot._tormento && e && e.username === bot._tormento.n) return;
       // Reach: solo golpea si entre el ojo y el rival hay aire (ningun bloque tapa el golpe)
       try { if (bot._lineaLibre && e && e.position && !bot._lineaLibre(e.position.offset(0, (e.height || 1.8) * 0.5, 0))) return; } catch (x) { /* ignorar */ }
       return _atacar(e, ...r);
@@ -786,7 +791,7 @@ function protegerAutoAtaque(bot) {
   if (bot.pvp && !bot.pvp._guardado) {
     bot.pvp._guardado = true;
     const _pa = bot.pvp.attack.bind(bot.pvp);
-    bot.pvp.attack = (e, ...r) => { if (propio(e)) return; return _pa(e, ...r); };
+    bot.pvp.attack = (e, ...r) => { if (propio(e) || (bot._tormento && e && e.username === bot._tormento.n)) return; return _pa(e, ...r); };
   }
 }
 
@@ -835,6 +840,7 @@ async function crearBot() {
     // aparecer): https://github.com/PrismarineJS/mineflayer/issues/1762
   });
   protegerAutoAtaque(bot);
+  bot._t0 = Date.now(); bot._inf0 = diario.contadores();
   bot.setMaxListeners(40); // varios modulos escuchan 'end'; evita el aviso de posible fuga
   } catch (e) {
     console.error('[bot] createBot lanzo excepcion, se reintenta:', e.message);
@@ -1149,6 +1155,12 @@ async function crearBot() {
     registrarFallo(err.code || 'error_desconocido');
   });
   bot.on('end', (razon) => {
+  try {
+    const c = diario.contadores(), b = bot._inf0 || { muertes: 0, kills: 0, huidas: 0 };
+    const min = Math.round((Date.now() - (bot._t0 || Date.now())) / 60000);
+    if (min >= 2) alertar(`Informe AM: ${min} min, muertes ${c.muertes - b.muertes}, kills ${c.kills - b.kills}, retiradas ${c.huidas - b.huidas}` + (c.ultimaCausa ? `, ultima muerte: ${c.ultimaCausa}` : '') + `, motivo: ${String(razon).slice(0, 40)}`, 'informe', 1);
+  } catch (e) { /* ignorar */ }
+
     console.log('[bot] fin de conexion, razon:', razon || '(sin razon)');
     const cx = diag.estado.conexion; cx.estado = 'desconectado'; cx.caidas++; cx.ultimaCaida = Date.now(); if (cx.caidas % 5 === 0) alertar(`El bot lleva ${cx.caidas} caidas (motivo: ${razon || '?'})`, 'caidas', 30); if (razon) cx.ultimoMotivo = String(razon);
     diag.log('error', 'conexion', 'fin de conexion: ' + (razon || '(sin razon)') + ' | vida=' + diag.estado.vida.ultima);
