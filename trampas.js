@@ -242,20 +242,20 @@ function crearTrampero(bot, opts = {}) {
   }
   const tipos = () => (memoria.tipos = memoria.tipos || {});
   const marca = (k, campo) => { const m = tipos(); m[k] = m[k] || { disp: 0, kills: 0 }; m[k][campo]++; guardar(); };
-  const disparadas = [];
+  const disparadas = [], pendientes = [];
   bot.on('entitySpawn', (e) => {
     if (!e || e.name !== 'tnt') return;
     for (let i = armadas.length - 1; i >= 0; i--) {
       const a = armadas[i];
       if (a.gatillo === 'placa' && Math.abs(e.position.x - a.x) < 4 && Math.abs(e.position.z - a.z) < 4 && Math.abs(e.position.y - a.y) < 8) {
-        marca(a.tipo, 'disp'); disparadas.push({ tipo: a.tipo, x: a.x, z: a.z, t: Date.now() }); armadas.splice(i, 1); break;
+        marca(a.tipo, 'disp'); if (a.tipo === 'mina_tnt') { pendientes.push({ x: a.x, y: a.y, z: a.z, t: Date.now() }); if (pendientes.length > 3) pendientes.shift(); } disparadas.push({ tipo: a.tipo, x: a.x, z: a.z, t: Date.now() }); armadas.splice(i, 1); break;
       }
     }
   });
   bot.on('entityDead', (e) => {
     if (!e || e.type !== 'player' || e.username === bot.username) return;
     const d = disparadas.find((x) => Date.now() - x.t < 25_000 && Math.hypot(e.position.x - x.x, e.position.z - x.z) < 14);
-    if (d) { marca(d.tipo, 'kills'); disparadas.splice(disparadas.indexOf(d), 1); }
+    if (d) { marca(d.tipo, 'kills'); if (bot._tacticaDe) bot._tacticaDe(e.username, 'trampa'); disparadas.splice(disparadas.indexOf(d), 1); }
   });
 
   // ---- Construccion ----
@@ -624,6 +624,17 @@ function crearTrampero(bot, opts = {}) {
   bot.once('end', detener);
 
   return {
+    pendientes: () => pendientes.filter((x) => Date.now() - x.t < 20 * 60_000).length,
+    rearmar: () => {
+      while (pendientes.length && Date.now() - pendientes[0].t > 20 * 60_000) pendientes.shift();
+      const p = pendientes[0];
+      if (!p) return { ok: false, motivo: 'nada que re-armar' };
+      let y = p.y + 4;
+      while (y > p.y - 10) { const b = bloque(p.x, y, p.z); if (b && b.boundingBox === 'block') break; y--; }
+      const r = construir('mina_tnt', { x: p.x, y, z: p.z }, { dir: 'north' });
+      if (r.ok) pendientes.shift();
+      return r;
+    },
     construir: (tipo, jugador, ctx) => {
       const g = jugador ? sitioPara(jugador) : null;
       return construir(tipo, g, { dir: jugador ? rumbo(jugador) : 'north', ...(ctx || {}) });

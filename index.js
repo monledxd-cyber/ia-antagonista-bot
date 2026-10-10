@@ -298,7 +298,10 @@ function iniciarHuida(bot) {
   _autotestFn = () => autotest.ejecutar();
   _botActual = bot;
   if (process.env.IA_AUTOTEST === '1') setTimeout(() => autotest.ejecutar(), 20_000);
+  bot._tactica = (k) => { try { const t = bot.pvp && bot.pvp.target; if (t && t.type === 'player') memoria.tactica(t.username, k); } catch (e) { /* ignorar */ } };
+  bot._tacticaDe = (n, k) => { memoria.tactica(n, k); memoria.victoria(n, k); };
   bot._abasto = crearAbasto(bot, {
+    memoria,
     peligro: (p, r) => diario.peligro(p, r),
     goals, claves: bot._claves,
     tranquilo: () => !objetivoActual && !(bot.pvp && bot.pvp.target) && bot.health > 12 && !enemigoCerca(14),
@@ -376,6 +379,8 @@ function iniciarHuida(bot) {
       }
     } catch (e) { /* ignorar */ } finally { fintando = false; try { bot.pathfinder.setGoal(null); } catch (e) { /* ignorar */ } }
   }
+  const ultGolpeA = new Map();
+  bot.on('entityHurt', (e) => { if (e && e.type === 'player' && bot.entity && e.position.distanceTo(bot.entity.position) < 6) { ultGolpeA.set(e.id, Date.now()); if (ultGolpeA.size > 40) ultGolpeA.clear(); } });
   const chequeoInterval = setInterval(() => {
     if (!bot.entity) { clearInterval(chequeoInterval); return; }
 
@@ -422,9 +427,19 @@ function iniciarHuida(bot) {
     let objetivo = jugadorEnAtaque;
     if (!objetivo) {
       const candidatos = [...jugadoresCercanos, ...mobsCercanos];
-      objetivo = candidatos.sort((a, b) =>
-        a.position.distanceTo(bot.entity.position) - b.position.distanceTo(bot.entity.position)
-      )[0];
+      const puntaje = (e) => {
+        let c = e.position.distanceTo(bot.entity.position);
+        if (e.type !== 'player') return c;
+        const eq = Array.isArray(e.equipment) ? e.equipment : [];
+        c += [2, 3, 4, 5].filter((i) => eq[i]).length * 1.5;
+        if (eq[1] && eq[1].name === 'shield') c += 3;
+        if (eq[1] && eq[1].name === 'totem_of_undying') c += 2;
+        if (e === objetivoActual) c -= 4;
+        const hace = Date.now() - (ultGolpeA.get(e.id) || 0);
+        if (hace < 8000) c -= 5;
+        return c - Math.min(6, memoria.rencor(e.username) || 0);
+      };
+      objetivo = candidatos.sort((a, b) => puntaje(a) - puntaje(b))[0];
     }
 
     // Retirada calculada: con vida baja y un enemigo real cerca, se retira a
@@ -910,7 +925,7 @@ async function crearBot() {
     bot.on('death', () => {
       console.log('[bot] murio, respawneando en el mismo server (sin reconectar)');
       const p = Object.values(bot.entities).filter(e => e.type === 'player' && e.username !== BOT_USERNAME && bot.entity && e.position.distanceTo(bot.entity.position) < 8)[0];
-      if (p) memoria.mato(p.username);
+      if (p) { memoria.mato(p.username); memoria.resultado(p.username, false); }
       const ar = p && p.heldItem && p.heldItem.name;
       const ultimo = diag.estado.vida.atacante;
       if (!p && bot.entity) diario.zona(bot.entity.position, String(ultimoMsgMuerte.txt || ultimo || 'entorno').slice(0, 30));
@@ -921,7 +936,7 @@ async function crearBot() {
     if (!bot._memoriaHooks) {
       bot._memoriaHooks = true;
       bot.on('playerJoined', (p) => { if (p && p.username !== BOT_USERNAME) memoria.entra(p.username); });
-      bot.on('entityDead', (e) => { if (e && e.type === 'player' && e.username && bot.entity && e.position.distanceTo(bot.entity.position) < 16) { memoria.murio(e.username); diario.kill(); } });
+      bot.on('entityDead', (e) => { if (e && e.type === 'player' && e.username && bot.entity && e.position.distanceTo(bot.entity.position) < 16) { memoria.murio(e.username); memoria.resultado(e.username, true); diario.kill(); } });
       const armasI = setInterval(() => {
         if (!bot.entity) return;
         for (const e of Object.values(bot.entities)) {
@@ -939,6 +954,7 @@ async function crearBot() {
             if (f & 0x80) tags.push('elytra');
           }
           memoria.observa(e.username, tags, { x: e.position.x, z: e.position.z });
+          memoria.pos(e.username, e.position);
         }
       }, 5_000);
       bot.once('end', () => { clearInterval(armasI); memoria.guardar(); });

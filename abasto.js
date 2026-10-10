@@ -428,6 +428,13 @@ function crearAbasto(bot, o) {
       if (!pl || pl.count < 2) return 'nada';
       return craftear(pl.name.replace('_planks', '_pressure_plate'), 1);
     }],
+    ['rearmar', async () => {
+      const t = bot._trampero;
+      if (!t || !t.pendientes() || cuenta(/^tnt$/) < 2 || !tiene(/_pressure_plate$/)) return 'nada';
+      const r = t.rearmar();
+      if (r.ok) await dormir(15000);
+      return !!r.ok;
+    }],
     ['cama', async () => {
       if (tiene(/_bed$/) || bloqueN(/_bed$/, 48)) return 'nada';
       const lana = items().find((i) => /_wool$/.test(i.name) && i.count >= 3);
@@ -572,6 +579,23 @@ function crearAbasto(bot, o) {
         } catch (e) { /* siguiente bloque */ }
       }
       return hechos > 0;
+    }],
+    ['rastrear', async () => {
+      if (process.env.IA_RASTREO === '0' || !o.memoria || bot._modoEquipo > Date.now() || bot.health < 18 || bot.food < 14) return 'nada';
+      if (bot.game && bot.game.dimension && !/overworld/.test(bot.game.dimension)) return 'nada';
+      if (!tiene(/_(sword|axe)$/) || !bot.inventory.slots[6]) return 'nada';
+      const cand = Object.keys(bot.players || {}).filter((n) => n !== bot.username).map((n) => {
+        const u = o.memoria.ultimo(n), z = o.memoria.zonaHabitual(n);
+        const p = u && Date.now() - u.t < 40 * 60_000 ? u : z;
+        return p ? { n, p, r: o.memoria.rencor(n) } : null;
+      }).filter(Boolean).sort((a, b) => b.r - a.r);
+      const c = cand[0];
+      if (!c) return 'nada';
+      const y = c.p.y === undefined ? bot.entity.position.y : c.p.y;
+      diag.log('info', 'rastreo', 'va hacia la ultima posicion de ' + c.n);
+      try { bot.pathfinder.setGoal(new goals.GoalNear(c.p.x, y, c.p.z, 24)); } catch (e) { return false; }
+      for (let k = 0; k < 40 && libre(); k++) { await dormir(1000); if (!bot.pathfinder.isMoving()) break; }
+      return true;
     }],
     ['flechas', async () => {
       if (!tiene(/^(bow|crossbow)$/) || cuenta(/^arrow$/) >= 24) return 'nada';

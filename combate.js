@@ -236,6 +236,7 @@ function iniciarCombate(bot, api) {
   const centro = (p) => p.offset(0.5, 1, 0.5); // donde queda el cristal sobre el bloque p
   const danoEn = (ent, pos) => { try { return bot.getExplosionDamages(ent, pos, 6, true) || 0; } catch (e) { return 0; } };
   async function cristalPaso(t) {
+    if (bot._tactica) bot._tactica('cristal');
     const ojos = bot.entity.position.offset(0, 1.62, 0);
     const mano = bot.heldItem && bot.heldItem.name === 'end_crystal';
     const ahora = Date.now();
@@ -347,6 +348,7 @@ function iniciarCombate(bot, api) {
       // Golpe de mace al caer: si ya cae >= 1.5 bloques sobre el objetivo, cambia a mace y pega.
       if (mace && bot.entity.velocity.y < -0.55 && d < 4 && t.type === 'player') {
         enCaida = true;
+        if (bot._tactica) bot._tactica('mace');
         if (!bot.heldItem || bot.heldItem.name !== 'mace') await bot.equip(mace, 'hand');
         bot.attack(t);
         return;
@@ -609,6 +611,7 @@ function iniciarCombate(bot, api) {
         ultPerla = ahora; ocupado = true; api.ocupar(true);
         try {
           api.pausar();
+          if (bot._tactica) bot._tactica('perla');
           await bot.equip(perla, 'hand');
           const dx = bot.entity.position.x - t.position.x, dz = bot.entity.position.z - t.position.z;
           await bot.look(Math.atan2(-dx, -dz), 0.6, true); // lejos del enemigo y hacia arriba
