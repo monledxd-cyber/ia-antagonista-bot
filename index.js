@@ -1,3 +1,11 @@
+for (const f of ['/etc/secrets/.env', require('path').join(__dirname, '.env')]) {
+  try {
+    for (const l of require('fs').readFileSync(f, 'utf8').split(/\r?\n/)) {
+      const m = l.match(/^\s*(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*?)\s*$/);
+      if (m && !m[1].startsWith('#') && process.env[m[1]] === undefined) process.env[m[1]] = m[2].replace(/^(['"])(.*)\1$/, '$2');
+    }
+  } catch (e) { /* sin archivo .env */ }
+}
 const dns = require('dns');
 dns.setDefaultResultOrder('ipv4first'); // fuerza IPv4 antes que IPv6 en toda la app
 
