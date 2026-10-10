@@ -22,10 +22,10 @@ function crearAcecho(bot, o) {
       try { bot.pathfinder.setGoal(new goals.GoalFollow(e, 8), true); } catch (x) { /* ignorar */ }
       return;
     }
-    if (!tg || tg.type !== 'player' || bot.health < 14 || (cooldown[tg.username] || 0) > now || memoria.rencor(tg.username) < 2) return;
+    if (!tg || tg.type !== 'player' || bot.health < 14 || (cooldown[tg.username] || 0) > now || memoria.odio(tg.username) < 2) return;
     const h = vida(tg);
     if (h === null || h > 5) return;
-    if (Math.random() > 0.6) { cooldown[tg.username] = now + 60_000; return; }
+    if (Math.random() > Math.min(0.95, 0.5 + memoria.odio(tg.username) * 0.02)) { cooldown[tg.username] = now + 60_000; return; }
     bot._tormento = { n: tg.username, hasta: now + 25_000 + Math.random() * 20_000 };
     try { bot.pvp.stop(); } catch (x) { /* ignorar */ }
     decir(pick('tormento', tg.username));
@@ -41,8 +41,8 @@ function crearAcecho(bot, o) {
     const now = Date.now();
     if (!st) {
       if (bot.health < 16 || Math.random() > 0.15) return;
-      const c = Object.keys(bot.players).filter((n) => n !== bot.username && jugador(n) && dist(jugador(n)) > 22 && dist(jugador(n)) < 60 && memoria.rencor(n) >= 1 && (cooldown[n] || 0) < now)
-        .sort((a, b) => memoria.rencor(b) - memoria.rencor(a))[0];
+      const c = Object.keys(bot.players).filter((n) => n !== bot.username && jugador(n) && dist(jugador(n)) > 22 && dist(jugador(n)) < 60 && memoria.odio(n) >= 1 && (cooldown[n] || 0) < now)
+        .sort((a, b) => memoria.odio(b) - memoria.odio(a))[0];
       if (!c) return;
       st = { n: c, fase: 'observar', hasta: now + 40_000 + Math.random() * 50_000 };
       diag.log('info', 'acecho', 'observa a ' + c);
@@ -72,12 +72,41 @@ function crearAcecho(bot, o) {
     } catch (x) { st = null; }
   }, 1000);
 
-  bot.once('end', () => { clearInterval(tormento); clearInterval(acecho); });
+
+  let ultPos = null, quietoDesde = Date.now(), umbral = 12_000 + Math.random() * 13_000;
+  const cuentaLogs = () => bot.inventory.items().filter((i) => /_log$/.test(i.name)).reduce((a, i) => a + i.count, 0);
+  const ocio = setInterval(() => {
+    if (!ON || !bot.entity) return;
+    const now = Date.now(), p = bot.entity.position;
+    if (!ultPos || p.distanceTo(ultPos) > 1.5 || (bot.pathfinder && bot.pathfinder.isMoving())) { ultPos = p.clone(); quietoDesde = now; return; }
+    if (now - quietoDesde < umbral) return;
+    if (bot._tormento || (bot.pvp && bot.pvp.target) || bot.isSleeping || bot._pausaAbasto || bot._volando || bot.currentWindow || (bot._retirada || 0) > now || bot.health < 8 || (bot._abasto && bot._abasto.activo())) { quietoDesde = now; return; }
+    quietoDesde = now; umbral = 8_000 + Math.random() * 20_000;
+    try {
+      const r = Math.random();
+      if (r < 0.15) { bot.look(Math.random() * Math.PI * 2, (Math.random() - 0.5) * 0.8, false); return; }
+      if (cuentaLogs() < 8 && r < 0.7) {
+        const b = bot.findBlock({ maxDistance: Math.round(24 + Math.random() * 56), matching: (x) => x && /_log$/.test(x.name) });
+        if (b) { bot.pathfinder.setGoal(new goals.GoalNear(b.position.x, b.position.y, b.position.z, 2)); diag.log('info', 'ocio', 'va por madera'); return; }
+      }
+      if (r < 0.55) {
+        const c = Object.keys(bot.players).filter((n) => n !== bot.username && memoria.ultimo(n)).sort((a, b) => memoria.odio(b) - memoria.odio(a))[0];
+        const u = c && memoria.ultimo(c);
+        if (u && now - u.t < 3 * 3600_000) { bot.pathfinder.setGoal(new goals.GoalNear(u.x, u.y, u.z, 18 + Math.random() * 10)); diag.log('info', 'ocio', 'revisa donde vio a ' + c); return; }
+      }
+      const a = Math.random() * Math.PI * 2, d = 25 + Math.random() * 65;
+      const x = p.x + Math.cos(a) * d, z = p.z + Math.sin(a) * d;
+      if (o.peligro && o.peligro({ x, y: p.y, z }, 14)) return;
+      bot.pathfinder.setGoal(new goals.GoalNear(x, p.y, z, 3));
+      diag.log('info', 'ocio', 'recorre la zona');
+    } catch (e) { /* ignorar */ }
+  }, 2000);
+  bot.once('end', () => { clearInterval(tormento); clearInterval(acecho); clearInterval(ocio); });
   return {
     fase: () => (bot._tormento ? 'tormento' : st ? 'acecho_' + st.fase : ''),
     radar: () => Object.keys(bot.players).filter((n) => n !== bot.username).map((n) => {
       const u = memoria.ultimo(n), e = jugador(n);
-      return { n, r: memoria.rencor(n), s: e ? `cerca(${Math.round(dist(e))}m)` : u ? `visto hace ${Math.round((Date.now() - u.t) / 60000)}min en ${u.x},${u.z}` : 'sin datos' };
+      return { n, r: memoria.odio(n), s: e ? `cerca(${Math.round(dist(e))}m)` : u ? `visto hace ${Math.round((Date.now() - u.t) / 60000)}min en ${u.x},${u.z}` : 'sin datos' };
     }).sort((a, b) => b.r - a.r).slice(0, 3).map((x) => `${x.n}: ${x.s}`).join(' | '),
   };
 }

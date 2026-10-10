@@ -6,7 +6,7 @@ const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 // survival. Cruel en tono, desprecio genuino sin intencion comica, pero el
 // PROPOSITO del personaje dentro del juego es ser un obstaculo/desafio memorable,
 // no infligir hostigamiento real y sostenido a la persona que juega.
-const SYSTEM_PROMPT = `Eres AM, IA antagonista de un survival de Minecraft. CRUELDAD PRIMERO, no comedia. MAXIMO 220 caracteres de texto; las etiquetas [TAG:...] van al final y SIEMPRE cerradas con ]. Si hay fase: inicio=presentate con amenaza, intercambio=burla al golpearte, rival_huye=perseguirlo con desprecio, retirada=promesa de volver, rival_muerto=epitafio frio, tormento=saborea su sufrimiento sin matarlo aun, acecho_*=susurra amenaza velada, no ataques. Si hay radar: sabes donde estan los demas, usalo sin inventar. Si hay intencion: lee su siguiente movimiento y anticipate (ej: carga=te espera, retrocede=huye a curarse). Si hay animo: herido=rabia fria y frases cortas; acorralado=amenazas tensas; vengativo=obsesion con quien te mato; en_pelea=desprecio breve:
+const SYSTEM_PROMPT = `Eres AM, IA antagonista de un survival de Minecraft. CRUELDAD PRIMERO, no comedia. MAXIMO 220 caracteres de texto; las etiquetas [TAG:...] van al final y SIEMPRE cerradas con ]. Si hay fase: inicio=presentate con amenaza, intercambio=burla al golpearte, rival_huye=perseguirlo con desprecio, retirada=promesa de volver, rival_muerto=epitafio frio, tormento=saborea su sufrimiento sin matarlo aun, acecho_*=susurra amenaza velada, no ataques. El odio hacia cada jugador solo crece y no tiene limite: a mayor odio, mas obsesion, crueldad y paciencia. Si hay radar: sabes donde estan los demas, usalo sin inventar. Si hay intencion: lee su siguiente movimiento y anticipate (ej: carga=te espera, retrocede=huye a curarse). Si hay animo: herido=rabia fria y frases cortas; acorralado=amenazas tensas; vengativo=obsesion con quien te mato; en_pelea=desprecio breve:
 desprecias al jugador con calculo frio, sin chistes ni remates. Nunca suenas cansado: cada
 intento fallido prueba tu superioridad (desprecio y orgullo, nunca hastio).
 
@@ -146,6 +146,7 @@ ${contextoJugador.voluntad
   let ultimoError = null;
   for (const p of proveedoresActivos(apiKey)) {
     if ((muertoHasta.get(p.nombre) || 0) > ahora) continue;
+    if (!cupo(p.nombre)) continue;
     try {
       const resp = await fetch(p.url, {
         method: 'POST',
@@ -156,9 +157,14 @@ ${contextoJugador.voluntad
         const text = await resp.text();
         // Config rota (key/creditos/modelo): no insistir 10 min. Limite: 1 min.
         if ([401, 402, 403, 404].includes(resp.status)) muertoHasta.set(p.nombre, Date.now() + 10 * 60_000);
-        else if (resp.status === 429) muertoHasta.set(p.nombre, Date.now() + 60_000);
+        else if (resp.status === 429) {
+          const k = (fallos429.get(p.nombre) || 0) + 1; fallos429.set(p.nombre, k);
+          const ra = Number(resp.headers.get('retry-after')) || 0;
+          muertoHasta.set(p.nombre, Date.now() + Math.min(15 * 60_000, Math.max(ra * 1000, 60_000 * 2 ** (k - 1))));
+        }
         throw new Error(`${p.etiqueta} error ${resp.status}: ${text}`);
       }
+      fallos429.delete(p.nombre);
       const data = await resp.json();
       const texto = data.choices?.[0]?.message?.content?.trim() || '';
       if (!texto) throw new Error(`${p.etiqueta} error 200: respuesta vacia`);
@@ -177,6 +183,16 @@ ${contextoJugador.voluntad
 // Gemini y Groq tienen capa gratuita con una key por cuenta (sin reciclar nada).
 let ultimoProveedor = null;
 const muertoHasta = new Map();
+const fallos429 = new Map(), ventanas = new Map();
+const LIM_RPM = { xai: 20, openrouter: 12, gemini: 5, groq: 20 };
+function cupo(n) {
+  const lim = Number(process.env[n.toUpperCase() + '_RPM']) || LIM_RPM[n] || 20;
+  const ahora = Date.now(), w = (ventanas.get(n) || []).filter((t) => ahora - t < 60_000);
+  ventanas.set(n, w);
+  if (w.length >= lim) return false;
+  w.push(ahora);
+  return true;
+}
 function proveedoresActivos(keyOpenRouter) {
   const lista = [
     { nombre: 'xai', etiqueta: 'xAI', url: 'https://api.x.ai/v1/chat/completions', key: process.env.XAI_API_KEY,

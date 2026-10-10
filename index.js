@@ -295,13 +295,14 @@ function iniciarHuida(bot) {
   // Autoabastecimiento: junta y fabrica solo cuando nadie anda cerca (IA_ABASTO=0 lo apaga).
   bot._claves = crearClaves(bot);
   bot.on('messagestr', (m) => { if (m.includes(bot.username) && /fell|lava|drown|burn|fire|blew|explo|starv|suffocat|cactus|void|magma|hit the ground|berry/i.test(m)) { ultimoMsgMuerte.txt = m.replace(bot.username, '').trim(); ultimoMsgMuerte.t = Date.now(); } });
-  bot._acecho = require('./acecho').crearAcecho(bot, { memoria, diag });
+  bot._acecho = require('./acecho').crearAcecho(bot, { memoria, diag, peligro: (p, r) => diario.peligro(p, r) });
   require('./superviv').crearSuperviv(bot, { diag });
   require('./vuelo').crearVuelo(bot, { tierDe, equipar: () => equiparAutomatico(bot), objetivo: () => (bot.pvp && bot.pvp.target) || objetivoActual });
   const autotest = require('./autotest').crearAutotest(bot, { recolectar: recolectarBloque, ocupar: (v) => { manoOcupada = v; } });
   _autotestFn = () => autotest.ejecutar();
   _botActual = bot;
   if (process.env.IA_AUTOTEST === '1') setTimeout(() => autotest.ejecutar(), 20_000);
+  bot._odio = (n) => memoria.odio(n);
   bot._tactica = (k) => { try { const t = bot.pvp && bot.pvp.target; if (t && t.type === 'player') memoria.tactica(t.username, k); } catch (e) { /* ignorar */ } };
   bot._tacticaDe = (n, k) => { memoria.tactica(n, k); memoria.victoria(n, k); };
   bot._abasto = crearAbasto(bot, {
@@ -441,7 +442,7 @@ function iniciarHuida(bot) {
         if (e === objetivoActual) c -= 4;
         const hace = Date.now() - (ultGolpeA.get(e.id) || 0);
         if (hace < 8000) c -= 5;
-        return c - Math.min(6, memoria.rencor(e.username) || 0);
+        return c - Math.min(10, Math.log2(1 + memoria.odio(e.username)) * 2);
       };
       objetivo = candidatos.sort((a, b) => puntaje(a) - puntaje(b))[0];
     }

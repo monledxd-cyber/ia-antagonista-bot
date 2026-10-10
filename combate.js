@@ -245,16 +245,17 @@ function iniciarCombate(bot, api) {
     for (const k of cristales.sort((p, q) => danoEn(t, q.position) - danoEn(t, p.position))) {
       const propio = danoEn(bot.entity, k.position), rival = danoEn(t, k.position);
       if (propio >= bot.health - 3 || (propio > 9 && rival < propio * 1.2)) continue; // demasiado caro
-      if (ahora - ultRomper < 120) return;
+      if (ahora - ultRomper < 70) return;
       ultRomper = ahora;
       if (!lineaLibre(k.position.offset(0, 0.5, 0))) continue;
-      try { await bot.lookAt(k.position.offset(0, 0.5, 0), true); bot.attack(k); } catch (e) { /* ignorar */ }
+      try { bot.lookAt(k.position.offset(0, 0.5, 0), true); bot.attack(k); ultPoner = 0; } catch (e) { /* ignorar */ }
       return;
     }
     // 2) colocar: mejor obsidiana (dano al rival - dano propio), sin cristal ya puesto encima y con 2 de aire
-    if (ahora - ultPoner < 280) return;
+    if (ahora - ultPoner < 110) return;
     const cris = tiene('end_crystal');
-    if (!cris) return;
+    const nota = (m) => { try { require('./diag').estado.cristal = { m, t: Date.now(), puestos: ponerCuenta }; } catch (e) { /* ignorar */ } };
+    if (!cris) { nota('sin end_crystal en el inventario'); return; }
     let cand = [];
     try {
       cand = bot.findBlocks({ point: t.position, maxDistance: 6, count: 40,
@@ -273,13 +274,13 @@ function iniciarCombate(bot, api) {
       const v = rival - propio * 0.8;
       if (v > mejorV) { mejorV = v; mejor = p; }
     }
-    if (!mejor) { if (dist(t) > 4 && ahora - ultAcercar > 800) { ultAcercar = ahora; api.acercar(t, 3); } return; }
+    if (!mejor) { nota('sin obsidiana valida: dano<1.5, a mas de 3.6 del ojo o cara superior tapada'); if (dist(t) > 4 && ahora - ultAcercar > 800) { ultAcercar = ahora; api.acercar(t, 3); } return; }
     ultPoner = ahora;
     if (!mano) await bot.equip(cris, 'hand');
     const bloque = bot.blockAt(mejor);
-    await bot.lookAt(mejor.offset(0.5, 1, 0.5), true);
+    bot.lookAt(mejor.offset(0.5, 1, 0.5), true);
     if (!caraSuperior(mejor)) return;
-    try { await bot.activateBlock(bloque, new Vec3(0, 1, 0)); ponerCuenta++; } catch (e) { /* intento perdido */ }
+    try { const pr = bot.activateBlock(bloque, new Vec3(0, 1, 0), new Vec3(0.5, 1, 0.5)); if (pr && pr.catch) pr.catch(() => {}); ponerCuenta++; nota('cristal colocado'); } catch (e) { nota('error al colocar: ' + e.message); }
   }
   const cristalMotor = setInterval(async () => {
     if (!crisActivo || !bot.entity || motorOcupado) return;
@@ -287,7 +288,7 @@ function iniciarCombate(bot, api) {
     if (!valido(t) || t.type !== 'player') return;
     motorOcupado = true;
     try { await cristalPaso(t); } catch (e) { /* ignorar */ } finally { motorOcupado = false; }
-  }, 60);
+  }, 40);
   let motorOcupado = false;
   api.intervalos.push(cristalMotor);
 
@@ -545,7 +546,9 @@ function iniciarCombate(bot, api) {
     if ((maxReciente - bot.health) / max >= 0.4) f += 0.12;
     if (tiene('totem_of_undying')) f -= 0.08;
     if (tiene('golden_apple') || tiene('enchanted_golden_apple')) f -= 0.05;
-    return max * Math.max(0.1, Math.min(0.65, f));
+    const od = t.type === 'player' && bot._odio ? bot._odio(t.username) : 0;
+    f -= Math.min(0.14, Math.log2(1 + od) * 0.02);
+    return max * Math.max(0.06, Math.min(0.65, f));
   };
   let ultPerlaOfensiva = 0;
   function mejorAnguloPerla(ojo, dest, yaw) {
@@ -699,6 +702,28 @@ function iniciarCombate(bot, api) {
     } else if (ladoArco) { ladoArco = 0; bot.setControlState('left', false); bot.setControlState('right', false); }
   }, 150);
   api.intervalos.push(lector);
+  let ultEsquiva = 0;
+  const anticipar = setInterval(() => {
+    if (!bot.entity || ocupado || api.ocupado() || enMLG || crisActivo) return;
+    const t = api.obtenerObjetivo();
+    if (!valido(t) || t.type !== 'player') return;
+    const d = dist(t), arma = sosteniendo(t), ahora = Date.now();
+    if (d > 7 || d < 0.8 || ahora - ultEsquiva < 700 + Math.random() * 500) return;
+    if (/^(bow|crossbow)$/.test(arma)) return;
+    const v = velocidad(t);
+    const rx = (t.position.x - bot.entity.position.x) / d, rz = (t.position.z - bot.entity.position.z) / d;
+    const cierre = -(v.x * rx + v.z * rz);
+    const eta = d > 3.1 ? (d - 3.0) / Math.max(cierre, 0.05) : 0;
+    const caida = /^mace$/.test(arma) && v.y < -0.4 && d < 7;
+    if (!(caida || (cierre > 0.16 && eta <= 4))) return;
+    ultEsquiva = ahora;
+    const lado = Math.random() < 0.5 ? 'left' : 'right';
+    bot.setControlState(lado, true);
+    if (caida || Math.random() < 0.3) bot.setControlState('back', true);
+    setTimeout(() => { try { bot.setControlState(lado, false); bot.setControlState('back', false); } catch (e) { /* ignorar */ } }, caida ? 320 : 180 + Math.random() * 100);
+  }, 90);
+  api.intervalos.push(anticipar);
+
 
   api.intervalos.push(loop);
 }

@@ -31,6 +31,7 @@ function crearMemoria(ruta) {
     ultDijo: (n) => { const d = datos[n] && datos[n].dijo; return d && d.length ? d[d.length - 1].s : ''; },
     ultimo: (n) => (datos[n] && datos[n].ult) || null,
     zonaHabitual: (n) => { const b = Object.entries((datos[n] && datos[n].lugares) || {}).sort((a, c) => c[1] - a[1])[0]; return b && b[1] > 20 ? { x: b[0].split(',')[0] * 32 + 16, z: b[0].split(',')[1] * 32 + 16 } : null; },
+    odio: (n) => { const j = datos[n]; if (!j) return 0; return j.mato * 3 + j.trampas + (j.dijo ? j.dijo.length : 0) + j.visitas * 0.3 + Math.max(0, (Date.now() - j.primera) / 86400000) * 0.5 + (j.huyo || 0) * 0.5; },
     rencor: (n) => (datos[n] ? datos[n].mato * 2 + datos[n].trampas : 0),
     tactica: (n, k) => {
       const r = (recT[n] = recT[n] || []);
@@ -71,7 +72,7 @@ function crearMemoria(ruta) {
       const tend = ['escudo', 'arco', 'elytra', 'agachado', 'sprint'].filter((k) => pct(k) >= 15).map((k) => `${k}${pct(k)}%`).join(',');
       const base = Object.entries(j.lugares || {}).sort((a, b) => b[1] - a[1])[0];
       const zona = base && base[1] > 20 ? ` zona_habitual=${base[0].split(',').map((v) => v * 32 + 16).join(',')}(x,z)` : '';
-      return `${j.visitas} visitas, visto hace ${dias(j.ultima)}d; murio ${j.muertes}x, me mato ${j.mato}x, ${j.trampas} trampas sufridas` + (j.dijo && j.dijo.length ? `; dijo: "${j.dijo[j.dijo.length - 1].s}" hace ${dias(j.dijo[j.dijo.length - 1].t)}d` : '') + (arma ? `; usa ${arma[0]}` : '') + (j.tac && Object.keys(j.tac).length ? '; tacticas(exito/usos): ' + Object.entries(j.tac).map(([k, a]) => `${k} ${Math.round(a.w * 10) / 10}/${a.u}`).join(',') : '') + (tend ? `; tendencias ${tend}` : '') + zona;
+      return `odio=${Math.round((j.mato * 3 + j.trampas + (j.dijo ? j.dijo.length : 0) + j.visitas * 0.3 + Math.max(0, (Date.now() - j.primera) / 86400000) * 0.5 + (j.huyo || 0) * 0.5) * 10) / 10} (solo crece); ${j.visitas} visitas, visto hace ${dias(j.ultima)}d; murio ${j.muertes}x, me mato ${j.mato}x, ${j.trampas} trampas sufridas` + (j.dijo && j.dijo.length ? `; dijo: "${j.dijo[j.dijo.length - 1].s}" hace ${dias(j.dijo[j.dijo.length - 1].t)}d` : '') + (arma ? `; usa ${arma[0]}` : '') + (j.tac && Object.keys(j.tac).length ? '; tacticas(exito/usos): ' + Object.entries(j.tac).map(([k, a]) => `${k} ${Math.round(a.w * 10) / 10}/${a.u}`).join(',') : '') + (tend ? `; tendencias ${tend}` : '') + zona;
     },
     guardar,
     detener: () => { clearInterval(timer); guardar(); },

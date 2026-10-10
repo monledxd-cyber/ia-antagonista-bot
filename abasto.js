@@ -12,7 +12,7 @@ function crearAbasto(bot, o) {
   const items = () => bot.inventory.items();
   const cuenta = (re) => items().filter((i) => re.test(i.name)).reduce((a, i) => a + i.count, 0);
   const tiene = (re) => cuenta(re) > 0;
-  const libre = () => o.tranquilo() && !jugadorCerca(bot._modoEquipo > Date.now() ? 14 : 36);
+  const libre = () => o.tranquilo() && !jugadorCerca(bot._modoEquipo > Date.now() ? 14 : 24);
   function jugadorCerca(r) {
     return Object.values(bot.entities).some((e) => e.type === 'player' && e.username !== bot.username && e.position.distanceTo(bot.entity.position) < r);
   }
@@ -749,7 +749,8 @@ function crearAbasto(bot, o) {
   bot.once('end', () => clearInterval(segundoPlano));
 
   const intervalo = setInterval(async () => {
-    if (!ON || bot._pausaAbasto || activo || !bot.entity || Date.now() - ultima < (ultimoOk ? 1200 : 6000)) return; // tras un exito sigue enseguida: siempre persigue la siguiente mejora
+    if (!ON || bot._pausaAbasto || activo || !bot.entity || Date.now() - ultima < (ultimoOk ? 1200 : 6000)) return;
+    diag.estado.abastoMotivo = !o.tranquilo() ? 'no tranquilo (combate, objetivo o enemigo a <14)' : jugadorCerca(bot._modoEquipo > Date.now() ? 14 : 24) ? 'jugador cerca' : bot.health <= 12 ? 'vida baja' : ''; // tras un exito sigue enseguida: siempre persigue la siguiente mejora
     if (!libre() || bot.health <= 12) return;
     activo = true; o.ocupar(true); ultimoOk = false;
     try {
