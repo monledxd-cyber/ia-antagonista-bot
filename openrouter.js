@@ -180,7 +180,7 @@ function proveedoresActivos(keyOpenRouter) {
     { nombre: 'gemini', etiqueta: 'Gemini', url: 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', key: process.env.GEMINI_API_KEY,
       model: process.env.GEMINI_MODEL || 'gemini-3.8-flash', maxTokens: 400 },
     { nombre: 'groq', etiqueta: 'Groq', url: 'https://api.groq.com/openai/v1/chat/completions', key: process.env.GROQ_API_KEY,
-      model: process.env.GROQ_MODEL, maxTokens: 200 },
+      model: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile', maxTokens: 200 },
   ];
   // Orden alternativo: IA_PROVEEDORES=gemini,groq,openrouter
   const orden = (process.env.IA_PROVEEDORES || '').split(',').map(s => s.trim()).filter(Boolean);
@@ -188,4 +188,5 @@ function proveedoresActivos(keyOpenRouter) {
   return lista.filter(p => p.key && p.model);
 }
 
-module.exports = { preguntarIA };
+const estadoProveedores = () => ({ openrouter: !!process.env.OPENROUTER_API_KEY, gemini: !!process.env.GEMINI_API_KEY, groq: !!process.env.GROQ_API_KEY, activos: proveedoresActivos().map((p) => p.nombre) });
+module.exports = { preguntarIA, estadoProveedores };

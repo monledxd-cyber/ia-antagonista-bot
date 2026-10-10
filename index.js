@@ -14,7 +14,7 @@ const { crearClaves } = require('./claves');
 const { status: statusPing } = require('minecraft-server-util');
 const express = require('express');
 const { parseFlatSnbt } = require('./snbt');
-const { preguntarIA: preguntarIA_real } = require('./openrouter');
+const { preguntarIA: preguntarIA_real, estadoProveedores } = require('./openrouter');
 
 // Cola de llamadas al LLM: 1 a la vez, con un minimo entre llamadas. Evita el
 // error 402 in_flight_budget_exhausted de OpenRouter (varias llamadas
@@ -67,6 +67,7 @@ const PORT = parseInt(process.env.MC_PORT || '25565', 10);
 const BOT_USERNAME = process.env.MC_BOT_USERNAME || 'ia_244jhytsewr5'; // username tecnico, no se muestra como "AM"
 const PERSONAJE = process.env.MC_PERSONAJE || 'AM';
 const OPENROUTER_KEY = process.env.OPENROUTER_API_KEY;
+console.log('[ia] proveedores:', JSON.stringify(estadoProveedores()));
 const VERSION = process.env.MC_VERSION && process.env.MC_VERSION !== 'false' && process.env.MC_VERSION !== 'auto'
   ? process.env.MC_VERSION
   : '1.21.4'; // version fija: el ping de auto-deteccion (version:false) falla consistentemente
@@ -1682,7 +1683,7 @@ app.get('/panel', (req, res) => {
   res.send(diag.html({ version: BOT_VERSION, usuario: BOT_USERNAME, estado: plano }));
 });
 let _botEstado = () => ({});
-app.get('/estado', (_req, res) => res.json({ version: BOT_VERSION, uptime: Math.round(process.uptime()), llm_ultima_hora: usoLLM(), llm_max_hora: MAX_LLM_HORA, errores: erroresVistos, ..._botEstado() }));
+app.get('/estado', (_req, res) => res.json({ version: BOT_VERSION, uptime: Math.round(process.uptime()), llm_ultima_hora: usoLLM(), llm_max_hora: MAX_LLM_HORA, errores: erroresVistos, ia_proveedores: estadoProveedores(), ..._botEstado() }));
 app.get('/health', (_req, res) => res.json({ status: 'ok', version: BOT_VERSION, uptime: process.uptime(), diagnostico: stats }));
 app.listen(process.env.PORT || 3000, () => console.log(`[http] servidor de salud escuchando (${BOT_VERSION})`));
 // Render gratis duerme el servicio tras 15 min sin trafico HTTP (y el bot se desconecta): se auto-visita cada 8 min mientras este despierto.
