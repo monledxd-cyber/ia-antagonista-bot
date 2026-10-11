@@ -454,11 +454,10 @@ function iniciarHuida(bot) {
       const dx = bot.entity.position.x - objetivo.position.x;
       const dz = bot.entity.position.z - objetivo.position.z;
       const yaw = Math.atan2(-dx, -dz) + Math.PI;
+      const fg = bot._mejorFuga && bot._mejorFuga(objetivo);
       try {
-        bot.look(yaw, 0, true);
-        bot.pathfinder.setGoal(new goals.GoalNear(
-          bot.entity.position.x + Math.sin(yaw) * 10, bot.entity.position.y, bot.entity.position.z + Math.cos(yaw) * 10, 2
-        ));
+        if (fg) bot.pathfinder.setGoal(new goals.GoalXZ(Math.round(bot.entity.position.x + fg.dx * 14), Math.round(bot.entity.position.z + fg.dz * 14)));
+        else { bot.look(yaw, 0, true); bot.pathfinder.setGoal(new goals.GoalNear(bot.entity.position.x + Math.sin(yaw) * 10, bot.entity.position.y, bot.entity.position.z + Math.cos(yaw) * 10, 2)); }
       } catch (e) { /* ignorar */ }
       return;
     }

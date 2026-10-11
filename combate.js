@@ -1,6 +1,7 @@
 // Combate por reflejos (sin LLM): arco/ballesta con punteria balistica, cristales, mace y escudo.
 // Antes todo dependia de que la IA emitiera un tag; si la IA fallaba, el bot peleaba solo con espada.
 const { Vec3 } = require('vec3');
+const { goals } = require('mineflayer-pathfinder');
 const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // Vuelo de una flecha (wiki): gravedad 0.05/tick, arrastre 0.99. Devuelve altura relativa y ticks
@@ -622,7 +623,7 @@ function iniciarCombate(bot, api) {
           await dormir(300);
         } finally { ocupado = false; api.ocupar(false); api.equiparArma(); }
       }
-      api.huir(t);
+      await fugaInteligente(t);
     } catch (err) { ocupado = false; api.ocupar(false); }
   }, 400);
   api.intervalos.push(escape);
@@ -780,6 +781,139 @@ function iniciarCombate(bot, api) {
     finally { ocupado = false; api.ocupar(false); api.equiparArma(); if (valido(t)) api.reanudar(t); }
   }, 150);
   api.intervalos.push(terreno);
+  const abierto = () => {
+    const p = bot.entity.position.floored(), r = [];
+    for (let a = 0; a < 16; a++) {
+      const dx = Math.cos((a * Math.PI) / 8), dz = Math.sin((a * Math.PI) / 8);
+      let n = 0;
+      for (let k = 1; k <= 8; k++) {
+        const x = Math.round(p.x + dx * k), z = Math.round(p.z + dz * k);
+        const pie = bot.blockAt(new Vec3(x, p.y, z)), cab = bot.blockAt(new Vec3(x, p.y + 1, z)), sue = bot.blockAt(new Vec3(x, p.y - 1, z));
+        if (!pie || !cab || !sue || pie.boundingBox !== 'empty' || cab.boundingBox !== 'empty' || sue.boundingBox !== 'block' || /lava|magma|cactus|fire/.test(sue.name)) break;
+        n = k;
+      }
+      r.push({ dx, dz, n });
+    }
+    return r;
+  };
+  const mejorFuga = (t) => {
+    const L = abierto(), ax = bot.entity.position.x - t.position.x, az = bot.entity.position.z - t.position.z, m = Math.hypot(ax, az) || 1;
+    let best = null;
+    for (const d of L) {
+      const dot = (d.dx * ax + d.dz * az) / m, sc = d.n + 6 * dot + Math.random();
+      if (d.n >= 5 && dot > -0.3 && (!best || sc > best.sc)) best = { ...d, sc };
+    }
+    return best;
+  };
+  bot._mejorFuga = mejorFuga;
+  const libertad = () => abierto().filter((d) => d.n >= 4).length;
+  const bloqueMuro = () => inv().find((i) => /^(cobblestone|dirt|stone|netherrack|cobbled_deepslate|andesite|diorite|granite|tuff|sandstone|end_stone|[a-z_]+_planks)$/.test(i.name) && i.count >= 3);
+  async function muro(t) {
+    const blq = bloqueMuro();
+    if (!blq) return false;
+    const p = bot.entity.position, dx = t.position.x - p.x, dz = t.position.z - p.z, m = Math.hypot(dx, dz) || 1;
+    const c = new Vec3(Math.floor(p.x + (dx / m) * 1.3), Math.floor(p.y), Math.floor(p.z + (dz / m) * 1.3));
+    const base = bot.blockAt(c.offset(0, -1, 0)), a1 = bot.blockAt(c), a2 = bot.blockAt(c.offset(0, 1, 0));
+    if (!base || base.boundingBox !== 'block' || !a1 || !a2 || a1.boundingBox !== 'empty' || a2.boundingBox !== 'empty') return false;
+    await bot.equip(blq, 'hand');
+    await bot.lookAt(c.offset(0.5, 0.5, 0.5), true);
+    await bot.placeBlock(base, new Vec3(0, 1, 0));
+    const puesto = bot.blockAt(c);
+    if (puesto && puesto.boundingBox === 'block') { try { await bot.placeBlock(puesto, new Vec3(0, 1, 0)); } catch (e) { /* ignorar */ } }
+    return true;
+  }
+  async function pilar(n) {
+    const blq = bloqueMuro();
+    if (!blq) return false;
+    await bot.equip(blq, 'hand');
+    for (let i = 0; i < n; i++) {
+      const pies = bot.entity.position.floored(), bajo = bot.blockAt(pies.offset(0, -1, 0));
+      if (!bajo || bajo.boundingBox !== 'block') break;
+      await bot.look(bot.entity.yaw, -Math.PI / 2, true);
+      bot.setControlState('jump', true);
+      await dormir(280);
+      try { await bot.placeBlock(bajo, new Vec3(0, 1, 0)); } catch (e) { /* ignorar */ }
+      bot.setControlState('jump', false);
+      await dormir(160);
+    }
+    return true;
+  }
+  let ultAcorralado = 0;
+  async function salidaAcorralado(t) {
+    const ahora = Date.now();
+    if (ahora - ultAcorralado < 3500) return false;
+    ultAcorralado = ahora;
+    const d = dist(t), perla = tiene('ender_pearl');
+    const rivalRango = /^(bow|crossbow|trident|ender_pearl|wind_charge)$/.test(sosteniendo(t));
+    try { require('./diag').log('warn', 'combate', 'acorralado: busca salida'); } catch (e) { /* ignorar */ }
+    ocupado = true; api.pausar(); api.ocupar(true);
+    try {
+      if (perla && ahora - ultPerla > 5000) {
+        ultPerla = ahora;
+        const L = abierto().sort((a, b) => b.n - a.n)[0];
+        const ax = bot.entity.position.x - t.position.x, az = bot.entity.position.z - t.position.z;
+        const yaw = L && L.n >= 3 ? Math.atan2(-L.dx, -L.dz) : Math.atan2(-ax, -az);
+        await bot.equip(perla, 'hand'); await bot.look(yaw, 0.55, true); bot.activateItem(); await dormir(300);
+        return true;
+      }
+      if (d >= 2 && await muro(t)) return true;
+      if (!rivalRango && d >= 2.5 && bot.health >= 6 && await pilar(4)) return true;
+      return false;
+    } catch (e) { return false; } finally { ocupado = false; api.ocupar(false); api.equiparArma(); if (valido(t)) api.reanudar(t); }
+  }
+  async function fugaInteligente(t) {
+    api.huir(t);
+    const f = mejorFuga(t);
+    if (f) {
+      const p = bot.entity.position;
+      try { bot.pathfinder.setGoal(new goals.GoalXZ(Math.round(p.x + f.dx * 22), Math.round(p.z + f.dz * 22)), true); bot.setControlState('sprint', true); } catch (e) { /* ignorar */ }
+      return;
+    }
+    if (!(await salidaAcorralado(t))) { bot._retirada = 0; try { api.reanudar(t); } catch (e) { /* ignorar */ } }
+  }
+  let ultReposicion = 0;
+  const reposicion = setInterval(async () => {
+    if (!bot.entity || ocupado || api.ocupado() || enMLG || crisActivo || bot.health < 6) return;
+    const t = api.obtenerObjetivo();
+    if (!valido(t) || t.type !== 'player' || dist(t) > 5.5 || Date.now() - ultReposicion < 4000) return;
+    if (libertad() > 5) return;
+    const f = mejorFuga(t);
+    if (!f) return;
+    ultReposicion = Date.now();
+    ocupado = true; api.pausar(); api.ocupar(true);
+    try {
+      const p = bot.entity.position;
+      await Promise.race([bot.pathfinder.goto(new goals.GoalXZ(Math.round(p.x + f.dx * 7), Math.round(p.z + f.dz * 7))), dormir(1500)]);
+    } catch (e) { /* ignorar */ } finally { ocupado = false; api.ocupar(false); try { bot.pathfinder.setGoal(null); } catch (e) { /* ignorar */ } if (valido(t)) api.reanudar(t); }
+  }, 500);
+  api.intervalos.push(reposicion);
+
+  let ultFinta2 = 0;
+  const fintaMelee = setInterval(() => {
+    if (!bot.entity || ocupado || api.ocupado() || enMLG || crisActivo) return;
+    const t = api.obtenerObjetivo();
+    if (!valido(t) || t.type !== 'player') return;
+    const d = dist(t), ahora = Date.now();
+    if (d < 2.5 || d > 6 || ahora - ultFinta2 < 4000 + Math.random() * 9000) return;
+    if ((bot._intencion !== 'carga' && bot._intencion !== 'strafe') || Math.random() > 0.5) return;
+    ultFinta2 = ahora;
+    const tipo = Math.random();
+    ocupado = true; api.pausar(); api.ocupar(true);
+    const fin = () => { try { ['back', 'left', 'right', 'jump'].forEach((c) => bot.setControlState(c, false)); } catch (e) { /* ignorar */ } ocupado = false; api.ocupar(false); if (valido(t)) api.reanudar(t); };
+    if (tipo < 0.4) {
+      bot.setControlState('back', true);
+      setTimeout(() => { bot.setControlState('back', false); bot.setControlState('forward', true); bot.setControlState('sprint', true); bot.setControlState('jump', true); setTimeout(() => { bot.setControlState('forward', false); fin(); }, 220); }, 260 + Math.random() * 200);
+    } else if (tipo < 0.8) {
+      const l = Math.random() < 0.5 ? 'left' : 'right';
+      bot.setControlState(l, true); bot.setControlState('forward', true);
+      setTimeout(() => { bot.setControlState('forward', false); fin(); }, 420 + Math.random() * 300);
+    } else {
+      bot.setControlState('jump', true);
+      setTimeout(fin, 200);
+    }
+  }, 200);
+  api.intervalos.push(fintaMelee);
+
 
 
 
