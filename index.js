@@ -297,6 +297,12 @@ function iniciarHuida(bot) {
   bot.on('messagestr', (m) => { if (m.includes(bot.username) && /fell|lava|drown|burn|fire|blew|explo|starv|suffocat|cactus|void|magma|hit the ground|berry/i.test(m)) { ultimoMsgMuerte.txt = m.replace(bot.username, '').trim(); ultimoMsgMuerte.t = Date.now(); } });
   bot._acecho = require('./acecho').crearAcecho(bot, { memoria, diag, peligro: (p, r) => diario.peligro(p, r) });
   require('./superviv').crearSuperviv(bot, { diag });
+  if (process.env.IA_BASE !== '0') require('./base').crearBase(bot, {
+    ocupado: () => comiendo || manoOcupada,
+    hayEnemigo: (r) => enemigoCerca(r),
+    objetivo: () => objetivoActual,
+    odio: (n) => memoria.odio(n),
+  });
   if (process.env.IA_CURACION !== '0') require('./curacion').crearCuracion(bot, {
     ocupado: () => comiendo,
     reequipar: () => equiparAutomatico(bot),
@@ -669,6 +675,7 @@ function iniciarHuida(bot) {
     const yo = bot.entity.position;
     const it = Object.values(bot.entities).filter((e) => {
       if (e.name !== 'item' || e.position.distanceTo(yo) > (bot.pvp && bot.pvp.target ? 16 : 28) || (intentosItem.get(e.id) || 0) >= 2) return false;
+      if (bot._loot && Date.now() < bot._loot.hasta && e.position.distanceTo(bot._loot.pos) < 10) return true;
       try { const d = e.getDroppedItem && e.getDroppedItem(); return !!(d && IMPORTANTE.test(d.name)); } catch (x) { return false; }
     }).sort((p, q) => p.position.distanceTo(yo) - q.position.distanceTo(yo))[0];
     if (!it) return;
@@ -948,7 +955,7 @@ async function crearBot() {
     if (!bot._memoriaHooks) {
       bot._memoriaHooks = true;
       bot.on('playerJoined', (p) => { if (p && p.username !== BOT_USERNAME) memoria.entra(p.username); });
-      bot.on('entityDead', (e) => { if (e && e.type === 'player' && e.username && bot.entity && e.position.distanceTo(bot.entity.position) < 16) { memoria.murio(e.username); memoria.resultado(e.username, true); diario.kill(); } });
+      bot.on('entityDead', (e) => { if (e && e.type === 'player' && e.username && bot.entity && e.position.distanceTo(bot.entity.position) < 16) { memoria.murio(e.username); memoria.resultado(e.username, true); diario.kill(); bot._loot = { pos: e.position.clone(), hasta: Date.now() + 45_000 }; } });
       const armasI = setInterval(() => {
         if (!bot.entity) return;
         for (const e of Object.values(bot.entities)) {
