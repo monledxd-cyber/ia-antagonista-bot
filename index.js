@@ -93,7 +93,7 @@ const lastCall = new Map(); // nombre -> timestamp
 const trampaLastUse = new Map(); // nombre -> timestamp de la ultima trampa activada
 const historialJugador = new Map(); // nombre -> { interacciones, ultimasRespuestas: [], eventos: [] }
 const persist = require('./persist');
-const RUTAS_MEM = [process.env.IA_MEMORIA || 'memoria_jugadores.json', process.env.IA_DIARIO || 'diario_am.json', process.env.IA_BASE || 'base_am.json', process.env.IA_CLAVES || 'claves_am.json', process.env.IA_APRENDIZAJE || 'aprendizaje.json']
+const RUTAS_MEM = [process.env.IA_MEMORIA || 'memoria_jugadores.json', process.env.IA_DIARIO || 'diario_am.json', process.env.IA_BASE || 'base_am.json', process.env.IA_CLAVES || 'claves_am.json', process.env.IA_APRENDIZAJE || 'aprendizaje.json', process.env.IA_HABILIDADES || 'habilidades_am.json']
   .map((r) => (require('path').isAbsolute(r) ? r : require('path').join(__dirname, r)));
 persist.restaurar(RUTAS_MEM); // Render: disco efimero -> recupera la memoria del gist si esta configurado
 const memoria = crearMemoria();
@@ -297,7 +297,7 @@ function iniciarHuida(bot) {
   bot.on('messagestr', (m) => { if (m.includes(bot.username) && /fell|lava|drown|burn|fire|blew|explo|starv|suffocat|cactus|void|magma|hit the ground|berry/i.test(m)) { ultimoMsgMuerte.txt = m.replace(bot.username, '').trim(); ultimoMsgMuerte.t = Date.now(); } });
   bot._acecho = require('./acecho').crearAcecho(bot, { memoria, diag, peligro: (p, r) => diario.peligro(p, r) });
   require('./superviv').crearSuperviv(bot, { diag });
-  if (process.env.IA_BASE !== '0') require('./base').crearBase(bot, {
+  if (process.env.IA_REFUGIO !== '0') require('./base').crearBase(bot, {
     ocupado: () => comiendo || manoOcupada,
     hayEnemigo: (r) => enemigoCerca(r),
     objetivo: () => objetivoActual,

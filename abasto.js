@@ -8,6 +8,8 @@ function crearAbasto(bot, o) {
   const ON = process.env.IA_ABASTO !== '0';
   const tratos = new Map();
   let activo = false, ultima = 0, fallos = {}, sinHallazgo = 0, ultimoOk = false;
+  const hab = require('./habilidades').crearHabilidades(bot, require('path').join(__dirname, process.env.IA_HABILIDADES || 'habilidades_am.json'));
+  bot._hab = hab;
   const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
   const items = () => bot.inventory.items();
   const cuenta = (re) => items().filter((i) => re.test(i.name)).reduce((a, i) => a + i.count, 0);
@@ -739,6 +741,8 @@ function crearAbasto(bot, o) {
     const hayJugadores = Object.keys(bot.players || {}).length > 1;
     if (hayJugadores && tiene(/^(bow|crossbow)$/) && cuenta(/^arrow$/) < 8) frente.push('flechas');
     if (bot._modoEquipo > Date.now()) frente.push('equipo', 'comerciar', 'botin', 'hierro', 'mina', 'claves', 'carbon', 'piedra', 'madera', 'comida');
+    const atas = necesidades.map((x) => x[0]).filter((n) => hab.atascado(n) && (fallos[n] || 0) <= Date.now());
+    if (atas.length) frente.unshift('sondeo');
     const rank = (n) => { const i = frente.indexOf(n); return i < 0 ? 100 : i; };
     return necesidades.map((x, i) => [x, i]).sort((p, q) => (rank(p[0][0]) - rank(q[0][0])) || (p[1] - q[1])).map((x) => x[0]);
   }
@@ -789,9 +793,13 @@ function crearAbasto(bot, o) {
         if (!libre()) break;
         if ((fallos[nombre] || 0) > Date.now()) continue;
         let r, motivo = 'no pudo completarlo (falta algo o no hay objetivo cerca)';
+        const antes = hab.snap(), t0 = Date.now();
         try { r = await paso(); } catch (e) { r = false; motivo = 'error: ' + e.message; diag.log('error', 'abasto', nombre + ': ' + e.message); }
         if (r === 'nada') continue;
-        if (!r) { fallos[nombre] = Date.now() + 120_000; const p = diag.estado.fallosPaso[nombre] || { n: 0 }; diag.estado.fallosPaso[nombre] = { n: p.n + 1, t: Date.now(), motivo }; diag.log('warn', 'abasto', nombre + ' fallo: ' + motivo); }
+        const veredicto = hab.registrar(nombre, r, antes, Date.now() - t0);
+        diag.estado.habilidades = hab.resumen();
+        if (veredicto === 'dudoso') { diag.log('warn', 'abasto', nombre + ' sin cambio verificable'); if (hab.atascado(nombre)) { r = false; motivo = 'sin cambio verificable 3 veces seguidas'; } }
+        if (!r) { fallos[nombre] = Date.now() + hab.espera(nombre); const p = diag.estado.fallosPaso[nombre] || { n: 0 }; diag.estado.fallosPaso[nombre] = { n: p.n + 1, t: Date.now(), motivo }; diag.log('warn', 'abasto', nombre + ' fallo: ' + motivo); }
         else { ultimoOk = true; delete diag.estado.fallosPaso[nombre]; diag.log('info', 'abasto', 'paso ' + nombre); console.log('[abasto] paso:', nombre); }
         break; // un paso por ciclo
       }
