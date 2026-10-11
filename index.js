@@ -297,6 +297,12 @@ function iniciarHuida(bot) {
   bot.on('messagestr', (m) => { if (m.includes(bot.username) && /fell|lava|drown|burn|fire|blew|explo|starv|suffocat|cactus|void|magma|hit the ground|berry/i.test(m)) { ultimoMsgMuerte.txt = m.replace(bot.username, '').trim(); ultimoMsgMuerte.t = Date.now(); } });
   bot._acecho = require('./acecho').crearAcecho(bot, { memoria, diag, peligro: (p, r) => diario.peligro(p, r) });
   require('./superviv').crearSuperviv(bot, { diag });
+  if (process.env.IA_CURACION !== '0') require('./curacion').crearCuracion(bot, {
+    ocupado: () => comiendo,
+    reequipar: () => equiparAutomatico(bot),
+    tranquilo: () => !objetivoActual && !enemigoCerca(14) && bot.health > 10,
+    hayEnemigo: (r) => enemigoCerca(r),
+  });
   require('./vuelo').crearVuelo(bot, { tierDe, equipar: () => equiparAutomatico(bot), objetivo: () => (bot.pvp && bot.pvp.target) || objetivoActual });
   const autotest = require('./autotest').crearAutotest(bot, { recolectar: recolectarBloque, ocupar: (v) => { manoOcupada = v; } });
   _autotestFn = () => autotest.ejecutar();
