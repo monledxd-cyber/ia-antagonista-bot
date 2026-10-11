@@ -451,7 +451,7 @@ function crearAbasto(bot, o) {
     ['obsidiana', paso_obsidiana],
     ['madera', async () => {
       const tengo = cuenta(/_log$|_planks$/);
-      if (tengo >= (base ? 14 : 24) || (noche() && enSuperficie())) return 'nada';
+      if (tengo >= (base ? 14 : 24) || (tengo >= 6 && noche() && enSuperficie())) return 'nada';
       const b = buscarVar('madera', /_log$/, 24);
       if (!b) { alcance.madera = Math.min(8, (alcance.madera || 0) + 1); if (tengo >= 6) return 'nada'; await explorar(30, 100); return true; }
       alcance.madera = 0;

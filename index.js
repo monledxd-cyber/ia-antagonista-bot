@@ -393,19 +393,19 @@ function iniciarHuida(bot) {
     // no un bloque -- se detecta igual que un mob. Huye antes que cualquier
     // otra decision de combate.
     const tntCerca = Object.values(bot.entities).find(e =>
-      (/tnt/i.test(e.name || '') || /tnt/i.test(e.displayName || '') ||
-       (e.kind && /tnt/i.test(e.kind))) &&
-      e.position.distanceTo(bot.entity.position) < 6
+      ((/tnt/i.test(e.name || '') || /tnt/i.test(e.displayName || '') || (e.kind && /tnt/i.test(e.kind))) && e.position.distanceTo(bot.entity.position) < 9) ||
+      (e.name === 'creeper' && e.position.distanceTo(bot.entity.position) < 4.5)
     );
     if (tntCerca) {
       const dx = bot.entity.position.x - tntCerca.position.x;
       const dz = bot.entity.position.z - tntCerca.position.z;
       const yaw = Math.atan2(-dx, -dz) + Math.PI;
+      const fg = bot._mejorFuga && bot._mejorFuga(tntCerca);
       try {
-        bot.look(yaw, 0, true);
-        bot.pathfinder.setGoal(new goals.GoalNear(
-          bot.entity.position.x + Math.sin(yaw) * 8, bot.entity.position.y, bot.entity.position.z + Math.cos(yaw) * 8, 2
-        ));
+        if (bot.pvp) bot.pvp.stop();
+        if (fg) bot.pathfinder.setGoal(new goals.GoalXZ(Math.round(bot.entity.position.x + fg.dx * 12), Math.round(bot.entity.position.z + fg.dz * 12)));
+        else { bot.look(yaw, 0, true); bot.pathfinder.setGoal(new goals.GoalNear(bot.entity.position.x + Math.sin(yaw) * 10, bot.entity.position.y, bot.entity.position.z + Math.cos(yaw) * 10, 2)); }
+        bot.setControlState('sprint', true);
       } catch (e) { /* ignorar */ }
       huyendoDeTnt = true;
       return;
@@ -973,7 +973,7 @@ async function crearBot() {
     if (!bot._voluntadActiva) {
       bot._voluntadActiva = true;
       const BASE = Number(process.env.IA_VOLUNTAD_MS) || 120_000;
-      let ultCmd = 0, pensando = false;
+      let ultCmd = 0, cdCmd = 8_000, pensando = false;
       const ciclo = async () => {
         if (!bot.entity || pensando || process.env.IA_VOLUNTAD === '0') return;
         const ocupadoYa = (bot.pvp && bot.pvp.target) || bot.health <= 8 || (bot._trampero && bot._trampero.pendientes() > 0);
@@ -999,8 +999,8 @@ async function crearBot() {
           });
           registrarRespuesta(p.username, respuesta);
           // limite de ritmo para comandos propios: el chat vanilla expulsa por spam
-          if (/\[CMD:/.test(respuesta) && Date.now() - ultCmd < 20_000) respuesta = respuesta.replace(/\[CMD:(?:[^\[\]]|\[[^\]]*\])+\]/, '');
-          else if (/\[CMD:/.test(respuesta)) ultCmd = Date.now();
+          if (/\[CMD:/.test(respuesta) && Date.now() - ultCmd < cdCmd) respuesta = respuesta.replace(/\[CMD:(?:[^\[\]]|\[[^\]]*\])+\]/, '');
+          else if (/\[CMD:/.test(respuesta)) { ultCmd = Date.now(); cdCmd = 4_000 + Math.random() * 10_000; }
           await manejarRespuesta(bot, { nombre: p.username }, respuesta);
         } catch (e) { console.error('[voluntad] error:', e.message); }
         pensando = false;
@@ -1015,7 +1015,7 @@ async function crearBot() {
     if (!bot._habladorEspontaneoActivo) {
       bot._habladorEspontaneoActivo = true;
       const HABLA_ESPONTANEA_MS = 90_000;
-      const PROB_HABLAR = 0.5; // 50% de veces se queda callado ese ciclo, para no sentirse mecanico
+      const PROB_HABLAR = 0.75; // 50% de veces se queda callado ese ciclo, para no sentirse mecanico
       const habladorInterval = setInterval(async () => {
         if (!bot.entity) return;
         if (Math.random() > PROB_HABLAR) return; // se salta este turno, silencio deliberado
@@ -1490,6 +1490,8 @@ async function manejarRespuesta(bot, ctx, respuestaCruda) {
   if (mCmd) texto = texto.replace(mCmd[0], '').trim();
 
   texto = texto.replace(/\[[A-Z_]+:[^\]]*$/, '').replace(/\[[A-Z_]+:[^\]]*\]/g, '').trim();
+  { const m = texto.match(/^[\s\S]*?[.!?…]+(?=\s|$)/); if (m && m[0].length >= 12) texto = m[0].trim(); }
+  if (texto.length > 150) texto = texto.slice(0, 150).replace(/\s+\S*$/, '') + '…';
   if (texto.length > 240) {
     const corte = texto.slice(0, 240);
     const i = Math.max(corte.lastIndexOf('. '), corte.lastIndexOf('! '), corte.lastIndexOf('? '));

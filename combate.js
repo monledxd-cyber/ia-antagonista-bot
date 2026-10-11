@@ -463,6 +463,8 @@ function iniciarCombate(bot, api) {
     if (escudoArriba && ahora > escudoHasta) bajar();
     const p = bot.entity.position;
     const todos = Object.values(bot.entities);
+    if (todos.some((e) => (e.name === 'tnt' || e.name === 'creeper') && e.position.distanceTo(p) < 9)) { bajar(); return; }
+    if (todos.some((e) => e.type === 'player' && e !== bot.entity && e.heldItem && e.heldItem.name === 'mace' && e.position.distanceTo(p) < 8)) { bajar(); return; }
     const proy = todos.find((e) => PROYECTIL.test(e.name || '') && e.velocity &&
       e.position.distanceTo(p) < 14 && e.position.plus(e.velocity).distanceTo(p) < e.position.distanceTo(p) - 0.2);
     if (proy) { alzar(900, true); return; }
@@ -473,7 +475,7 @@ function iniciarCombate(bot, api) {
       e.position.distanceTo(p) < 4.2 && e.username !== bot.username);
     if (cerca) {
       const arma = (cerca.heldItem && cerca.heldItem.name) || '';
-      const peligrosa = /_axe$|^mace$|^trident$/.test(arma);
+      const peligrosa = /_axe$|^trident$/.test(arma);
       if (ahora - ultDano < 2500 || bot.health < 16 || peligrosa || cerca.name === 'creeper') alzar(500);
     } else if (escudoArriba) bajar();
   }, 100);
@@ -703,6 +705,14 @@ function iniciarCombate(bot, api) {
     } else if (ladoArco) { ladoArco = 0; bot.setControlState('left', false); bot.setControlState('right', false); }
   }, 150);
   api.intervalos.push(lector);
+
+  const ladoContra = (t) => {
+    const d = dist(t) || 1, v = velocidad(t);
+    const ux = (t.position.x - bot.entity.position.x) / d, uz = (t.position.z - bot.entity.position.z) / d;
+    const lat = v.x * -uz + v.z * ux;
+    if (Math.abs(lat) < 0.03) return Math.random() < 0.5 ? 'left' : 'right';
+    return lat > 0 ? 'left' : 'right';
+  };
   let ultEsquiva = 0;
   const anticipar = setInterval(() => {
     if (!bot.entity || ocupado || api.ocupado() || enMLG || crisActivo) return;
@@ -718,7 +728,7 @@ function iniciarCombate(bot, api) {
     const caida = /^mace$/.test(arma) && v.y < -0.4 && d < 7;
     if (!(caida || (cierre > 0.16 && eta <= 4))) return;
     ultEsquiva = ahora;
-    const lado = Math.random() < 0.5 ? 'left' : 'right';
+    const lado = ladoContra(t);
     bot.setControlState(lado, true);
     if (caida || Math.random() < 0.3) bot.setControlState('back', true);
     setTimeout(() => { try { bot.setControlState(lado, false); bot.setControlState('back', false); } catch (e) { /* ignorar */ } }, caida ? 320 : 180 + Math.random() * 100);
@@ -904,7 +914,7 @@ function iniciarCombate(bot, api) {
       bot.setControlState('back', true);
       setTimeout(() => { bot.setControlState('back', false); bot.setControlState('forward', true); bot.setControlState('sprint', true); bot.setControlState('jump', true); setTimeout(() => { bot.setControlState('forward', false); fin(); }, 220); }, 260 + Math.random() * 200);
     } else if (tipo < 0.8) {
-      const l = Math.random() < 0.5 ? 'left' : 'right';
+      const l = ladoContra(t);
       bot.setControlState(l, true); bot.setControlState('forward', true);
       setTimeout(() => { bot.setControlState('forward', false); fin(); }, 420 + Math.random() * 300);
     } else {
@@ -913,6 +923,38 @@ function iniciarCombate(bot, api) {
     }
   }, 200);
   api.intervalos.push(fintaMelee);
+  const libreDesde = (a, b) => {
+    const dv = b.minus(a), n = Math.ceil(dv.norm() / 0.5);
+    for (let i = 1; i < n; i++) { const q = a.plus(dv.scaled(i / n)), bl = bot.blockAt(q.floored()); if (bl && bl.boundingBox === 'block') return false; }
+    return true;
+  };
+  let ultCobertura = 0;
+  const cobertura = setInterval(async () => {
+    if (!bot.entity || ocupado || api.ocupado() || enMLG || crisActivo || Date.now() - ultCobertura < 2500) return;
+    const t = api.obtenerObjetivo();
+    if (!valido(t) || t.type !== 'player') return;
+    const arma = sosteniendo(t), d = dist(t);
+    if (!/^(bow|crossbow|trident)$/.test(arma) || d < 7 || d > 40 || !(usando(t) || bot.health < 14)) return;
+    const ojoT = t.position.offset(0, 1.62, 0), p = bot.entity.position.floored();
+    let mejor = null;
+    for (let dx = -5; dx <= 5; dx++) for (let dz = -5; dz <= 5; dz++) {
+      const c = p.offset(dx, 0, dz), pie = bot.blockAt(c), cab = bot.blockAt(c.offset(0, 1, 0)), sue = bot.blockAt(c.offset(0, -1, 0));
+      if (!pie || !cab || !sue || pie.boundingBox !== 'empty' || cab.boundingBox !== 'empty' || sue.boundingBox !== 'block' || /lava|magma|cactus/.test(sue.name)) continue;
+      const cuerpo = c.offset(0.5, 1.0, 0.5), cabeza = c.offset(0.5, 1.6, 0.5);
+      if (libreDesde(ojoT, cuerpo) || libreDesde(ojoT, cabeza)) continue;
+      const k = Math.hypot(dx, dz);
+      if (!mejor || k < mejor.k) mejor = { c, k };
+    }
+    if (!mejor || mejor.k < 0.6) return;
+    ultCobertura = Date.now();
+    ocupado = true; api.pausar(); api.ocupar(true);
+    try {
+      try { require('./diag').log('info', 'combate', 'se cubre del arquero'); } catch (e) { /* ignorar */ }
+      await Promise.race([bot.pathfinder.goto(new goals.GoalBlock(mejor.c.x, mejor.c.y, mejor.c.z)), dormir(2500)]);
+    } catch (e) { /* ignorar */ } finally { ocupado = false; api.ocupar(false); try { bot.pathfinder.setGoal(null); } catch (e) { /* ignorar */ } if (valido(t)) api.reanudar(t); }
+  }, 400);
+  api.intervalos.push(cobertura);
+
 
 
 
