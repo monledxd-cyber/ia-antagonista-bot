@@ -242,7 +242,7 @@ function crearAbasto(bot, o) {
 
   // Obsidiana: agua sobre una fuente de lava, y se pica con pico de diamante.
   async function paso_obsidiana() {
-    if (cuenta(/^obsidian$/) >= 6 || !tiene(/^diamond_pickaxe$/) || !tiene(/^water_bucket$/)) return 'nada';
+    if (cuenta(/^obsidian$/) >= (nether.quiere() ? 12 : 6) || !tiene(/^diamond_pickaxe$/) || !tiene(/^water_bucket$/)) return 'nada';
     const lava = bot.findBlock({ maxDistance: 22, matching: (b) => b && b.name === 'lava' && b.metadata === 0 });
     if (!lava) return 'nada';
     if (!(await o.irCerca(bot, lava.position, 15000))) return false;
@@ -419,6 +419,8 @@ function crearAbasto(bot, o) {
     { item: 'anvil', cuando: () => !tiene(/^anvil$/) && !bloqueN(/anvil$/, 24) && items().some((i) => i.durabilityUsed > 0), despues: () => colocar('anvil') },
   ];
   const ex = require('./extras').crearExtras({ bot, goals, diag, o, items, cuenta, tiene, bloqueN, colocar, craftear, cocinar, libre, dormir, memoria: o.memoria, VALIOSO, buscarVar, get base() { return base; } });
+  const nether = require('./nether').crearNether({ bot, goals, diag, items, cuenta, tiene, libre, dormir });
+  bot._nether = nether;
   let ultDeseo = {};
 
   const necesidades = [
@@ -750,6 +752,7 @@ function crearAbasto(bot, o) {
       const l = items().find((i) => /_log$/.test(i.name));
       return cocinar(l.name);
     }],
+    ['nether', nether.expedicion],
     ['encantar', ex.encantar],
     ['lapis', ex.lapis],
     ['pociones', ex.pociones],
@@ -797,7 +800,7 @@ function crearAbasto(bot, o) {
     const rank = (n) => { const i = frente.indexOf(n); return i < 0 ? 100 : i; };
     const env = {};
     for (const kv of (process.env.IA_PESOS || '').split(',')) { const [k, v] = kv.split('='); if (k && +v > 0) env[k.trim()] = +v; }
-    const urg = { madera: cuenta(/_log$|_planks$/) < 6 ? 2.5 : 1, comida: cuenta(COMIDA) < 3 ? 3 : cuenta(COMIDA) < 6 ? 1.3 : 0.7, basura: items().length >= 32 ? 3 : 0.5, encantar: ((bot.experience && bot.experience.level) || 0) >= 5 ? 2 : 0.6, asalto: bot._sadismo ? bot._sadismo() : 1, xp: ((bot.experience && bot.experience.level) || 0) < 5 ? 1.8 : 1 };
+    const urg = { madera: cuenta(/_log$|_planks$/) < 6 ? 2.5 : 1, comida: cuenta(COMIDA) < 3 ? 3 : cuenta(COMIDA) < 6 ? 1.3 : 0.7, basura: items().length >= 32 ? 3 : 0.5, nether: nether.listo() ? 3 : 0.4, encantar: ((bot.experience && bot.experience.level) || 0) >= 5 ? 2 : 0.6, asalto: bot._sadismo ? bot._sadismo() : 1, xp: ((bot.experience && bot.experience.level) || 0) < 5 ? 1.8 : 1 };
     const pesos = necesidades.map((x, i) => {
       const n = x[0], r = rank(n);
       const base = env[n] || Math.max(6, 60 - i * 0.9);
