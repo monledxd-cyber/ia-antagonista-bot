@@ -63,7 +63,7 @@ function crearCuracion(bot, o) {
     if (!bot.entity || ocupado || o.ocupado() || bot.health === undefined) return;
     const t = rival();
     if (!t) return;
-    if (Date.now() > umbral.t) umbral = { v: 8 + Math.floor(Math.random() * 6), t: Date.now() + 20_000 };
+    if (Date.now() > umbral.t) umbral = { v: 8 + Math.floor(Math.random() * 6) + Math.round((bot._cautela ? bot._cautela(t.username) : 0) * 3), t: Date.now() + 20_000 };
     const hp = bot.health, d = dist(t);
     const critico = hp <= 6;
 

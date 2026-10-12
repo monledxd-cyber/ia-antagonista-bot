@@ -42,6 +42,10 @@ function crearMemoria(ruta) {
     ultDijo: (n) => { const d = datos[n] && datos[n].dijo; return d && d.length ? d[d.length - 1].s : ''; },
     ultimo: (n) => (datos[n] && datos[n].ult) || null,
     zonaHabitual: (n) => { const b = Object.entries((datos[n] && datos[n].lugares) || {}).sort((a, c) => c[1] - a[1])[0]; return b && b[1] > 20 ? { x: b[0].split(',')[0] * 32 + 16, z: b[0].split(',')[1] * 32 + 16 } : null; },
+    estMarca: (n, k, ok) => { const j = get(n); j.est = j.est || {}; const a = (j.est[k] = j.est[k] || { ok: 0, mal: 0 }); if (ok) a.ok++; else a.mal++; sucio = true; },
+    estDe: (n) => (datos[n] && datos[n].est) || {},
+    pelea: (n, p) => { const j = get(n); j.peleas = j.peleas || []; j.peleas.push(p); if (j.peleas.length > 12) j.peleas.shift(); j.pg = (j.pg || 0) + (p.res === 'gane' ? 1 : 0); j.pp = (j.pp || 0) + (p.res === 'perdi' ? 1 : 0); for (const a of p.armas || []) j.armasPelea = Object.assign(j.armasPelea || {}, { [a]: ((j.armasPelea || {})[a] || 0) + 1 }); sucio = true; },
+    cautela: (n) => { const l = ((datos[n] && datos[n].peleas) || []).slice(-5); return l.length ? l.filter((x) => x.res === 'perdi').length / l.length : 0; },
     vec: (n) => vec(n),
     sumarVec: (n, c, x) => { if (!(x > 0)) return; const j = get(n); j.vec = j.vec || {}; j.vec[c] = (j.vec[c] || 0) + x; sucio = true; },
     dominante: (n) => { const v = vec(n); return Object.entries(v).sort((a, b) => b[1] - a[1])[0][0]; },
@@ -87,7 +91,7 @@ function crearMemoria(ruta) {
       const tend = ['escudo', 'arco', 'elytra', 'agachado', 'sprint'].filter((k) => pct(k) >= 15).map((k) => `${k}${pct(k)}%`).join(',');
       const base = Object.entries(j.lugares || {}).sort((a, b) => b[1] - a[1])[0];
       const zona = base && base[1] > 20 ? ` zona_habitual=${base[0].split(',').map((v) => v * 32 + 16).join(',')}(x,z)` : '';
-      return `odio=[ira ${vec(n).ira.toFixed(1)}, rencor ${vec(n).rencor.toFixed(1)}, desprecio ${vec(n).desprecio.toFixed(1)}, obsesion ${vec(n).obsesion.toFixed(1)}] (vector, solo crece); ${j.visitas} visitas, visto hace ${dias(j.ultima)}d; murio ${j.muertes}x, me mato ${j.mato}x, ${j.trampas} trampas sufridas` + (j.dijo && j.dijo.length ? `; dijo: "${j.dijo[j.dijo.length - 1].s}" hace ${dias(j.dijo[j.dijo.length - 1].t)}d` : '') + (arma ? `; usa ${arma[0]}` : '') + (j.tac && Object.keys(j.tac).length ? '; tacticas(exito/usos): ' + Object.entries(j.tac).map(([k, a]) => `${k} ${Math.round(a.w * 10) / 10}/${a.u}`).join(',') : '') + (tend ? `; tendencias ${tend}` : '') + zona;
+      return `odio=[ira ${vec(n).ira.toFixed(1)}, rencor ${vec(n).rencor.toFixed(1)}, desprecio ${vec(n).desprecio.toFixed(1)}, obsesion ${vec(n).obsesion.toFixed(1)}] (vector, solo crece); peleas ${j.pg || 0} ganadas/${j.pp || 0} perdidas${j.peleas && j.peleas.length ? ', ultima: ' + j.peleas[j.peleas.length - 1].res + ' en ' + j.peleas[j.peleas.length - 1].dur + 's, dano ' + j.peleas[j.peleas.length - 1].dano + ', armas ' + (j.peleas[j.peleas.length - 1].armas || []).join('+') + (j.peleas[j.peleas.length - 1].contra ? ', contra ' + j.peleas[j.peleas.length - 1].contra : '') : ''}; ${j.visitas} visitas, visto hace ${dias(j.ultima)}d; murio ${j.muertes}x, me mato ${j.mato}x, ${j.trampas} trampas sufridas` + (j.dijo && j.dijo.length ? `; dijo: "${j.dijo[j.dijo.length - 1].s}" hace ${dias(j.dijo[j.dijo.length - 1].t)}d` : '') + (arma ? `; usa ${arma[0]}` : '') + (j.tac && Object.keys(j.tac).length ? '; tacticas(exito/usos): ' + Object.entries(j.tac).map(([k, a]) => `${k} ${Math.round(a.w * 10) / 10}/${a.u}`).join(',') : '') + (tend ? `; tendencias ${tend}` : '') + zona;
     },
     guardar,
     detener: () => { clearInterval(timer); guardar(); },

@@ -308,6 +308,7 @@ function iniciarHuida(bot) {
   });
   if (process.env.IA_ESTRATEGA !== '0') require('./estratega').crearEstratega(bot, { ocupado: () => comiendo });
   if (process.env.IA_CAIDAS !== '0') require('./caidas').crearCaidas(bot, { ocupado: () => comiendo, odio: (n) => memoria.odio(n) });
+  if (process.env.IA_MULTI !== '0') require('./multi').crearMulti(bot, { ocupado: () => comiendo || manoOcupada, vec: (n) => memoria.vec(n) });
   if (process.env.IA_CURACION !== '0') require('./curacion').crearCuracion(bot, {
     ocupado: () => comiendo,
     reequipar: () => equiparAutomatico(bot),
@@ -321,6 +322,10 @@ function iniciarHuida(bot) {
   if (process.env.IA_AUTOTEST === '1') setTimeout(() => autotest.ejecutar(), 20_000);
   bot._odio = (n) => memoria.odio(n);
   bot._vec = (n) => memoria.vec(n);
+  bot._estDe = (n) => memoria.estDe(n);
+  bot._estMarca = (n, k, ok) => memoria.estMarca(n, k, ok);
+  bot._cautela = (n) => memoria.cautela(n);
+  require('./peleas').crearPeleas(bot, memoria);
   bot._sumarVec = (n, c, x) => memoria.sumarVec(n, c, x);
   require('./stats').conectarStats(bot, statsAM, diag);
   bot._tactica = (k) => { try { const t = bot.pvp && bot.pvp.target; if (t && t.type === 'player') memoria.tactica(t.username, k); } catch (e) { /* ignorar */ } };

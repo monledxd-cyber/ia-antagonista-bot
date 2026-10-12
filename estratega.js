@@ -52,7 +52,8 @@ function crearEstratega(bot, o) {
       const t = rival() || amenaza;
       if (!cont || cont.rival !== amenaza.username) {
         const op = ['techo', 'kite', 'esquiva'];
-        const w = op.map((k) => { const r = est[k] || { ok: 0, mal: 0 }; return (1 + r.ok) / (1 + r.mal) * (0.6 + Math.random() * 0.8) * (k === 'techo' && !buscarTecho(t) ? 0.2 : 1); });
+        const pr = bot._estDe ? bot._estDe(amenaza.username) : {};
+        const w = op.map((k) => { const r = pr[k] || est[k] || { ok: 0, mal: 0 }; return (1 + r.ok) / (1 + r.mal) * (0.6 + Math.random() * 0.8) * (k === 'techo' && !buscarTecho(t) ? 0.2 : 1); });
         const k = op[w.indexOf(Math.max(...w))];
         cont = { k, rival: amenaza.username, t0: ahora, dano: 0, ult: ahora };
         diag.log('info', 'estratega', 'contra ' + amenaza.username + ': ' + k);
@@ -81,10 +82,10 @@ function crearEstratega(bot, o) {
         if (d < 5.5 && d > 2 && ahora - esquiva > 600) { esquiva = ahora; const lado = Math.random() < 0.5 ? 'left' : 'right'; bot.setControlState(lado, true); bot.setControlState('sprint', true); setTimeout(() => { bot.setControlState(lado, false); }, 350 + Math.random() * 250); }
       }
       if (cont.dano >= 6 || (cont.dano >= 3 && ahora - cont.t0 > 6000)) {
-        (est[cont.k] = est[cont.k] || { ok: 0, mal: 0 }).mal++;
+        (est[cont.k] = est[cont.k] || { ok: 0, mal: 0 }).mal++; if (bot._estMarca) bot._estMarca(cont.rival, cont.k, false);
         diag.log('warn', 'estratega', cont.k + ' fallo; cambia');
         const prevK = cont.k; cont = null; cambiar = prevK;
-      } else if (ahora - cont.t0 > 8000 && cont.dano === 0 && !cont.contado) { cont.contado = true; (est[cont.k] = est[cont.k] || { ok: 0, mal: 0 }).ok++; }
+      } else if (ahora - cont.t0 > 8000 && cont.dano === 0 && !cont.contado) { cont.contado = true; (est[cont.k] = est[cont.k] || { ok: 0, mal: 0 }).ok++; if (bot._estMarca) bot._estMarca(cont.rival, cont.k, true); }
     } else if (cont && ahora - cont.ult > 4000) cont = null;
     if (cambiar && cont) cambiar = null;
 
@@ -105,6 +106,7 @@ function crearEstratega(bot, o) {
     }
   }, 200);
 
+  bot._contraActual = () => (cont ? cont.k : null);
   bot.once('end', () => clearInterval(it));
   return {};
 }
