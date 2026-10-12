@@ -18,6 +18,7 @@ function iniciar(b, d) {
       crueldad: sad,
     };
     for (const k of Object.keys(R)) {
+      if (bot._bandits && meta[k] !== undefined && k !== 'crueldad') meta[k] += bot._bandits.sesgo(k);
       const [lo, hi] = LIM[k];
       R[k] = Math.max(lo, Math.min(hi, R[k] + (Math.random() - 0.5) * 0.22 + (meta[k] - R[k]) * 0.15));
     }

@@ -93,16 +93,17 @@ const lastCall = new Map(); // nombre -> timestamp
 const trampaLastUse = new Map(); // nombre -> timestamp de la ultima trampa activada
 const historialJugador = new Map(); // nombre -> { interacciones, ultimasRespuestas: [], eventos: [] }
 const persist = require('./persist');
-const RUTAS_MEM = [process.env.IA_MEMORIA || 'memoria_jugadores.json', process.env.IA_DIARIO || 'diario_am.json', process.env.IA_BASE || 'base_am.json', process.env.IA_CLAVES || 'claves_am.json', process.env.IA_APRENDIZAJE || 'aprendizaje.json', process.env.IA_HABILIDADES || 'habilidades_am.json', process.env.IA_STATS || 'stats_am.json']
+const RUTAS_MEM = [process.env.IA_MEMORIA || 'memoria_jugadores.json', process.env.IA_DIARIO || 'diario_am.json', process.env.IA_BASE || 'base_am.json', process.env.IA_CLAVES || 'claves_am.json', process.env.IA_APRENDIZAJE || 'aprendizaje.json', process.env.IA_HABILIDADES || 'habilidades_am.json', process.env.IA_STATS || 'stats_am.json', process.env.IA_BANDITS || 'bandits_am.json']
   .map((r) => (require('path').isAbsolute(r) ? r : require('path').join(__dirname, r)));
 persist.restaurar(RUTAS_MEM); // Render: disco efimero -> recupera la memoria del gist si esta configurado
 const memoria = crearMemoria();
+const bandits = require('./bandits').crearBandits(require('path').join(__dirname, process.env.IA_BANDITS || 'bandits_am.json'), diag);
 const statsAM = require('./stats').crearStats(require('path').join(__dirname, process.env.IA_STATS || 'stats_am.json'));
 { const vecBase = memoria.vec; memoria.vec = (n) => { const v = vecBase(n), m = statsAM.mult('odio'); return { ira: v.ira * m, rencor: v.rencor * m, desprecio: v.desprecio * m, obsesion: v.obsesion * m }; }; memoria.odio = (n) => { const v = memoria.vec(n); return v.ira + v.rencor + v.desprecio + v.obsesion; }; }
 const diario = require('./diario').crearDiario();
 const { alertar } = require('./alertas');
 const ultimoMsgMuerte = { txt: '', t: 0 };
-persist.iniciar(RUTAS_MEM, () => { memoria.guardar(); diario.guardar(); statsAM.guardar(); });
+persist.iniciar(RUTAS_MEM, () => { memoria.guardar(); diario.guardar(); statsAM.guardar(); bandits.guardar(); });
 let erroresVistos = 0;
 process.on('uncaughtException', (e) => { erroresVistos++; console.error('[fatal evitado]', e && e.stack || e); diag.estado.erroresCodigo.push({ t: Date.now(), msg: String(e && e.stack || e).slice(0, 900) }); diag.estado.erroresCodigo.splice(0, Math.max(0, diag.estado.erroresCodigo.length - 10)); diag.log('error', 'codigo', e && e.message || e); });
 process.on('unhandledRejection', (e) => { console.error('[promesa rechazada]', e && e.message || e); diag.log('warn', 'promesa', e && e.message || e); });
@@ -325,6 +326,8 @@ function iniciarHuida(bot) {
   bot._estDe = (n) => memoria.estDe(n);
   bot._estMarca = (n, k, ok) => memoria.estMarca(n, k, ok);
   bot._cautela = (n) => memoria.cautela(n);
+  bot._bandits = bandits;
+  { const t = setInterval(() => bandits.guardar(), 60_000); if (t.unref) t.unref(); bot.once('end', () => { clearInterval(t); bandits.guardar(); }); }
   require('./peleas').crearPeleas(bot, memoria);
   bot._sumarVec = (n, c, x) => memoria.sumarVec(n, c, x);
   require('./stats').conectarStats(bot, statsAM, diag);

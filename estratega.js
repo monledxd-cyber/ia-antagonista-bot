@@ -51,10 +51,14 @@ function crearEstratega(bot, o) {
     if (amenaza) {
       const t = rival() || amenaza;
       if (!cont || cont.rival !== amenaza.username) {
-        const op = ['techo', 'kite', 'esquiva'];
+        const op = ['techo', 'kite', 'esquiva'].filter((x) => x !== 'techo' || buscarTecho(t));
         const pr = bot._estDe ? bot._estDe(amenaza.username) : {};
-        const w = op.map((k) => { const r = pr[k] || est[k] || { ok: 0, mal: 0 }; return (1 + r.ok) / (1 + r.mal) * require('./pesos').peso(1, { astucia: 0.5 }) * (k === 'techo' && !buscarTecho(t) ? 0.2 : 1); });
-        const k = op[w.indexOf(Math.max(...w))];
+        let k;
+        if (bot._bandits) k = bot._bandits.elegir('contra', amenaza.username, op.map((x) => ({ k: x }))).k;
+        else {
+          const w = op.map((x) => { const r = pr[x] || est[x] || { ok: 0, mal: 0 }; return (1 + r.ok) / (1 + r.mal) * require('./pesos').peso(1, { astucia: 0.5 }); });
+          k = op[w.indexOf(Math.max(...w))];
+        }
         cont = { k, rival: amenaza.username, t0: ahora, dano: 0, ult: ahora };
         diag.log('info', 'estratega', 'contra ' + amenaza.username + ': ' + k);
       }
@@ -82,10 +86,10 @@ function crearEstratega(bot, o) {
         if (d < 5.5 && d > 2 && ahora - esquiva > 600) { esquiva = ahora; const lado = Math.random() < 0.5 ? 'left' : 'right'; bot.setControlState(lado, true); bot.setControlState('sprint', true); setTimeout(() => { bot.setControlState(lado, false); }, 350 + Math.random() * 250); }
       }
       if (cont.dano >= 6 || (cont.dano >= 3 && ahora - cont.t0 > 6000)) {
-        (est[cont.k] = est[cont.k] || { ok: 0, mal: 0 }).mal++; if (bot._estMarca) bot._estMarca(cont.rival, cont.k, false);
+        (est[cont.k] = est[cont.k] || { ok: 0, mal: 0 }).mal++; if (bot._estMarca) bot._estMarca(cont.rival, cont.k, false); if (bot._bandits) bot._bandits.premiar('contra', cont.rival, cont.k, -0.7);
         diag.log('warn', 'estratega', cont.k + ' fallo; cambia');
         const prevK = cont.k; cont = null; cambiar = prevK;
-      } else if (ahora - cont.t0 > 8000 && cont.dano === 0 && !cont.contado) { cont.contado = true; (est[cont.k] = est[cont.k] || { ok: 0, mal: 0 }).ok++; if (bot._estMarca) bot._estMarca(cont.rival, cont.k, true); }
+      } else if (ahora - cont.t0 > 8000 && cont.dano === 0 && !cont.contado) { cont.contado = true; (est[cont.k] = est[cont.k] || { ok: 0, mal: 0 }).ok++; if (bot._estMarca) bot._estMarca(cont.rival, cont.k, true); if (bot._bandits) bot._bandits.premiar('contra', cont.rival, cont.k, 0.6); }
     } else if (cont && ahora - cont.ult > 4000) cont = null;
     if (cambiar && cont) cambiar = null;
 
