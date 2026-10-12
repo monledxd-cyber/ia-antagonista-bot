@@ -98,7 +98,7 @@ const RUTAS_MEM = [process.env.IA_MEMORIA || 'memoria_jugadores.json', process.e
 persist.restaurar(RUTAS_MEM); // Render: disco efimero -> recupera la memoria del gist si esta configurado
 const memoria = crearMemoria();
 const statsAM = require('./stats').crearStats(require('path').join(__dirname, process.env.IA_STATS || 'stats_am.json'));
-{ const odioBase = memoria.odio; memoria.odio = (n) => odioBase(n) * statsAM.mult('odio'); }
+{ const vecBase = memoria.vec; memoria.vec = (n) => { const v = vecBase(n), m = statsAM.mult('odio'); return { ira: v.ira * m, rencor: v.rencor * m, desprecio: v.desprecio * m, obsesion: v.obsesion * m }; }; memoria.odio = (n) => { const v = memoria.vec(n); return v.ira + v.rencor + v.desprecio + v.obsesion; }; }
 const diario = require('./diario').crearDiario();
 const { alertar } = require('./alertas');
 const ultimoMsgMuerte = { txt: '', t: 0 };
@@ -320,6 +320,8 @@ function iniciarHuida(bot) {
   _botActual = bot;
   if (process.env.IA_AUTOTEST === '1') setTimeout(() => autotest.ejecutar(), 20_000);
   bot._odio = (n) => memoria.odio(n);
+  bot._vec = (n) => memoria.vec(n);
+  bot._sumarVec = (n, c, x) => memoria.sumarVec(n, c, x);
   require('./stats').conectarStats(bot, statsAM, diag);
   bot._tactica = (k) => { try { const t = bot.pvp && bot.pvp.target; if (t && t.type === 'player') memoria.tactica(t.username, k); } catch (e) { /* ignorar */ } };
   bot._tacticaDe = (n, k) => { memoria.tactica(n, k); memoria.victoria(n, k); };
@@ -460,7 +462,7 @@ function iniciarHuida(bot) {
         if (e === objetivoActual) c -= 4;
         const hace = Date.now() - (ultGolpeA.get(e.id) || 0);
         if (hace < 8000) c -= 5;
-        return c - Math.min(10, Math.log2(1 + memoria.odio(e.username)) * 2);
+        { const v = memoria.vec(e.username); return c - Math.min(10, Math.log2(1 + v.rencor + v.ira + v.obsesion * 0.5) * 2); }
       };
       objetivo = candidatos.sort((a, b) => puntaje(a) - puntaje(b))[0];
     }

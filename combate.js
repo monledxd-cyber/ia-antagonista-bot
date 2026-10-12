@@ -549,7 +549,7 @@ function iniciarCombate(bot, api) {
     if ((maxReciente - bot.health) / max >= 0.4) f += 0.12;
     if (tiene('totem_of_undying')) f -= 0.08;
     if (tiene('golden_apple') || tiene('enchanted_golden_apple')) f -= 0.05;
-    const od = t.type === 'player' && bot._odio ? bot._odio(t.username) : 0;
+    const od = t.type === 'player' && bot._vec ? (() => { const v = bot._vec(t.username); return v.ira + v.rencor + v.desprecio * 0.5; })() : 0;
     f -= Math.min(0.14, Math.log2(1 + od) * 0.02);
     return max * Math.max(0.06, Math.min(0.65, f));
   };

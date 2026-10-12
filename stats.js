@@ -20,7 +20,13 @@ function conectarStats(bot, stats, diag) {
   bot._sadismo = () => stats.mult('sadismo');
   bot.on('health', () => {
     const h = bot.health;
-    if (hpPrev !== null && h < hpPrev) stats.sumar('odio', (hpPrev - h) * 0.15);
+    if (hpPrev !== null && h < hpPrev) {
+      stats.sumar('odio', (hpPrev - h) * 0.15);
+      const t = bot.pvp && bot.pvp.target;
+      let a = t && t.type === 'player' ? t : null;
+      if (!a && bot.entity) a = Object.values(bot.entities).filter((e) => e.type === 'player' && e.username !== bot.username && e.position && e.position.distanceTo(bot.entity.position) < 7).sort((p, q) => p.position.distanceTo(bot.entity.position) - q.position.distanceTo(bot.entity.position))[0];
+      if (a && bot._sumarVec) bot._sumarVec(a.username, 'ira', (hpPrev - h) * 0.3);
+    }
     hpPrev = h;
   });
   bot.on('death', () => stats.sumar('odio', 8));

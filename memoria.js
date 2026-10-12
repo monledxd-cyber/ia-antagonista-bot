@@ -15,6 +15,17 @@ function crearMemoria(ruta) {
   const timer = setInterval(guardar, 30_000);
   if (timer.unref) timer.unref();
   const marca = (n, campo, inc = 1) => { const j = get(n); j[campo] = (j[campo] || 0) + inc; j.ultima = Date.now(); sucio = true; };
+  const vec = (n) => {
+    const j = datos[n], z = { ira: 0, rencor: 0, desprecio: 0, obsesion: 0 };
+    if (!j) return z;
+    const a = j.vec || {};
+    return {
+      ira: a.ira || 0,
+      rencor: j.mato * 3 + (a.rencor || 0),
+      desprecio: j.trampas + (j.huyo || 0) * 0.5 + (a.desprecio || 0),
+      obsesion: (j.dijo ? j.dijo.length : 0) + j.visitas * 0.3 + Math.max(0, (Date.now() - j.primera) / 86400000) * 0.5 + (a.obsesion || 0),
+    };
+  };
   const recT = {};
   const dias = (t) => Math.max(0, Math.round((Date.now() - t) / 86400000));
   return {
@@ -31,7 +42,10 @@ function crearMemoria(ruta) {
     ultDijo: (n) => { const d = datos[n] && datos[n].dijo; return d && d.length ? d[d.length - 1].s : ''; },
     ultimo: (n) => (datos[n] && datos[n].ult) || null,
     zonaHabitual: (n) => { const b = Object.entries((datos[n] && datos[n].lugares) || {}).sort((a, c) => c[1] - a[1])[0]; return b && b[1] > 20 ? { x: b[0].split(',')[0] * 32 + 16, z: b[0].split(',')[1] * 32 + 16 } : null; },
-    odio: (n) => { const j = datos[n]; if (!j) return 0; return j.mato * 3 + j.trampas + (j.dijo ? j.dijo.length : 0) + j.visitas * 0.3 + Math.max(0, (Date.now() - j.primera) / 86400000) * 0.5 + (j.huyo || 0) * 0.5; },
+    vec: (n) => vec(n),
+    sumarVec: (n, c, x) => { if (!(x > 0)) return; const j = get(n); j.vec = j.vec || {}; j.vec[c] = (j.vec[c] || 0) + x; sucio = true; },
+    dominante: (n) => { const v = vec(n); return Object.entries(v).sort((a, b) => b[1] - a[1])[0][0]; },
+    odio: (n) => { const v = vec(n); return v.ira + v.rencor + v.desprecio + v.obsesion; },
     rencor: (n) => (datos[n] ? datos[n].mato * 2 + datos[n].trampas : 0),
     tactica: (n, k) => {
       const r = (recT[n] = recT[n] || []);
@@ -52,6 +66,7 @@ function crearMemoria(ruta) {
     observa: (n, tags, pos) => {
       const j = get(n); j.n = (j.n || 0) + 1; j.ultima = Date.now(); sucio = true;
       for (const t of tags) j.obs[t] = (j.obs[t] || 0) + 1;
+      j.vec = j.vec || {}; j.vec.obsesion = (j.vec.obsesion || 0) + 0.02;
       if (pos) { const k = Math.floor(pos.x / 32) + ',' + Math.floor(pos.z / 32); j.lugares[k] = (j.lugares[k] || 0) + 1; }
     },
     // Porcentajes de cada tendencia (solo con datos suficientes): { escudo, arco, sprint, agachado, elytra, armaMain }
@@ -72,7 +87,7 @@ function crearMemoria(ruta) {
       const tend = ['escudo', 'arco', 'elytra', 'agachado', 'sprint'].filter((k) => pct(k) >= 15).map((k) => `${k}${pct(k)}%`).join(',');
       const base = Object.entries(j.lugares || {}).sort((a, b) => b[1] - a[1])[0];
       const zona = base && base[1] > 20 ? ` zona_habitual=${base[0].split(',').map((v) => v * 32 + 16).join(',')}(x,z)` : '';
-      return `odio=${Math.round((j.mato * 3 + j.trampas + (j.dijo ? j.dijo.length : 0) + j.visitas * 0.3 + Math.max(0, (Date.now() - j.primera) / 86400000) * 0.5 + (j.huyo || 0) * 0.5) * 10) / 10} (solo crece); ${j.visitas} visitas, visto hace ${dias(j.ultima)}d; murio ${j.muertes}x, me mato ${j.mato}x, ${j.trampas} trampas sufridas` + (j.dijo && j.dijo.length ? `; dijo: "${j.dijo[j.dijo.length - 1].s}" hace ${dias(j.dijo[j.dijo.length - 1].t)}d` : '') + (arma ? `; usa ${arma[0]}` : '') + (j.tac && Object.keys(j.tac).length ? '; tacticas(exito/usos): ' + Object.entries(j.tac).map(([k, a]) => `${k} ${Math.round(a.w * 10) / 10}/${a.u}`).join(',') : '') + (tend ? `; tendencias ${tend}` : '') + zona;
+      return `odio=[ira ${vec(n).ira.toFixed(1)}, rencor ${vec(n).rencor.toFixed(1)}, desprecio ${vec(n).desprecio.toFixed(1)}, obsesion ${vec(n).obsesion.toFixed(1)}] (vector, solo crece); ${j.visitas} visitas, visto hace ${dias(j.ultima)}d; murio ${j.muertes}x, me mato ${j.mato}x, ${j.trampas} trampas sufridas` + (j.dijo && j.dijo.length ? `; dijo: "${j.dijo[j.dijo.length - 1].s}" hace ${dias(j.dijo[j.dijo.length - 1].t)}d` : '') + (arma ? `; usa ${arma[0]}` : '') + (j.tac && Object.keys(j.tac).length ? '; tacticas(exito/usos): ' + Object.entries(j.tac).map(([k, a]) => `${k} ${Math.round(a.w * 10) / 10}/${a.u}`).join(',') : '') + (tend ? `; tendencias ${tend}` : '') + zona;
     },
     guardar,
     detener: () => { clearInterval(timer); guardar(); },
