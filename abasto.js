@@ -708,6 +708,48 @@ function crearAbasto(bot, o) {
       }
       return 'nada';
     }],
+    ['pedernal', async () => {
+      if (tiene(/^(flint|flint_and_steel)$/) || (noche() && enSuperficie())) return 'nada';
+      const g = buscarVar('pedernal', /^gravel$/, 24);
+      if (!g) return 'nada';
+      alcance.pedernal = 0;
+      return (await o.recolectar(bot, 'gravel', 14)).ok;
+    }],
+    ['perlas', async () => {
+      if (cuenta(/^ender_pearl$/) >= 4 || !armaduraCompleta() || bot.health < 18) return 'nada';
+      if (!Object.values(bot.entities).some((e) => e.name === 'enderman' && e.position.distanceTo(bot.entity.position) < 30)) return 'nada';
+      return cazarMob(/^enderman$/, false);
+    }],
+    ['xp', async () => {
+      if (((bot.experience && bot.experience.level) || 0) >= 8 || !noche() || !enSuperficie() || bot.health < 16) return 'nada';
+      if (!Object.values(bot.entities).some((e) => /^(zombie|skeleton|spider|witch)$/.test(e.name || '') && e.position.distanceTo(bot.entity.position) < 30)) return 'nada';
+      return cazarMob(/^(zombie|skeleton|spider|witch)$/, true);
+    }],
+    ['esquejes', async () => {
+      if (cuenta(/_sapling$/) >= 3 || !enSuperficie()) return 'nada';
+      const b = bloqueN(/_leaves$/, 24);
+      if (!b) return 'nada';
+      return (await o.recolectar(bot, b.name, 14)).ok;
+    }],
+    ['replantar', async () => {
+      const s = items().find((i) => /_sapling$/.test(i.name));
+      if (!s || !enSuperficie()) return 'nada';
+      const p = bot.entity.position.floored();
+      for (let r = 1; r <= 6; r++) {
+        for (const [dx, dz] of [[r, 0], [-r, 0], [0, r], [0, -r], [r, r], [-r, -r]]) {
+          const suelo = bot.blockAt(p.offset(dx, -1, dz)), aire = bot.blockAt(p.offset(dx, 0, dz)), alto = bot.blockAt(p.offset(dx, 1, dz));
+          if (suelo && aire && alto && /^(grass_block|dirt|podzol)$/.test(suelo.name) && aire.name === 'air' && alto.name === 'air') {
+            try { await o.irCerca(bot, aire.position); await bot.equip(s, 'hand'); await bot.placeBlock(bot.blockAt(p.offset(dx, -1, dz)), new Vec3(0, 1, 0)); return true; } catch (e) { /* otra celda */ }
+          }
+        }
+      }
+      return 'nada';
+    }],
+    ['carbonvegetal', async () => {
+      if (cuenta(/^(coal|charcoal)$/) >= 3 || cuenta(/_log$/) < 6) return 'nada';
+      const l = items().find((i) => /_log$/.test(i.name));
+      return cocinar(l.name);
+    }],
     ['encantar', ex.encantar],
     ['lapis', ex.lapis],
     ['pociones', ex.pociones],
