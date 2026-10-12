@@ -2,6 +2,8 @@
 // Antes todo dependia de que la IA emitiera un tag; si la IA fallaba, el bot peleaba solo con espada.
 const { Vec3 } = require('vec3');
 const { goals } = require('mineflayer-pathfinder');
+const P = require('./pesos');
+const cd = (ms, e) => ms * P.peso(1, e);
 const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // Vuelo de una flecha (wiki): gravedad 0.05/tick, arrastre 0.99. Devuelve altura relativa y ticks
@@ -311,7 +313,7 @@ function iniciarCombate(bot, api) {
         if (dist(t) > 5.5 && ahora - ultAcercar > 1000) { ultAcercar = ahora; api.acercar(t, 3.5); }
         return;
       }
-      if (!util || ocupado || api.ocupado() || ahora - ultCristal < 4000) return;
+      if (!util || ocupado || api.ocupado() || ahora - ultCristal < cd(4000, { agresion: -0.4, astucia: -0.3 })) return;
       ultCristal = ahora;
       if (!hayObsidianaCerca(t)) {
         if (dist(t) > 4.5) { api.acercar(t, 3.5); return; }
@@ -359,7 +361,7 @@ function iniciarCombate(bot, api) {
 
       if (t.type !== 'player') return; // arco, cristales y smash solo contra jugadores
 
-      if (mace && tiene('wind_charge') && d >= 2.5 && d <= 8 && ahora - ultSmash > 4000) {
+      if (mace && tiene('wind_charge') && d >= 2.5 && d <= 8 && ahora - ultSmash > cd(4000, { agresion: -0.4 })) {
         ultSmash = ahora; ocupado = true; api.ocupar(true);
         try { await api.smashAttack(); } finally { ocupado = false; api.ocupar(false); api.equiparArma(); }
         return;
@@ -369,8 +371,8 @@ function iniciarCombate(bot, api) {
       const tridente = tiene('trident');
       const tipoT = tridente ? tipoTridente(tridente) : null;
       const quieto = (comiendoRival(t) || /^(bow|crossbow)$/.test(sosteniendo(t))) && usando(t);
-      const listoArco = !!(arco && flechas()) && d > 8 && d <= 28 && ahora - ultArco > (quieto ? 700 : 1800);
-      const listoTrid = !!tridente && tipoT !== 'riptide' && d > 5 && d <= 26 && ahora - ultTrid > (tipoT === 'loyalty' ? 2500 : 4000);
+      const listoArco = !!(arco && flechas()) && d > 8 && d <= 28 && ahora - ultArco > cd(quieto ? 700 : 1800, { astucia: -0.3 });
+      const listoTrid = !!tridente && tipoT !== 'riptide' && d > 5 && d <= 26 && ahora - ultTrid > cd(tipoT === 'loyalty' ? 2500 : 4000, { astucia: -0.3 });
       const listoRip = !!tridente && tipoT === 'riptide' && d > 5 && d <= 25 && ahora - ultRip > 3000 &&
         (bot.entity.isInWater || bot.isRaining);
       if ((listoArco || listoTrid || listoRip) && vista(t)) {
@@ -572,7 +574,7 @@ function iniciarCombate(bot, api) {
   const perlaOfensiva = setInterval(async () => {
     if (!bot.entity || api.ocupado() || enMLG || ocupado) return;
     const ahora = Date.now();
-    if (ahora - ultPerlaOfensiva < 12_000 || bot.health < 11) return;
+    if (ahora - ultPerlaOfensiva < cd(12_000, { astucia: -0.5 }) || bot.health < 11) return;
     const t = api.obtenerObjetivo();
     const perla = tiene('ender_pearl');
     if (!perla || !valido(t) || t.type !== 'player') return;
@@ -661,7 +663,7 @@ function iniciarCombate(bot, api) {
   const empuje = setInterval(() => {
     if (!bot.entity || api.ocupado() || ocupado || enMLG || bot.health < 12) return;
     const t = api.obtenerObjetivo();
-    if (!valido(t) || t.type !== 'player' || Date.now() - ultEmpuje < 2500) return;
+    if (!valido(t) || t.type !== 'player' || Date.now() - ultEmpuje < cd(2500, { agresion: -0.4 })) return;
     const d = dist(t);
     if (d > 6 || d < 1.5) return;
     const tp = t.position.floored(), bp = bot.entity.position;
@@ -768,8 +770,8 @@ function iniciarCombate(bot, api) {
     if (fuego && bot.health >= 10) op.push('fuego');
     if (agua && bot._intencion === 'carga') op.push('agua');
     if (!op.length) return;
-    ultTerreno = ahora; cdTerreno = 5000 + Math.random() * 15000;
-    if (Math.random() < 0.4) return;
+    ultTerreno = ahora; cdTerreno = cd(10_000, { astucia: -0.5, crueldad: -0.2 });
+    if (Math.random() < Math.min(0.8, 0.4 / P.rasgo('astucia'))) return;
     const eleg = op[Math.floor(Math.random() * op.length)];
     const celda = celdaRival(t, eleg === 'lava' ? 1 : 0);
     const base = sueloDe(celda), aire = bot.blockAt(celda);
@@ -885,7 +887,7 @@ function iniciarCombate(bot, api) {
   const reposicion = setInterval(async () => {
     if (!bot.entity || ocupado || api.ocupado() || enMLG || crisActivo || bot.health < 6) return;
     const t = api.obtenerObjetivo();
-    if (!valido(t) || t.type !== 'player' || dist(t) > 5.5 || Date.now() - ultReposicion < 4000) return;
+    if (!valido(t) || t.type !== 'player' || dist(t) > 5.5 || Date.now() - ultReposicion < cd(4000, { astucia: -0.3 })) return;
     if (libertad() > 5) return;
     const f = mejorFuga(t);
     if (!f) return;
@@ -904,8 +906,8 @@ function iniciarCombate(bot, api) {
     const t = api.obtenerObjetivo();
     if (!valido(t) || t.type !== 'player') return;
     const d = dist(t), ahora = Date.now();
-    if (d < 2.5 || d > 6 || ahora - ultFinta2 < 4000 + Math.random() * 9000) return;
-    if ((bot._intencion !== 'carga' && bot._intencion !== 'strafe') || Math.random() > 0.5) return;
+    if (d < 2.5 || d > 6 || ahora - ultFinta2 < cd(8000, { astucia: -0.5, agresion: -0.2 })) return;
+    if ((bot._intencion !== 'carga' && bot._intencion !== 'strafe') || Math.random() > Math.min(0.9, 0.5 / P.rasgo('astucia'))) return;
     ultFinta2 = ahora;
     const tipo = Math.random();
     ocupado = true; api.pausar(); api.ocupar(true);
@@ -930,7 +932,7 @@ function iniciarCombate(bot, api) {
   };
   let ultCobertura = 0;
   const cobertura = setInterval(async () => {
-    if (!bot.entity || ocupado || api.ocupado() || enMLG || crisActivo || Date.now() - ultCobertura < 2500) return;
+    if (!bot.entity || ocupado || api.ocupado() || enMLG || crisActivo || Date.now() - ultCobertura < cd(2500, { cautela: -0.6 })) return;
     const t = api.obtenerObjetivo();
     if (!valido(t) || t.type !== 'player') return;
     const arma = sosteniendo(t), d = dist(t);

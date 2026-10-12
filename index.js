@@ -511,7 +511,7 @@ function iniciarHuida(bot) {
         if (bot._modoEquipo > ahora && dist > 5 && !recienGolpeado) return; // no persigue: a equiparse
       }
       if (fintando) return;
-      if (objetivo.type === 'player' && dist > 7 && bot.health >= 12 && Date.now() - ultFinta > 45_000 && Math.random() < 0.18 &&
+      if (objetivo.type === 'player' && dist > 7 && bot.health >= 12 && Date.now() - ultFinta > 45_000 && Math.random() < 0.18 * require('./pesos').rasgo('agresion') &&
           !(diag.estado.vida.ultimoDano && Date.now() - diag.estado.vida.ultimoDano < 6000)) { fintaBloques(); return; }
       if (dist < 3) atacar(objetivo);
       else perseguir(objetivo);
