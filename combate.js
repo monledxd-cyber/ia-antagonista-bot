@@ -543,7 +543,7 @@ function iniciarCombate(bot, api) {
     const ahora = Date.now();
     if (ahora - jitterTs > 10000 + Math.random() * 15000) { jitterTs = ahora; fracHuida = Math.max(0.12, Math.min(0.5, fracHuida + (Math.random() - 0.5) * 0.16 + (0.3 - fracHuida) * 0.2)); }
     const max = (bot.entity && bot.entity.attributes && 20) || 20;
-    let f = fracHuida;
+    let f = fracHuida + (require('./pesos').rasgo('cautela') - 1) * 0.12 - (require('./pesos').rasgo('agresion') - 1) * 0.08;
     if (t.type === 'player' && rivalSuperior(t)) f += 0.12;
     const maxReciente = Math.max(bot.health, ...hpLog.filter(([ts]) => ahora - ts < 3000).map((r) => r[1]));
     if ((maxReciente - bot.health) / max >= 0.4) f += 0.12;

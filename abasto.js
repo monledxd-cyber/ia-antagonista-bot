@@ -804,7 +804,7 @@ function crearAbasto(bot, o) {
       const boost = r < 100 ? 60 - r * 1.5 : 0;
       const exito = 0.6 + 0.8 * (hab.tasa ? hab.tasa(n) : 0.5);
       const atasco = hab.atascado(n) ? 0.3 : 1;
-      return { x, n, w: (base * (urg[n] || 1) + boost) * exito * atasco * (0.75 + Math.random() * 0.5) };
+      return { x, n, w: (base * (urg[n] || 1) + boost) * exito * atasco * require('./pesos').peso(1, { paciencia: n === 'asalto' || n === 'encantar' || n === 'pociones' ? 0.5 : 0 }) };
     }).sort((p, q) => q.w - p.w);
     diag.estado.pesos = pesos.slice(0, 6).map((p) => p.n + ':' + Math.round(p.w)).join(' ');
     return pesos.map((p) => p.x);

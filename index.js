@@ -328,6 +328,7 @@ function iniciarHuida(bot) {
   require('./peleas').crearPeleas(bot, memoria);
   bot._sumarVec = (n, c, x) => memoria.sumarVec(n, c, x);
   require('./stats').conectarStats(bot, statsAM, diag);
+  require('./pesos').iniciar(bot, diag);
   bot._tactica = (k) => { try { const t = bot.pvp && bot.pvp.target; if (t && t.type === 'player') memoria.tactica(t.username, k); } catch (e) { /* ignorar */ } };
   bot._tacticaDe = (n, k) => { memoria.tactica(n, k); memoria.victoria(n, k); };
   bot._abasto = crearAbasto(bot, {
@@ -1026,7 +1027,7 @@ async function crearBot() {
           registrarRespuesta(p.username, respuesta);
           // limite de ritmo para comandos propios: el chat vanilla expulsa por spam
           if (/\[CMD:/.test(respuesta) && Date.now() - ultCmd < cdCmd) respuesta = respuesta.replace(/\[CMD:(?:[^\[\]]|\[[^\]]*\])+\]/, '');
-          else if (/\[CMD:/.test(respuesta)) { ultCmd = Date.now(); cdCmd = 4_000 + Math.random() * 10_000; }
+          else if (/\[CMD:/.test(respuesta)) { ultCmd = Date.now(); cdCmd = require('./pesos').peso(9_000, { astucia: -0.5, agresion: -0.3 }); }
           await manejarRespuesta(bot, { nombre: p.username }, respuesta);
         } catch (e) { console.error('[voluntad] error:', e.message); }
         pensando = false;
@@ -1041,10 +1042,10 @@ async function crearBot() {
     if (!bot._habladorEspontaneoActivo) {
       bot._habladorEspontaneoActivo = true;
       const HABLA_ESPONTANEA_MS = 90_000;
-      const PROB_HABLAR = 0.75; // 50% de veces se queda callado ese ciclo, para no sentirse mecanico
+      const PROB_HABLAR_BASE = 0.75; // 50% de veces se queda callado ese ciclo, para no sentirse mecanico
       const habladorInterval = setInterval(async () => {
         if (!bot.entity) return;
-        if (Math.random() > PROB_HABLAR) return; // se salta este turno, silencio deliberado
+        if (Math.random() > Math.min(0.95, PROB_HABLAR_BASE * Math.pow(require('./pesos').rasgo('crueldad'), 0.4))) return; // se salta este turno, silencio deliberado
         const candidato = Object.values(bot.entities).find(e =>
           e.type === 'player' && e.username !== BOT_USERNAME &&
           e.position.distanceTo(bot.entity.position) < 30

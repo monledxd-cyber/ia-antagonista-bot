@@ -53,7 +53,7 @@ function crearEstratega(bot, o) {
       if (!cont || cont.rival !== amenaza.username) {
         const op = ['techo', 'kite', 'esquiva'];
         const pr = bot._estDe ? bot._estDe(amenaza.username) : {};
-        const w = op.map((k) => { const r = pr[k] || est[k] || { ok: 0, mal: 0 }; return (1 + r.ok) / (1 + r.mal) * (0.6 + Math.random() * 0.8) * (k === 'techo' && !buscarTecho(t) ? 0.2 : 1); });
+        const w = op.map((k) => { const r = pr[k] || est[k] || { ok: 0, mal: 0 }; return (1 + r.ok) / (1 + r.mal) * require('./pesos').peso(1, { astucia: 0.5 }) * (k === 'techo' && !buscarTecho(t) ? 0.2 : 1); });
         const k = op[w.indexOf(Math.max(...w))];
         cont = { k, rival: amenaza.username, t0: ahora, dano: 0, ult: ahora };
         diag.log('info', 'estratega', 'contra ' + amenaza.username + ': ' + k);
