@@ -60,6 +60,14 @@ function crearBase(bot, o) {
     encierro().catch(() => { encerrado = false; });
   }, 500);
 
+  // Horda: muchos hostiles encima y poca vida -> encierro
+  const HORDA = /^(zombie|husk|drowned|skeleton|stray|spider|cave_spider|creeper|witch|pillager|vindicator|phantom|slime)$/;
+  const hordaInt = setInterval(() => {
+    if (!bot.entity || encerrado || o.ocupado() || bot.health === undefined || bot.health > 12 || Date.now() - ultEnc < 40_000 || !bloque()) return;
+    const n = Object.values(bot.entities).filter((e) => e.position && HORDA.test(e.name || '') && dist(e) < 8).length;
+    if (n >= 4) encierro().catch(() => { encerrado = false; });
+  }, 700);
+
   // Volver a base a recuperarse cuando esta herido y nadie lo ve
   const regInt = setInterval(() => {
     if (!base || !bot.entity || o.ocupado() || encerrado || rival() || Date.now() - ultRegreso < 60_000) return;
@@ -102,7 +110,7 @@ function crearBase(bot, o) {
     diag.log('info', 'base', 'emboscada contra ' + c.username);
   }, 400);
 
-  bot.once('end', () => { clearInterval(encInt); clearInterval(regInt); clearInterval(embInt); });
+  bot.once('end', () => { clearInterval(encInt); clearInterval(regInt); clearInterval(hordaInt); clearInterval(embInt); });
 }
 
 module.exports = { crearBase };

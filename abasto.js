@@ -14,7 +14,9 @@ function crearAbasto(bot, o) {
   const items = () => bot.inventory.items();
   const cuenta = (re) => items().filter((i) => re.test(i.name)).reduce((a, i) => a + i.count, 0);
   const tiene = (re) => cuenta(re) > 0;
-  const libre = () => o.tranquilo() && !jugadorCerca(bot._modoEquipo > Date.now() ? 14 : 24);
+  const HOSTIL = /^(zombie|husk|drowned|skeleton|stray|bogged|spider|cave_spider|creeper|witch|pillager|vindicator|evoker|ravager|phantom|slime|magma_cube|blaze|ghast|hoglin|zoglin|wither_skeleton|zombie_villager|zombified_piglin_hostil)$/;
+  const hostiles = (r) => Object.values(bot.entities).filter((e) => e !== bot.entity && e.position && HOSTIL.test(e.name || '') && e.position.distanceTo(bot.entity.position) < r).length;
+  const libre = () => o.tranquilo() && !bot._abortarPaso && !jugadorCerca(bot._modoEquipo > Date.now() ? 14 : 24) && !(hostiles(14) >= 1 || hostiles(24) >= 2);
   function jugadorCerca(r) {
     return Object.values(bot.entities).some((e) => e.type === 'player' && e.username !== bot.username && e.position.distanceTo(bot.entity.position) < r);
   }
@@ -415,12 +417,14 @@ function crearAbasto(bot, o) {
     { item: 'enchanting_table', cuando: () => !tiene(/^enchanting_table$/) && !bloqueN(/^enchanting_table$/, 48) && cuenta(/^obsidian$/) >= 4 && cuenta(/^diamond$/) >= 2 },
     { item: 'brewing_stand', cuando: () => tiene(/^blaze_rod$/) && !tiene(/^brewing_stand$/) && !bloqueN(/^brewing_stand$/, 48) },
     { item: 'blaze_powder', cuando: () => tiene(/^blaze_rod$/) && (tiene(/^brewing_stand$/) || bloqueN(/^brewing_stand$/, 48)) && cuenta(/^blaze_powder$/) < 3 },
+    { item: 'ender_eye', n: 4, cuando: () => process.env.IA_END === '1' && cuenta(/^ender_pearl$/) >= 1 && cuenta(/^blaze_powder$/) >= 1 && cuenta(/^ender_eye$/) < 12 },
     { item: 'sugar', cuando: () => tiene(/^sugar_cane$/) && cuenta(/^sugar$/) < 2 },
     { item: 'anvil', cuando: () => !tiene(/^anvil$/) && !bloqueN(/anvil$/, 24) && items().some((i) => i.durabilityUsed > 0), despues: () => colocar('anvil') },
   ];
   const ex = require('./extras').crearExtras({ bot, goals, diag, o, items, cuenta, tiene, bloqueN, colocar, craftear, cocinar, libre, dormir, memoria: o.memoria, VALIOSO, buscarVar, get base() { return base; } });
   const nether = require('./nether').crearNether({ bot, goals, diag, items, cuenta, tiene, libre, dormir });
   bot._nether = nether;
+  const finEnd = require('./end').crearEnd({ bot, goals, diag, items, cuenta, tiene, libre, dormir, craftear });
   let ultDeseo = {};
 
   const necesidades = [
@@ -753,6 +757,7 @@ function crearAbasto(bot, o) {
       return cocinar(l.name);
     }],
     ['nether', nether.expedicion],
+    ['end', finEnd.expedicion],
     ['encantar', ex.encantar],
     ['lapis', ex.lapis],
     ['pociones', ex.pociones],
@@ -782,8 +787,39 @@ function crearAbasto(bot, o) {
   ];
 
   // Prioridades segun el momento: urgencias primero (comida, armadura, flechas si hay jugadores), y de noche nada en superficie.
-  function ordenar() {
+  const PICO = { madera: /_pickaxe$/, piedra: /^(stone|iron|diamond|netherite)_pickaxe$/, hierro: /^(iron|diamond|netherite)_pickaxe$/, diamante: /^(diamond|netherite)_pickaxe$/ };
+  const mesaCerca = () => bloqueN(/^crafting_table$/, 24) || tiene(/^crafting_table$/);
+  const hornoPosible = () => cuenta(/^cobblestone$/) >= 8 || tiene(/^furnace$/) || bloqueN(/^furnace$/, 24);
+  const herramientaPara = (re) => {
+    if (items().some((i) => re.test(i.name))) return null;
+    if (cuenta(/_log$|_planks$/) < 6 && !mesaCerca()) return 'madera';
+    if (!mesaCerca()) return 'mesa';
+    if (re !== PICO.madera && cuenta(/^(cobblestone|cobbled_deepslate)$/) < 3 && !items().some((i) => PICO.piedra.test(i.name))) return 'piedra';
+    if (re === PICO.hierro || re === PICO.diamante) {
+      if (!items().some((i) => PICO.hierro.test(i.name))) { if (cuenta(/^iron_ingot$/) < 3) return tiene(/^raw_iron$/) ? 'fundir' : 'hierro'; }
+    }
+    if (re === PICO.diamante && cuenta(/^diamond$/) < 3) return 'mina';
+    return 'equipo';
+  };
+  const necesitaArma = () => (tiene(/_(sword|axe)$/) ? null : 'equipo');
+  const REQ = {
+    mesa: () => (cuenta(/_log$|_planks$/) < 6 ? 'madera' : null),
+    palos: () => (cuenta(/_planks$/) < 2 ? 'madera' : null),
+    equipo: () => (mesaCerca() ? null : 'mesa'),
+    piedra: () => herramientaPara(PICO.madera),
+    carbon: () => herramientaPara(PICO.madera),
+    hierro: () => herramientaPara(PICO.piedra),
+    mina: () => herramientaPara(PICO.piedra),
+    obsidiana: () => (!tiene(/^diamond_pickaxe$/) ? herramientaPara(PICO.diamante) : !tiene(/^water_bucket$/) ? (tiene(/^bucket$/) ? 'agua' : 'cubo') : null),
+    fundir: () => (hornoPosible() ? null : 'piedra'),
+    carne: () => (hornoPosible() ? null : 'piedra'),
+    cubo: () => (cuenta(/^iron_ingot$/) < 3 ? (tiene(/^raw_iron$/) ? 'fundir' : 'hierro') : null),
+    agua: () => (tiene(/^bucket$/) ? null : 'cubo'),
+    polvora: necesitaArma, esqueletos: necesitaArma, cuerda: necesitaArma, perlas: necesitaArma, xp: necesitaArma,
+  };
+  function ordenar(det) {
     const frente = [];
+    if (tiene(/^(beef|porkchop|mutton|chicken|cod|salmon|potato)$/) && hornoPosible()) frente.push('carne');
     if (muerte) frente.push('recuperar');
     if (cuenta(/_log$|_planks$/) < 6) frente.push('madera');
     if (cuenta(COMIDA) < 3) frente.push('comida', 'carne', 'cosecha', 'pan', 'azada', 'semillas', 'granja');
@@ -800,22 +836,36 @@ function crearAbasto(bot, o) {
     const rank = (n) => { const i = frente.indexOf(n); return i < 0 ? 100 : i; };
     const env = {};
     for (const kv of (process.env.IA_PESOS || '').split(',')) { const [k, v] = kv.split('='); if (k && +v > 0) env[k.trim()] = +v; }
-    const urg = { madera: cuenta(/_log$|_planks$/) < 6 ? 2.5 : 1, comida: cuenta(COMIDA) < 3 ? 3 : cuenta(COMIDA) < 6 ? 1.3 : 0.7, basura: items().length >= 32 ? 3 : 0.5, nether: nether.listo() ? 3 : 0.4, encantar: ((bot.experience && bot.experience.level) || 0) >= 5 ? 2 : 0.6, asalto: bot._sadismo ? bot._sadismo() : 1, xp: ((bot.experience && bot.experience.level) || 0) < 5 ? 1.8 : 1 };
+    const urg = { madera: cuenta(/_log$|_planks$/) < 6 ? 2.5 : 1, comida: (tiene(/^(beef|porkchop|mutton|chicken|cod|salmon)$/) && hornoPosible()) ? 0.2 : cuenta(COMIDA) < 3 ? 3 : cuenta(COMIDA) < 6 ? 1.3 : 0.7, basura: items().length >= 32 ? 3 : 0.5, nether: nether.listo() ? 3 : 0.4, end: finEnd.quiere() ? 4 : 0.2, encantar: ((bot.experience && bot.experience.level) || 0) >= 5 ? 2 : 0.6, asalto: bot._sadismo ? bot._sadismo() : 1, xp: ((bot.experience && bot.experience.level) || 0) < 5 ? 1.8 : 1 };
     const pesos = necesidades.map((x, i) => {
       const n = x[0], r = rank(n);
       const base = env[n] || Math.max(6, 60 - i * 0.9);
       const boost = r < 100 ? 60 - r * 1.5 : 0;
       const exito = 0.6 + 0.8 * (hab.tasa ? hab.tasa(n) : 0.5);
       const atasco = hab.atascado(n) ? 0.3 : 1;
-      return { x, n, w: (base * (urg[n] || 1) + boost) * exito * atasco * require('./pesos').peso(1, { paciencia: n === 'asalto' || n === 'encantar' || n === 'pociones' ? 0.5 : 0 }) };
+      return { x, n, w: (base * (urg[n] || 1) + boost) * exito * atasco * (det ? 1 : require('./pesos').peso(1, { paciencia: n === 'asalto' || n === 'encantar' || n === 'pociones' ? 0.5 : 0 })) };
     }).sort((p, q) => q.w - p.w);
-    diag.estado.pesos = pesos.slice(0, 6).map((p) => p.n + ':' + Math.round(p.w)).join(' ');
+    // jerarquia logica: un paso con prerequisito sin cumplir cede su peso al prerequisito (recursivo)
+    const porNombre = new Map(pesos.map((p) => [p.n, p]));
+    for (const p of [...pesos]) {
+      let n = p.n; const cadena = [];
+      while (REQ[n] && cadena.length < 6) {
+        let need = null;
+        try { need = REQ[n](); } catch (e) { need = null; }
+        if (!need || need === n || cadena.includes(need) || !porNombre.has(need)) break;
+        cadena.push(n); n = need;
+      }
+      if (cadena.length) { const t = porNombre.get(n); t.w = Math.max(t.w, p.w * 1.3 + 10); for (const c of cadena) porNombre.get(c).w *= 0.02; }
+    }
+    pesos.sort((p, q) => q.w - p.w);
+    if (!det) diag.estado.pesos = pesos.slice(0, 6).map((p) => p.n + ':' + Math.round(p.w)).join(' ');
     return pesos.map((p) => p.x);
   }
 
 
   const recursos = new Set();
   bot._recursos = recursos;
+  bot._ordenar = ordenar;
   const MANT = { cobblestone: 64, dirt: 32, gravel: 16, andesite: 0, diorite: 0, granite: 0, tuff: 0, netherrack: 0, cobbled_deepslate: 0, rotten_flesh: 0, poisonous_potato: 0, spider_eye: 0, pufferfish: 0 };
   const paralelas = [
     { n: 'crafteo', res: ['inv'], cuando: () => true, fn: async () => {
@@ -847,9 +897,21 @@ function crearAbasto(bot, o) {
   }, 2000);
   bot.once('end', () => clearInterval(segundoPlano));
 
+  let pasoActual = null;
+  const CRIT = new Set(['comida', 'carne', 'dormir', 'recuperar']);
+  const vigia = setInterval(() => {
+    if (!activo || !pasoActual || bot._abortarPaso || CRIT.has(pasoActual)) return;
+    let top = null;
+    try { top = ordenar(true)[0]; } catch (e) { return; }
+    const n = top && top[0];
+    if (n && CRIT.has(n) && n !== pasoActual && (fallos[n] || 0) <= Date.now()) { bot._abortarPaso = true; diag.log('info', 'abasto', 'preempta ' + pasoActual + ' por ' + n); }
+  }, 2000);
+  bot.once('end', () => clearInterval(vigia));
+
   const intervalo = setInterval(async () => {
     if (!ON || bot._pausaAbasto || activo || !bot.entity || Date.now() - ultima < (ultimoOk ? 1200 : 6000)) return;
     diag.estado.abastoMotivo = !o.tranquilo() ? 'no tranquilo (combate, objetivo o enemigo a <14)' : jugadorCerca(bot._modoEquipo > Date.now() ? 14 : 24) ? 'jugador cerca' : bot.health <= 12 ? 'vida baja' : ''; // tras un exito sigue enseguida: siempre persigue la siguiente mejora
+    bot._abortarPaso = false;
     if (!libre() || bot.health <= 12) return;
     activo = true; o.ocupar(true); ultimoOk = false;
     try {
@@ -860,8 +922,11 @@ function crearAbasto(bot, o) {
         if ((fallos[nombre] || 0) > Date.now()) continue;
         let r, motivo = 'no pudo completarlo (falta algo o no hay objetivo cerca)';
         const antes = hab.snap(), t0 = Date.now();
+        pasoActual = nombre;
         try { r = await paso(); } catch (e) { r = false; motivo = 'error: ' + e.message; diag.log('error', 'abasto', nombre + ': ' + e.message); }
+        pasoActual = null;
         if (r === 'nada') continue;
+        if (!r && (bot._abortarPaso || !libre())) { bot._abortarPaso = false; break; }
         const veredicto = hab.registrar(nombre, r, antes, Date.now() - t0);
         diag.estado.habilidades = hab.resumen();
         if (veredicto === 'dudoso') { diag.log('warn', 'abasto', nombre + ' sin cambio verificable'); if (hab.atascado(nombre)) { r = false; motivo = 'sin cambio verificable 3 veces seguidas'; } }

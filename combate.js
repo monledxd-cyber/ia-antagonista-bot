@@ -818,6 +818,7 @@ function iniciarCombate(bot, api) {
     return best;
   };
   bot._mejorFuga = mejorFuga;
+  bot._disparar = (t, arma) => disparar(t, arma);
   const libertad = () => abierto().filter((d) => d.n >= 4).length;
   const bloqueMuro = () => inv().find((i) => /^(cobblestone|dirt|stone|netherrack|cobbled_deepslate|andesite|diorite|granite|tuff|sandstone|end_stone|[a-z_]+_planks)$/.test(i.name) && i.count >= 3);
   async function muro(t) {
