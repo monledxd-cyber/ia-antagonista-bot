@@ -63,7 +63,7 @@ function crearSuperviv(bot, o) {
   async function escapeAcantilado() {
     const c = buscarAcantilado();
     if (!c) return;
-    ultAcantilado = Date.now();
+    ultAcantilado = Date.now(); bot._caidaOK = Date.now() + 9000;
     diag.log('info', 'supervivencia', 'escapa saltando por un acantilado');
     try { await Promise.race([bot.pathfinder.goto(new goals.GoalNear(c.ex, c.ey, c.ez, 0)), dormir(6000)]); } catch (e) { /* ignorar */ }
     const b = item('water_bucket');
