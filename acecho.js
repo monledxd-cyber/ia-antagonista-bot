@@ -25,7 +25,7 @@ function crearAcecho(bot, o) {
     if (!tg || tg.type !== 'player' || bot.health < 14 || (cooldown[tg.username] || 0) > now || memoria.odio(tg.username) < 2) return;
     const h = vida(tg);
     if (h === null || h > 5) return;
-    if (Math.random() > Math.min(0.95, 0.5 + memoria.odio(tg.username) * 0.02)) { cooldown[tg.username] = now + 60_000; return; }
+    if (Math.random() > Math.min(0.95, (0.5 + memoria.odio(tg.username) * 0.02) * (bot._sadismo ? bot._sadismo() : 1))) { cooldown[tg.username] = now + 60_000; return; }
     bot._tormento = { n: tg.username, hasta: now + 25_000 + Math.random() * 20_000 };
     try { bot.pvp.stop(); } catch (x) { /* ignorar */ }
     decir(pick('tormento', tg.username));

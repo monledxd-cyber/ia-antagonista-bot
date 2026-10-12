@@ -93,14 +93,16 @@ const lastCall = new Map(); // nombre -> timestamp
 const trampaLastUse = new Map(); // nombre -> timestamp de la ultima trampa activada
 const historialJugador = new Map(); // nombre -> { interacciones, ultimasRespuestas: [], eventos: [] }
 const persist = require('./persist');
-const RUTAS_MEM = [process.env.IA_MEMORIA || 'memoria_jugadores.json', process.env.IA_DIARIO || 'diario_am.json', process.env.IA_BASE || 'base_am.json', process.env.IA_CLAVES || 'claves_am.json', process.env.IA_APRENDIZAJE || 'aprendizaje.json', process.env.IA_HABILIDADES || 'habilidades_am.json']
+const RUTAS_MEM = [process.env.IA_MEMORIA || 'memoria_jugadores.json', process.env.IA_DIARIO || 'diario_am.json', process.env.IA_BASE || 'base_am.json', process.env.IA_CLAVES || 'claves_am.json', process.env.IA_APRENDIZAJE || 'aprendizaje.json', process.env.IA_HABILIDADES || 'habilidades_am.json', process.env.IA_STATS || 'stats_am.json']
   .map((r) => (require('path').isAbsolute(r) ? r : require('path').join(__dirname, r)));
 persist.restaurar(RUTAS_MEM); // Render: disco efimero -> recupera la memoria del gist si esta configurado
 const memoria = crearMemoria();
+const statsAM = require('./stats').crearStats(require('path').join(__dirname, process.env.IA_STATS || 'stats_am.json'));
+{ const odioBase = memoria.odio; memoria.odio = (n) => odioBase(n) * statsAM.mult('odio'); }
 const diario = require('./diario').crearDiario();
 const { alertar } = require('./alertas');
 const ultimoMsgMuerte = { txt: '', t: 0 };
-persist.iniciar(RUTAS_MEM, () => { memoria.guardar(); diario.guardar(); });
+persist.iniciar(RUTAS_MEM, () => { memoria.guardar(); diario.guardar(); statsAM.guardar(); });
 let erroresVistos = 0;
 process.on('uncaughtException', (e) => { erroresVistos++; console.error('[fatal evitado]', e && e.stack || e); diag.estado.erroresCodigo.push({ t: Date.now(), msg: String(e && e.stack || e).slice(0, 900) }); diag.estado.erroresCodigo.splice(0, Math.max(0, diag.estado.erroresCodigo.length - 10)); diag.log('error', 'codigo', e && e.message || e); });
 process.on('unhandledRejection', (e) => { console.error('[promesa rechazada]', e && e.message || e); diag.log('warn', 'promesa', e && e.message || e); });
@@ -111,6 +113,7 @@ const extrasCtx = (bot, nombre, falla) => {
     memoriaJugador: memoria.resumen(nombre),
     radar: (() => { try { return bot._acecho ? bot._acecho.radar() : ''; } catch (e) { return ''; } })(),
     intencion: bot._intencion || '',
+    stats: statsAM.resumen(),
     fase: (() => { try { if (bot._acecho && bot._acecho.fase()) return bot._acecho.fase(); const tg = bot.pvp && bot.pvp.target; if (Date.now() - diario.ultKill() < 60_000) return 'rival_muerto'; if (bot._retirada > Date.now()) return 'retirada'; if (!tg) return ''; const d = tg.position.distanceTo(bot.entity.position); if (d > 14) return 'rival_huye'; if (diag.estado.vida.ultimoDano && Date.now() - diag.estado.vida.ultimoDano < 5000) return 'intercambio'; return 'inicio'; } catch (e) { return ''; } })(),
     animo: (() => { try { const hp = bot.health, golpe = diag.estado.vida.ultimoDano && Date.now() - diag.estado.vida.ultimoDano < 8000; const rivales = Object.values(bot.entities).filter((e) => e.type === 'player' && e.username !== BOT_USERNAME && bot.entity && e.position.distanceTo(bot.entity.position) < 14).length;
       if (hp < 8) return 'herido'; if (golpe && rivales > 1) return 'acorralado'; if (diario.muertesRecientes(30) > 0) return 'vengativo'; if (golpe) return 'en_pelea'; return 'frio'; } catch (e) { return 'frio'; } })(),
@@ -317,6 +320,7 @@ function iniciarHuida(bot) {
   _botActual = bot;
   if (process.env.IA_AUTOTEST === '1') setTimeout(() => autotest.ejecutar(), 20_000);
   bot._odio = (n) => memoria.odio(n);
+  require('./stats').conectarStats(bot, statsAM, diag);
   bot._tactica = (k) => { try { const t = bot.pvp && bot.pvp.target; if (t && t.type === 'player') memoria.tactica(t.username, k); } catch (e) { /* ignorar */ } };
   bot._tacticaDe = (n, k) => { memoria.tactica(n, k); memoria.victoria(n, k); };
   bot._abasto = crearAbasto(bot, {
@@ -957,7 +961,7 @@ async function crearBot() {
     if (!bot._memoriaHooks) {
       bot._memoriaHooks = true;
       bot.on('playerJoined', (p) => { if (p && p.username !== BOT_USERNAME) memoria.entra(p.username); });
-      bot.on('entityDead', (e) => { if (e && e.type === 'player' && e.username && bot.entity && e.position.distanceTo(bot.entity.position) < 16) { memoria.murio(e.username); memoria.resultado(e.username, true); diario.kill(); bot._loot = { pos: e.position.clone(), hasta: Date.now() + 45_000 }; } });
+      bot.on('entityDead', (e) => { if (e && e.type === 'player' && e.username && bot.entity && e.position.distanceTo(bot.entity.position) < 16) { memoria.murio(e.username); memoria.resultado(e.username, true); diario.kill(); statsAM.sumar('sadismo', 3); bot._loot = { pos: e.position.clone(), hasta: Date.now() + 45_000 }; } });
       const armasI = setInterval(() => {
         if (!bot.entity) return;
         for (const e of Object.values(bot.entities)) {
