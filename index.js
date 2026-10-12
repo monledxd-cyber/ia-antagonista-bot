@@ -303,6 +303,7 @@ function iniciarHuida(bot) {
     objetivo: () => objetivoActual,
     odio: (n) => memoria.odio(n),
   });
+  if (process.env.IA_ESTRATEGA !== '0') require('./estratega').crearEstratega(bot, { ocupado: () => comiendo });
   if (process.env.IA_CURACION !== '0') require('./curacion').crearCuracion(bot, {
     ocupado: () => comiendo,
     reequipar: () => equiparAutomatico(bot),

@@ -47,6 +47,8 @@ function crearBase(bot, o) {
     encerrado = false;
   }
 
+  bot._encierro = () => { if (!encerrado && bloque()) encierro().catch(() => { encerrado = false; }); };
+
   const encInt = setInterval(() => {
     if (!bot.entity || encerrado || o.ocupado() || bot.health === undefined) return;
     if (Date.now() - ultEnc < 40_000) return;
