@@ -795,7 +795,19 @@ function crearAbasto(bot, o) {
     const atas = necesidades.map((x) => x[0]).filter((n) => hab.atascado(n) && (fallos[n] || 0) <= Date.now());
     if (atas.length) frente.unshift('sondeo');
     const rank = (n) => { const i = frente.indexOf(n); return i < 0 ? 100 : i; };
-    return necesidades.map((x, i) => [x, i]).sort((p, q) => (rank(p[0][0]) - rank(q[0][0])) || (p[1] - q[1])).map((x) => x[0]);
+    const env = {};
+    for (const kv of (process.env.IA_PESOS || '').split(',')) { const [k, v] = kv.split('='); if (k && +v > 0) env[k.trim()] = +v; }
+    const urg = { madera: cuenta(/_log$|_planks$/) < 6 ? 2.5 : 1, comida: cuenta(COMIDA) < 3 ? 3 : cuenta(COMIDA) < 6 ? 1.3 : 0.7, basura: items().length >= 32 ? 3 : 0.5, encantar: ((bot.experience && bot.experience.level) || 0) >= 5 ? 2 : 0.6, asalto: bot._sadismo ? bot._sadismo() : 1, xp: ((bot.experience && bot.experience.level) || 0) < 5 ? 1.8 : 1 };
+    const pesos = necesidades.map((x, i) => {
+      const n = x[0], r = rank(n);
+      const base = env[n] || Math.max(6, 60 - i * 0.9);
+      const boost = r < 100 ? 60 - r * 1.5 : 0;
+      const exito = 0.6 + 0.8 * (hab.tasa ? hab.tasa(n) : 0.5);
+      const atasco = hab.atascado(n) ? 0.3 : 1;
+      return { x, n, w: (base * (urg[n] || 1) + boost) * exito * atasco * (0.75 + Math.random() * 0.5) };
+    }).sort((p, q) => q.w - p.w);
+    diag.estado.pesos = pesos.slice(0, 6).map((p) => p.n + ':' + Math.round(p.w)).join(' ');
+    return pesos.map((p) => p.x);
   }
 
 
