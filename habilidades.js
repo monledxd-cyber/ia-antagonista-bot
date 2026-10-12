@@ -3,7 +3,7 @@ const fs = require('fs');
 function crearHabilidades(bot, ruta) {
   let d = {}, sucio = false;
   try { d = JSON.parse(fs.readFileSync(ruta, 'utf8')); } catch (e) { d = {}; }
-  const EXENTOS = /^(base|guardar|cofre|dormir|granja|lava|tnt|rearmar|sondeo|rastrear|recuperar|claves|cosecha|equipo|yunque|trampas|explorar|mina|botin)$/;
+  const EXENTOS = /^(base|guardar|cofre|dormir|granja|lava|tnt|rearmar|sondeo|rastrear|recuperar|claves|cosecha|equipo|yunque|trampas|explorar|mina|botin|asalto)$/;
   const g = (n) => (d[n] = d[n] || { ok: 0, fail: 0, dudoso: 0, seguidos: 0, ult: 0, ms: 0 });
 
   function snap() {

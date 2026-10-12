@@ -412,8 +412,13 @@ function crearAbasto(bot, o) {
     { item: 'piston', n: 4, cuando: () => cuenta(/^piston$/) < 4 },
     { item: 'tripwire_hook', n: 2, cuando: () => cuenta(/^tripwire_hook$/) < 2 },
     { item: 'lever', n: 2, cuando: () => cuenta(/^lever$/) < 2 },
+    { item: 'enchanting_table', cuando: () => !tiene(/^enchanting_table$/) && !bloqueN(/^enchanting_table$/, 48) && cuenta(/^obsidian$/) >= 4 && cuenta(/^diamond$/) >= 2 },
+    { item: 'brewing_stand', cuando: () => tiene(/^blaze_rod$/) && !tiene(/^brewing_stand$/) && !bloqueN(/^brewing_stand$/, 48) },
+    { item: 'blaze_powder', cuando: () => tiene(/^blaze_rod$/) && (tiene(/^brewing_stand$/) || bloqueN(/^brewing_stand$/, 48)) && cuenta(/^blaze_powder$/) < 3 },
+    { item: 'sugar', cuando: () => tiene(/^sugar_cane$/) && cuenta(/^sugar$/) < 2 },
     { item: 'anvil', cuando: () => !tiene(/^anvil$/) && !bloqueN(/anvil$/, 24) && items().some((i) => i.durabilityUsed > 0), despues: () => colocar('anvil') },
   ];
+  const ex = require('./extras').crearExtras({ bot, goals, diag, o, items, cuenta, tiene, bloqueN, colocar, craftear, cocinar, libre, dormir, memoria: o.memoria, VALIOSO, buscarVar, get base() { return base; } });
   let ultDeseo = {};
 
   const necesidades = [
@@ -703,6 +708,10 @@ function crearAbasto(bot, o) {
       }
       return 'nada';
     }],
+    ['encantar', ex.encantar],
+    ['lapis', ex.lapis],
+    ['pociones', ex.pociones],
+    ['asalto', ex.asalto],
     ['sondeo', async () => {
       const falt = [];
       if (cuenta(/^gunpowder$/) >= 5 && cuenta(/^(red_)?sand$/) < 4) falt.push(['arena', /^(red_)?sand$/]);
