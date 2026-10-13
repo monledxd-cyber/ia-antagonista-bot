@@ -124,10 +124,31 @@ function crearPremio(bot, stats, memoria, ruta) {
   const gt = setInterval(guardar, 60_000);
   bot.once('end', () => { clearInterval(it); clearInterval(gt); guardar(); });
 
+  const TIER = (n) => /netherite/.test(n) ? 5 : /diamond/.test(n) ? 4 : /iron/.test(n) ? 3 : /chainmail|golden|gold|turtle|stone/.test(n) ? 2 : /leather|wooden/.test(n) ? 1 : 0;
+  const armaPts = (n) => (/mace/.test(n) ? 5 : /_sword|_axe/.test(n) ? TIER(n) : /bow|crossbow|trident/.test(n) ? 2 : 0);
+  // Ventaja inicial de -1 (muy desfavorable) a +1 (muy favorable): equipo, vida, comida, curas y numero de enemigos.
+  function ventaja(t) {
+    try {
+      const mio = [5, 6, 7, 8].reduce((a, s) => a + (bot.inventory.slots[s] ? TIER(bot.inventory.slots[s].name) : 0), 0) / 2
+        + armaPts((bot.heldItem && bot.heldItem.name) || '') + bot.health / 5 + (bot.food >= 14 ? 0.5 : 0)
+        + (bot.inventory.items().some((i) => /golden_apple|totem_of_undying/.test(i.name)) ? 1.5 : 0);
+      const hp = t.metadata && t.metadata[9];
+      const eq = Array.isArray(t.equipment) ? t.equipment : [];
+      const suyo = eq.slice(2, 6).reduce((a, i) => a + (i ? TIER(i.name) : 0), 0) / 2
+        + armaPts((t.heldItem && t.heldItem.name) || '') + (typeof hp === 'number' ? hp / 5 : 3.5)
+        + (eq.some((i) => i && i.name === 'shield') ? 0.7 : 0);
+      const otros = Object.values(bot.entities).filter((e) => e !== t && e !== bot.entity && e.position && e.position.distanceTo(bot.entity.position) < 14 && (e.type === 'player' || e.type === 'hostile') && e.username !== bot.username).length;
+      return Math.tanh((mio - suyo - otros * 1.5) / 6);
+    } catch (e) { return 0; }
+  }
+  const base = (r) => (over[r] !== undefined ? over[r] : REGLAS[r].v);
+
   const api = {
-    evento, sf: (n, m) => evento('libre', { v: Math.abs(n), motivo: m }), hm: (n, m) => evento('libre', { v: -Math.abs(n), motivo: m }),
-    gana: (arma, rival) => {
-      evento('gana', { motivo: rival });
+    ventaja, evento, sf: (n, m) => evento('libre', { v: Math.abs(n), motivo: m }), hm: (n, m) => evento('libre', { v: -Math.abs(n), motivo: m }),
+    pierde: (rival, adv) => { adv = adv || 0; evento('pierde', { v: base('pierde') * (adv > 0 ? 1 + 2 * adv : 1 + 0.5 * adv), motivo: rival + ' adv ' + adv.toFixed(2) }); },
+    gana: (arma, rival, adv) => {
+      adv = adv || 0;
+      evento('gana', { v: base('gana') * (adv < 0 ? 1 + 1.5 * -adv : 1 - 0.4 * adv), motivo: rival + ' adv ' + adv.toFixed(2) });
       if (arma) {
         d.killsCon[arma] = (d.killsCon[arma] || 0) + 1; sucio = true;
         if (d.killsCon[arma] === 1) evento('kill_con_nuevo', { k: arma });

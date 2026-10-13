@@ -4,7 +4,7 @@ const diag = require('./diag');
 // Red neuronal pequena (MLP, JS puro) que aprende el valor esperado de cada accion de pelea.
 // Modo sombra: sugiere y mide si coincidir con ella rinde mas; solo si rinde mas, sesga levemente el temperamento.
 const ACC = ['atacar', 'retroceder', 'curar', 'bloquear', 'esquivar', 'otra'];
-const NI = 27, NH = 16, NO = ACC.length, GAMMA = 0.8, LR = 0.01;
+const NI = 28, NH = 16, NO = ACC.length, GAMMA = 0.8, LR = 0.01;
 
 function mlp(w) {
   const r = (n, s) => Array.from({ length: n }, () => (Math.random() - 0.5) * 2 * s);
@@ -63,7 +63,7 @@ function crearNN(bot, ruta, rutaDatos, o) {
       clase(mia) / 5, arm([5, 6, 7, 8].map((i) => bot.inventory.slots[i])), arm((t.equipment || []).slice(2, 6)),
       lag ? c(lag.ping() / 300, 0, 1) : 0, lag ? c(lag.tps() / 20, 0, 1) : 1, lag && lag.rival(t) ? 1 : 0,
       noche, bot.entity.isInWater ? 1 : 0, c(cau, 0, 1),
-      cnt(/^(golden_apple|enchanted_golden_apple)$/) > 0 ? 1 : 0, cnt(/^ender_pearl$/) > 0 ? 1 : 0,
+      cnt(/^(golden_apple|enchanted_golden_apple)$/) > 0 ? 1 : 0, cnt(/^ender_pearl$/) > 0 ? 1 : 0, bot._premio ? bot._premio.ventaja(t) : 0,
     ];
   }
 
