@@ -837,17 +837,19 @@ function crearAbasto(bot, o) {
     }
     alcance[clave] = 0;
     const b = lista[0];
-    if (!(await cavar(b.x, b.y, b.z, 40000))) return false;
+    if (!(await cavar(b.x, b.y, b.z, 40000))) { if (bot._premio) bot._premio.evento('mineral_perdido', { k: tipo }); return false; }
     let n = 0, cur = b;
     while (n < 14 && libre()) {
       const blk = bot.blockAt(cur);
       if (blk && M.re.test(blk.name) && (await romper(blk))) n++;
+      else if (bot._premio && !(blk && M.re.test(blk.name))) bot._premio.evento('mineral_perdido', { k: tipo });
       const sig = bot.findBlocks({ matching: ids, maxDistance: 6, count: 8 }).filter((p) => !peligrosa(p))[0];
       if (!sig) break;
       if (!(await cavar(sig.x, sig.y, sig.z, 15000))) break;
       cur = sig;
     }
     await recoger(/^(raw_iron|raw_gold|raw_copper|coal|redstone|lapis_lazuli|diamond)$/, 10);
+    if (n > 0 && bot._premio) bot._premio.evento('mineral', { k: tipo, v: 0.4 * n });
     return n > 0;
   }
   const REQ = {
@@ -984,11 +986,11 @@ function crearAbasto(bot, o) {
         const veredicto = hab.registrar(nombre, r, antes, Date.now() - t0);
         diag.estado.habilidades = hab.resumen();
         if (veredicto === 'dudoso') { diag.log('warn', 'abasto', nombre + ' sin cambio verificable'); if (hab.atascado(nombre)) { r = false; motivo = 'sin cambio verificable 3 veces seguidas'; } }
-        if (!r) { fallos[nombre] = Date.now() + hab.espera(nombre); const p = diag.estado.fallosPaso[nombre] || { n: 0 }; diag.estado.fallosPaso[nombre] = { n: p.n + 1, t: Date.now(), motivo }; diag.log('warn', 'abasto', nombre + ' fallo: ' + motivo); }
-        else { ultimoOk = true; delete diag.estado.fallosPaso[nombre]; diag.log('info', 'abasto', 'paso ' + nombre); console.log('[abasto] paso:', nombre); }
+        if (!r) { if (bot._premio) bot._premio.evento('paso_fallo', { k: nombre }); fallos[nombre] = Date.now() + hab.espera(nombre); const p = diag.estado.fallosPaso[nombre] || { n: 0 }; diag.estado.fallosPaso[nombre] = { n: p.n + 1, t: Date.now(), motivo }; diag.log('warn', 'abasto', nombre + ' fallo: ' + motivo); }
+        else { ultimoOk = true; if (bot._premio) bot._premio.evento('paso_ok', { k: nombre }); delete diag.estado.fallosPaso[nombre]; diag.log('info', 'abasto', 'paso ' + nombre); console.log('[abasto] paso:', nombre); }
         break; // un paso por ciclo
       }
-      if (!hizo && libre()) { diag.log('info', 'abasto', 'sin nada util: explora'); await explorar(25, 70); ultimoOk = true; }
+      if (!hizo && libre()) { if (bot._premio) bot._premio.evento('sin_nada'); diag.log('info', 'abasto', 'sin nada util: explora'); await explorar(25, 70); ultimoOk = true; }
     } finally {
       activo = false; o.ocupar(false); ultima = Date.now();
       try { if (!bot.pvp || !bot.pvp.target) bot.pathfinder.setGoal(null); } catch (e) { /* ignorar */ }

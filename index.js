@@ -94,7 +94,7 @@ const lastCall = new Map(); // nombre -> timestamp
 const trampaLastUse = new Map(); // nombre -> timestamp de la ultima trampa activada
 const historialJugador = new Map(); // nombre -> { interacciones, ultimasRespuestas: [], eventos: [] }
 const persist = require('./persist');
-const RUTAS_MEM = [process.env.IA_MEMORIA || 'memoria_jugadores.json', process.env.IA_DIARIO || 'diario_am.json', process.env.IA_BASE || 'base_am.json', process.env.IA_CLAVES || 'claves_am.json', process.env.IA_APRENDIZAJE || 'aprendizaje.json', process.env.IA_HABILIDADES || 'habilidades_am.json', process.env.IA_STATS || 'stats_am.json', process.env.IA_BANDITS || 'bandits_am.json', process.env.IA_ITEMS || 'items_am.json', process.env.IA_NN_PESOS || 'nn_am.json', process.env.IA_NN_DATOS || 'datos_nn.json']
+const RUTAS_MEM = [process.env.IA_MEMORIA || 'memoria_jugadores.json', process.env.IA_DIARIO || 'diario_am.json', process.env.IA_BASE || 'base_am.json', process.env.IA_CLAVES || 'claves_am.json', process.env.IA_APRENDIZAJE || 'aprendizaje.json', process.env.IA_HABILIDADES || 'habilidades_am.json', process.env.IA_STATS || 'stats_am.json', process.env.IA_BANDITS || 'bandits_am.json', process.env.IA_ITEMS || 'items_am.json', process.env.IA_NN_PESOS || 'nn_am.json', process.env.IA_NN_DATOS || 'datos_nn.json', process.env.IA_PREMIO || 'premio_am.json']
   .map((r) => (require('path').isAbsolute(r) ? r : require('path').join(__dirname, r)));
 persist.restaurar(RUTAS_MEM); // Render: disco efimero -> recupera la memoria del gist si esta configurado
 const memoria = crearMemoria();
@@ -335,7 +335,7 @@ function iniciarHuida(bot) {
   require('./peleas').crearPeleas(bot, memoria);
   bot._sumarVec = (n, c, x) => memoria.sumarVec(n, c, x);
   require('./stats').conectarStats(bot, statsAM, diag);
-  require('./premio').crearPremio(bot, statsAM, memoria);
+  require('./premio').crearPremio(bot, statsAM, memoria, require('path').join(__dirname, process.env.IA_PREMIO || 'premio_am.json'));
   require('./pesos').iniciar(bot, diag);
   bot._tactica = (k) => { try { const t = bot.pvp && bot.pvp.target; if (t && t.type === 'player') memoria.tactica(t.username, k); } catch (e) { /* ignorar */ } };
   bot._tacticaDe = (n, k) => { memoria.tactica(n, k); memoria.victoria(n, k); };

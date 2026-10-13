@@ -12,7 +12,7 @@ function crearPeleas(bot, memoria) {
       memoria.pelea(f.n, p);
       diag.log('info', 'peleas', `${f.n}: ${res} ${dur}s dano ${p.dano} armas ${p.armas.join('+')}`);
     }
-    if (dur >= 4 && bot._premio) { if (res === 'gane') bot._premio.sf(4, 'gana a ' + f.n); else if (res === 'perdi') bot._premio.hm(2, 'pierde ante ' + f.n); }
+    if (dur >= 4 && bot._premio) { if (res === 'gane') bot._premio.gana(bot.heldItem && bot.heldItem.name, f.n); else if (res === 'perdi') bot._premio.evento('pierde', { motivo: f.n }); }
     if (bot._nn && dur >= 4) bot._nn.fin(res);
     f = null;
   };
