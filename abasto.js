@@ -6,6 +6,8 @@ const { ignorado } = require('./modo');
 
 function crearAbasto(bot, o) {
   const { goals } = o;
+  const IC = bot._items;
+  const ext = (re, f) => ({ test: (n) => re.test(n) || (!!IC && f(n)), source: re.source });
   const ON = process.env.IA_ABASTO !== '0';
   const tratos = new Map();
   let activo = false, ultima = 0, fallos = {}, sinHallazgo = 0, ultimoOk = false;
@@ -79,11 +81,13 @@ function crearAbasto(bot, o) {
     }
     if (horno.position.distanceTo(bot.entity.position) > 3.5 && !(await o.irCerca(bot, horno.position))) return false;
     const fuel = items().find((i) => i.name === 'coal' || i.name === 'charcoal') || items().find((i) => /_planks$/.test(i.name)) || items().find((i) => /_log$/.test(i.name));
-    if (!fuel) return false;
+    const fuelX = fuel || (IC && items().find((i) => IC.es(i.name, 'combustible')));
+    if (!fuelX) return false;
     const f = await bot.openFurnace(horno);
     try {
       const cant = Math.min(n, 16);
-      await f.putFuel(fuel.type, null, Math.min(fuel.count, /coal|charcoal/.test(fuel.name) ? 2 : 8));
+      await f.putFuel(fuelX.type, null, Math.min(fuelX.count, /coal|charcoal/.test(fuelX.name) ? 2 : 8));
+      try { if (IC && f.fuelItem && f.fuelItem()) IC.aprender(fuelX.name, 'fuel'); } catch (e) { /* ignorar */ }
       await f.putInput(bot.registry.itemsByName[entrada].id, null, cant);
       const limite = Date.now() + cant * 10_500 + 3000;
       while (Date.now() < limite && libre()) {
@@ -155,7 +159,8 @@ function crearAbasto(bot, o) {
   try { base = JSON.parse(fs.readFileSync(ARCH_BASE, 'utf8')); } catch (e) { base = null; }
   const guardarBase = () => { try { fs.writeFileSync(ARCH_BASE, JSON.stringify(base)); } catch (e) { /* disco de solo lectura */ } };
   bot.on('death', () => { if (bot.entity) muerte = { p: bot.entity.position.clone(), t: Date.now() }; mina = null; });
-  const COMIDA = /^(cooked_beef|cooked_porkchop|cooked_mutton|cooked_chicken|cooked_cod|cooked_salmon|cooked_rabbit|bread|apple|golden_apple|carrot|baked_potato)$/;
+  const COMIDA = { test: (n) => (/^(cooked_beef|cooked_porkchop|cooked_mutton|cooked_chicken|cooked_cod|cooked_salmon|cooked_rabbit|bread|apple|golden_apple|carrot|baked_potato)$/.test(n) || (!!IC && IC.comidaBuena(n))) && !(IC && IC.comidaMala(n)) };
+  const CRUDO = ext(/^(beef|porkchop|mutton|chicken|cod|salmon|rabbit|potato)$/, (n) => IC.crudo(n));
   const noche = () => bot.time && bot.time.timeOfDay >= 13000 && bot.time.timeOfDay < 23000;
   const enSuperficie = () => bot.entity.position.y > 50;
   const armaduraCompleta = () => [5, 6, 7, 8].every((s) => bot.inventory.slots[s]);
@@ -274,7 +279,7 @@ function crearAbasto(bot, o) {
   async function paso_guardar() {
     if (!base) return 'nada';
     const usados = items().length;
-    const sobra = items().filter((i) => !CONSERVAR.test(i.name) || (i.name === 'cobblestone' && i.count > 32));
+    const sobra = items().filter((i) => !(CONSERVAR.test(i.name) || (IC && IC.conserva(i.name))) || (i.name === 'cobblestone' && i.count > 32));
     if (usados < 28 && sobra.length < 8) return 'nada';
     const cofre = bot.blockAt(new Vec3(base.x, base.y, base.z));
     if (!cofre || cofre.name !== 'chest') { base = null; guardarBase(); return false; }
@@ -305,7 +310,7 @@ function crearAbasto(bot, o) {
 
 
   // ===== Caza de mobs hostiles por drops y busqueda de items (sueltos y, si IA_SAQUEAR=1, cofres ajenos) =====
-  const VALIOSO = /(diamond|iron_ingot|raw_iron|gold_ingot|coal|emerald|ender_pearl|golden_apple|totem_of_undying|obsidian|^tnt$|gunpowder|^string$|^arrow$|^bow$|crossbow|feather|bread|cooked_|^apple$|carrot|baked_potato|bucket|^shield$|_sword$|_pickaxe$|_axe$|_helmet$|_chestplate$|_leggings$|_boots$|^flint$|^stick$|^torch$|wind_charge|^mace$|trident|end_crystal|experience_bottle)/;
+  const VALIOSO = ext(/(diamond|iron_ingot|raw_iron|gold_ingot|coal|emerald|ender_pearl|golden_apple|totem_of_undying|obsidian|^tnt$|gunpowder|^string$|^arrow$|^bow$|crossbow|feather|bread|cooked_|^apple$|carrot|baked_potato|bucket|^shield$|_sword$|_pickaxe$|_axe$|_helmet$|_chestplate$|_leggings$|_boots$|^flint$|^stick$|^torch$|wind_charge|^mace$|trident|end_crystal|experience_bottle)/, (n) => IC.valioso(n));
   const libreCaza = () => !jugadorCerca(36) && bot.health > 10 && bot.entity;
   const nombreDrop = (e) => { try { const d = e.getDroppedItem && e.getDroppedItem(); return d ? d.name : ''; } catch (x) { return ''; } };
   async function recoger(re, radio = 12) {
@@ -489,7 +494,7 @@ function crearAbasto(bot, o) {
     ['lapis', () => menear('lapis')],
     ['diamante', () => menear('diamond')],
     ['fundir', async () => { const r = items().find((x) => /^(raw_iron|raw_gold|raw_copper)$/.test(x.name)); return r ? cocinar(r.name) : 'nada'; }],
-    ['carne', async () => { const c = items().find((i) => /^(beef|porkchop|mutton|chicken|cod|salmon|rabbit|potato)$/.test(i.name)); if (c) return cocinar(c.name); if (cuenta(/^wheat$/) >= 3 && (tiene(/^crafting_table$/) || bloqueN(/^crafting_table$/, 16))) return craftear('bread', 1); return 'nada'; }],
+    ['carne', async () => { const c = items().find((i) => CRUDO.test(i.name)); if (c) return cocinar(c.name); if (cuenta(/^wheat$/) >= 3 && (tiene(/^crafting_table$/) || bloqueN(/^crafting_table$/, 16))) return craftear('bread', 1); return 'nada'; }],
     ['comida', async () => (cuenta(COMIDA) >= 6 || (noche() && enSuperficie())) ? 'nada' : cazar(/^(cow|pig|sheep|chicken|rabbit)$/)],
     ['escudo', async () => (tiene(/^shield$/) || !tiene(/^iron_ingot$/) || cuenta(/_planks$/) < 6) ? 'nada' : craftear('shield')],
     ['cubo', async () => {
@@ -780,7 +785,7 @@ function crearAbasto(bot, o) {
   ];
 
   // Prioridades segun el momento: urgencias primero (comida, armadura, flechas si hay jugadores), y de noche nada en superficie.
-  const PICO = { madera: /_pickaxe$/, piedra: /^(stone|iron|diamond|netherite)_pickaxe$/, hierro: /^(iron|diamond|netherite)_pickaxe$/, diamante: /^(diamond|netherite)_pickaxe$/ };
+  const PICO = { madera: (IC && IC.herramientasPara('stone')) || /_pickaxe$/, piedra: (IC && IC.herramientasPara('iron_ore')) || /^(stone|iron|diamond|netherite)_pickaxe$/, hierro: (IC && IC.herramientasPara('diamond_ore')) || /^(iron|diamond|netherite)_pickaxe$/, diamante: (IC && IC.herramientasPara('obsidian')) || /^(diamond|netherite)_pickaxe$/ };
   const mesaCerca = () => bloqueN(/^crafting_table$/, 24) || tiene(/^crafting_table$/);
   const hornoPosible = () => cuenta(/^cobblestone$/) >= 8 || tiene(/^furnace$/) || bloqueN(/^furnace$/, 24);
   const herramientaPara = (re) => {
@@ -860,14 +865,14 @@ function crearAbasto(bot, o) {
     mina: () => herramientaPara(PICO.piedra),
     obsidiana: () => (!tiene(/^diamond_pickaxe$/) ? herramientaPara(PICO.diamante) : !tiene(/^water_bucket$/) ? (tiene(/^bucket$/) ? 'agua' : 'cubo') : null),
     fundir: () => (tiene(/^(raw_iron|raw_gold|raw_copper)$/) && !hornoPosible() ? 'piedra' : null),
-    carne: () => (tiene(/^(beef|porkchop|mutton|chicken|cod|salmon|rabbit|potato)$/) && !hornoPosible() ? 'piedra' : null),
+    carne: () => (tiene(CRUDO) && !hornoPosible() ? 'piedra' : null),
     cubo: () => (cuenta(/^iron_ingot$/) < 3 ? (tiene(/^raw_iron$/) ? 'fundir' : 'hierro') : null),
     agua: () => (tiene(/^bucket$/) ? null : 'cubo'),
     polvora: necesitaArma, esqueletos: necesitaArma, cuerda: necesitaArma, perlas: necesitaArma, xp: necesitaArma,
   };
   function ordenar(det) {
     const frente = [];
-    if (tiene(/^(beef|porkchop|mutton|chicken|cod|salmon|rabbit|potato)$/) && hornoPosible()) frente.push('carne');
+    if (tiene(CRUDO) && hornoPosible()) frente.push('carne');
     if (muerte) frente.push('recuperar');
     if (cuenta(/_log$|_planks$/) < 6) frente.push('madera');
     if (cuenta(COMIDA) < 3) frente.push('comida', 'carne', 'cosecha', 'pan', 'azada', 'semillas', 'granja');
@@ -884,7 +889,7 @@ function crearAbasto(bot, o) {
     const rank = (n) => { const i = frente.indexOf(n); return i < 0 ? 100 : i; };
     const env = {};
     for (const kv of (process.env.IA_PESOS || '').split(',')) { const [k, v] = kv.split('='); if (k && +v > 0) env[k.trim()] = +v; }
-    const urg = { madera: cuenta(/_log$|_planks$/) < 6 ? 2.5 : 1, comida: (tiene(/^(beef|porkchop|mutton|chicken|cod|salmon|rabbit|potato)$/) && hornoPosible()) ? 0.2 : cuenta(COMIDA) < 3 ? 3 : cuenta(COMIDA) < 6 ? 1.3 : 0.7, basura: items().length >= 32 ? 3 : 0.5, nether: nether.listo() ? (bot._lag && bot._lag.malo() ? 0.6 : 3) : 0.4, cobre: 0.6, oro: 0.8, redstone: 0.7, lapis: (tiene(/^enchanting_table$/) || bloqueN(/^enchanting_table$/, 48)) ? 2 : 0.4, diamante: cuenta(/^diamond$/) < 3 ? 2.5 : 1, hierro: cuenta(/^(raw_iron|iron_ingot)$/) < 6 ? 2 : 1, carbon: cuenta(/^(coal|charcoal)$/) < 3 ? 2 : 1, end: finEnd.quiere() ? (bot._lag && bot._lag.malo() ? 0.6 : 4) : 0.2, encantar: ((bot.experience && bot.experience.level) || 0) >= 5 ? 2 : 0.6, asalto: (bot._sadismo ? bot._sadismo() : 1) * (bot._lag && bot._lag.malo() ? 0.4 : 1), xp: ((bot.experience && bot.experience.level) || 0) < 5 ? 1.8 : 1 };
+    const urg = { madera: cuenta(/_log$|_planks$/) < 6 ? 2.5 : 1, comida: (tiene(CRUDO) && hornoPosible()) ? 0.2 : cuenta(COMIDA) < 3 ? 3 : cuenta(COMIDA) < 6 ? 1.3 : 0.7, basura: items().length >= 32 ? 3 : 0.5, nether: nether.listo() ? (bot._lag && bot._lag.malo() ? 0.6 : 3) : 0.4, cobre: 0.6, oro: 0.8, redstone: 0.7, lapis: (tiene(/^enchanting_table$/) || bloqueN(/^enchanting_table$/, 48)) ? 2 : 0.4, diamante: cuenta(/^diamond$/) < 3 ? 2.5 : 1, hierro: cuenta(/^(raw_iron|iron_ingot)$/) < 6 ? 2 : 1, carbon: cuenta(/^(coal|charcoal)$/) < 3 ? 2 : 1, end: finEnd.quiere() ? (bot._lag && bot._lag.malo() ? 0.6 : 4) : 0.2, encantar: ((bot.experience && bot.experience.level) || 0) >= 5 ? 2 : 0.6, asalto: (bot._sadismo ? bot._sadismo() : 1) * (bot._lag && bot._lag.malo() ? 0.4 : 1), xp: ((bot.experience && bot.experience.level) || 0) < 5 ? 1.8 : 1 };
     const pesos = necesidades.map((x, i) => {
       const n = x[0], r = rank(n);
       const base = env[n] || Math.max(6, 60 - i * 0.9);
