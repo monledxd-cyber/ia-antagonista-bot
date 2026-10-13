@@ -328,6 +328,7 @@ function iniciarHuida(bot) {
   bot._cautela = (n) => memoria.cautela(n);
   bot._bandits = bandits;
   { const t = setInterval(() => bandits.guardar(), 60_000); if (t.unref) t.unref(); bot.once('end', () => { clearInterval(t); bandits.guardar(); }); }
+  if (process.env.IA_LAG !== '0') require('./lag').crearLag(bot);
   bot._modelo = (n) => (memoria.modelo ? memoria.modelo(n) : null);
   require('./peleas').crearPeleas(bot, memoria);
   bot._sumarVec = (n, c, x) => memoria.sumarVec(n, c, x);

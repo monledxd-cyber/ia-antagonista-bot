@@ -4,7 +4,7 @@ const { ignorado } = require('./modo');
 const { Vec3 } = require('vec3');
 const { goals } = require('mineflayer-pathfinder');
 const P = require('./pesos');
-const cd = (ms, e, k) => ms * P.peso(1, e) * (k && require('./bandits').actual ? require('./bandits').actual.mult(k) : 1);
+const cd = (ms, e, k) => ms * (require('./lag').actual ? require('./lag').actual.factor() : 1) * P.peso(1, e) * (k && require('./bandits').actual ? require('./bandits').actual.mult(k) : 1);
 const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // Vuelo de una flecha (wiki): gravedad 0.05/tick, arrastre 0.99. Devuelve altura relativa y ticks
@@ -64,7 +64,8 @@ function iniciarCombate(bot, api) {
   };
   bot._vel = velocidad;
   // Posicion futura tras t ticks: lineal en x/z; en el aire, y con gravedad (0.08/tick^2, rozamiento 0.98), sin bajar del suelo conocido.
-  const futura = (e, base, t) => {
+  const futura = (e, base, t0) => {
+    const t = t0 + (bot._lag ? bot._lag.ticks() : 0);
     const v = velocidad(e), aire = !(e.onGround !== false);
     let y = base.y + v.y * t;
     if (aire) y -= 0.04 * t * t;

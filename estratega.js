@@ -80,7 +80,7 @@ function crearEstratega(bot, o) {
         }
       } else if (cont.k === 'kite') {
         // mantiene 7-12 bloques en zigzag; solo golpea si el rival cae sin impulso a mano
-        if (d < 8 && ahora - esquiva > 450) { esquiva = ahora; huirDe(t.position, 350 + Math.random() * 300); if (Math.random() < 0.3) bot.setControlState('jump', true), setTimeout(() => bot.setControlState('jump', false), 200); }
+        if (d < 8 && ahora - esquiva > 450 && !(bot._lag && bot._lag.rival(t))) { esquiva = ahora; huirDe(t.position, 350 + Math.random() * 300); if (Math.random() < 0.3) bot.setControlState('jump', true), setTimeout(() => bot.setControlState('jump', false), 200); }
         else if (d > 13 && bot.pvp && !bot.pvp.target) { /* deja que lo alcance */ }
         if (d <= 2.8 && Math.abs(t.position.y - yo().y) < 1.2 && bot.pvp && !bot.pvp.target && t.type === 'player') { try { bot.pvp.attack(t); } catch (e) { /* ignorar */ } }
       } else if (cont.k === 'esquiva') {
