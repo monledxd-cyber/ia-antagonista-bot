@@ -348,7 +348,7 @@ function iniciarCombate(bot, api) {
       if (!valido(t)) { enCaida = false; return; }
       const d = dist(t);
       const mace = tiene('mace');
-      if (t.type === 'player' && d < 8) api.fijarHacha(conEscudoRival(t)); // hacha contra escudo, sin esperar a la IA
+      if (t.type === 'player' && d < 8) api.fijarHacha(conEscudoRival(t) || (bot._modelo && (bot._modelo(t.username) || {}).escudo >= 25)); // hacha contra escudo, sin esperar a la IA
 
       // Golpe de mace al caer: si ya cae >= 1.5 bloques sobre el objetivo, cambia a mace y pega.
       if (mace && bot.entity.velocity.y < -0.55 && d < 4 && t.type === 'player') {

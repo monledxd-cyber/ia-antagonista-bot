@@ -20,11 +20,21 @@ function crearHabilidades(bot, ruta) {
   }
 
   // Devuelve 'ok' | 'dudoso' | 'fallo'. Un "exito" sin ningun cambio observable cuenta como dudoso.
+  const ctx = () => {
+    try {
+      const dim = String((bot.game && bot.game.dimension) || '').replace(/.*:/, '');
+      const noche = bot.time && bot.time.timeOfDay >= 13000;
+      const y = bot.entity ? bot.entity.position.y : 64;
+      return (dim && dim !== 'overworld' ? dim : y < 50 ? 'sub' : 'sup') + (noche ? 'N' : 'D');
+    } catch (e) { return 'x'; }
+  };
   function registrar(nombre, r, antes, ms) {
     const h = g(nombre);
+    const hc = g(nombre + '@' + ctx());
     let v = 'fallo';
     if (r) v = (EXENTOS.test(nombre) || cambio(antes, snap())) ? 'ok' : 'dudoso';
     h.ult = Date.now(); h.ms = Math.round((h.ms * 0.7) + ms * 0.3);
+    if (v === 'ok') hc.ok++; else if (v === 'dudoso') hc.dudoso++; else hc.fail++;
     if (v === 'ok') { h.ok++; h.seguidos = 0; } else if (v === 'dudoso') { h.dudoso++; h.seguidos++; } else { h.fail++; h.seguidos++; }
     if (v === 'dudoso' && h.seguidos < 3) h.seguidos = Math.max(0, h.seguidos - 1);
     sucio = true;
@@ -37,8 +47,13 @@ function crearHabilidades(bot, ruta) {
     return Math.round(base * (0.7 + Math.random() * 0.6));
   }
   const atascado = (nombre) => g(nombre).seguidos >= 3;
-  const tasa = (nombre) => { const h = g(nombre); const t = h.ok + h.fail + h.dudoso; return t ? h.ok / t : 0.5; };
-  const resumen = () => Object.fromEntries(Object.entries(d).map(([k, h]) => [k, `${h.ok}/${h.fail}/${h.dudoso} seg${h.seguidos} ${Math.round(h.ms / 1000)}s`]));
+  const tasaDe = (h) => { const t = h.ok + h.fail + h.dudoso; return t ? h.ok / t : 0.5; };
+  const tasa = (nombre) => {
+    const h = g(nombre), c = g(nombre + '@' + ctx()), n = c.ok + c.fail + c.dudoso;
+    const w = n / (n + 4);
+    return w * tasaDe(c) + (1 - w) * tasaDe(h);
+  };
+  const resumen = () => Object.fromEntries(Object.entries(d).filter(([k]) => !k.includes('@')).map(([k, h]) => [k, `${h.ok}/${h.fail}/${h.dudoso} seg${h.seguidos} ${Math.round(h.ms / 1000)}s`]));
   function guardar() { if (!sucio) return; try { fs.writeFileSync(ruta, JSON.stringify(d)); sucio = false; } catch (e) { /* ignorar */ } }
   const t = setInterval(guardar, 60_000);
   bot.once('end', () => { clearInterval(t); guardar(); });

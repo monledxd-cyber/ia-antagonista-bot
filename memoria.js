@@ -43,6 +43,15 @@ function crearMemoria(ruta) {
     ultimo: (n) => (datos[n] && datos[n].ult) || null,
     zonaHabitual: (n) => { const b = Object.entries((datos[n] && datos[n].lugares) || {}).sort((a, c) => c[1] - a[1])[0]; return b && b[1] > 20 ? { x: b[0].split(',')[0] * 32 + 16, z: b[0].split(',')[1] * 32 + 16 } : null; },
     estMarca: (n, k, ok) => { const j = get(n); j.est = j.est || {}; const a = (j.est[k] = j.est[k] || { ok: 0, mal: 0 }); if (ok) a.ok++; else a.mal++; sucio = true; },
+    modelo: (n) => {
+      const j = datos[n]; if (!j) return null;
+      const arma = Object.entries(j.armas || {}).sort((a, b) => b[1] - a[1])[0];
+      const a0 = arma ? arma[0] : '';
+      const clase = /mace/.test(a0) ? 'mace' : /crystal|anchor/.test(a0) ? 'cristal' : /_sword/.test(a0) ? 'espada' : /_axe/.test(a0) ? 'hacha' : /bow|trident/.test(a0) ? 'rango' : null;
+      const pct = (k) => (j.n > 20 ? Math.round(100 * (j.obs[k] || 0) / j.n) : 0);
+      const lides = (j.pg || 0) + (j.pp || 0) + (j.huyo || 0);
+      return { clase, escudo: pct('escudo'), arco: pct('arco'), huye: lides >= 3 ? (j.huyo || 0) / lides : 0 };
+    },
     estDe: (n) => (datos[n] && datos[n].est) || {},
     pelea: (n, p) => { const j = get(n); j.peleas = j.peleas || []; j.peleas.push(p); if (j.peleas.length > 12) j.peleas.shift(); j.pg = (j.pg || 0) + (p.res === 'gane' ? 1 : 0); j.pp = (j.pp || 0) + (p.res === 'perdi' ? 1 : 0); for (const a of p.armas || []) j.armasPelea = Object.assign(j.armasPelea || {}, { [a]: ((j.armasPelea || {})[a] || 0) + 1 }); sucio = true; },
     cautela: (n) => { const l = ((datos[n] && datos[n].peleas) || []).slice(-5); return l.length ? l.filter((x) => x.res === 'perdi').length / l.length : 0; },
