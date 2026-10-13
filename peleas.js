@@ -6,12 +6,13 @@ function crearPeleas(bot, memoria) {
   const cerrar = (res) => {
     if (!f) return;
     const dur = Math.round((Date.now() - f.t0) / 1000);
-    if (bot._bandits) { if (dur >= 4) { bot._bandits.perfilFin(res, f.dano); if (f.clave && bot._bandits.lecReg) bot._bandits.lecReg(f.clave, res); } else bot._bandits.descartar(); }
+    if (bot._bandits) { if (dur >= 4) { bot._bandits.perfilFin(res, f.dano, bot._premio ? bot._premio.neto() - f.neto0 : 0); if (f.clave && bot._bandits.lecReg) bot._bandits.lecReg(f.clave, res); } else bot._bandits.descartar(); }
     if (dur >= 4) {
       const p = { t: Date.now(), dur, res, dano: Math.round(f.dano), armas: [...f.armas].slice(0, 4), contra: f.contra || null };
       memoria.pelea(f.n, p);
       diag.log('info', 'peleas', `${f.n}: ${res} ${dur}s dano ${p.dano} armas ${p.armas.join('+')}`);
     }
+    if (dur >= 4 && bot._premio) { if (res === 'gane') bot._premio.sf(4, 'gana a ' + f.n); else if (res === 'perdi') bot._premio.hm(2, 'pierde ante ' + f.n); }
     if (bot._nn && dur >= 4) bot._nn.fin(res);
     f = null;
   };
@@ -25,7 +26,7 @@ function crearPeleas(bot, memoria) {
     if (j) {
       sinObj = 0;
       if (f && f.n !== j.username) cerrar('corte');
-      if (!f) { const a0 = (j.heldItem && j.heldItem.name) || ''; const cl = /mace/.test(a0) ? 'mace' : /crystal|anchor/.test(a0) ? 'cristal' : /_sword/.test(a0) ? 'espada' : /_axe/.test(a0) ? 'hacha' : /bow|trident/.test(a0) ? 'rango' : 'otro'; const mo = memoria.modelo ? memoria.modelo(j.username) : null; const cl2 = cl === 'otro' && mo && mo.clase ? mo.clase : cl; const dim = String((bot.game && bot.game.dimension) || ''); const noche = bot.time && bot.time.timeOfDay >= 13000; const terr = /nether|end/.test(dim) ? dim.replace(/.*:/, '') : bot.entity.position.y < 50 ? 'sub' : 'sup'; const clave = cl2 + '|' + (noche ? 'n' : 'd') + '|' + terr; if (bot._bandits) bot._bandits.perfilIniciar(j.username + '|' + cl, clave, bot._lag && bot._lag.rival(j) ? Object.assign({}, mo, { huye: 0.4 }) : mo); f = { clave, n: j.username, t0: Date.now(), dano: 0, armas: new Set(), contra: null }; hpPrev = bot.health; }
+      if (!f) { const a0 = (j.heldItem && j.heldItem.name) || ''; const cl = /mace/.test(a0) ? 'mace' : /crystal|anchor/.test(a0) ? 'cristal' : /_sword/.test(a0) ? 'espada' : /_axe/.test(a0) ? 'hacha' : /bow|trident/.test(a0) ? 'rango' : 'otro'; const mo = memoria.modelo ? memoria.modelo(j.username) : null; const cl2 = cl === 'otro' && mo && mo.clase ? mo.clase : cl; const dim = String((bot.game && bot.game.dimension) || ''); const noche = bot.time && bot.time.timeOfDay >= 13000; const terr = /nether|end/.test(dim) ? dim.replace(/.*:/, '') : bot.entity.position.y < 50 ? 'sub' : 'sup'; const clave = cl2 + '|' + (noche ? 'n' : 'd') + '|' + terr; if (bot._bandits) bot._bandits.perfilIniciar(j.username + '|' + cl, clave, bot._lag && bot._lag.rival(j) ? Object.assign({}, mo, { huye: 0.4 }) : mo); f = { neto0: bot._premio ? bot._premio.neto() : 0, clave, n: j.username, t0: Date.now(), dano: 0, armas: new Set(), contra: null }; hpPrev = bot.health; }
       const a = j.heldItem && j.heldItem.name; if (a) f.armas.add(a);
       if (bot._contraActual && bot._contraActual()) f.contra = bot._contraActual();
     } else if (f && ++sinObj > 15) cerrar('corte');

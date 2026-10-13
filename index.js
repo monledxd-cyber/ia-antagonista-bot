@@ -335,6 +335,7 @@ function iniciarHuida(bot) {
   require('./peleas').crearPeleas(bot, memoria);
   bot._sumarVec = (n, c, x) => memoria.sumarVec(n, c, x);
   require('./stats').conectarStats(bot, statsAM, diag);
+  require('./premio').crearPremio(bot, statsAM, memoria);
   require('./pesos').iniciar(bot, diag);
   bot._tactica = (k) => { try { const t = bot.pvp && bot.pvp.target; if (t && t.type === 'player') memoria.tactica(t.username, k); } catch (e) { /* ignorar */ } };
   bot._tacticaDe = (n, k) => { memoria.tactica(n, k); memoria.victoria(n, k); };

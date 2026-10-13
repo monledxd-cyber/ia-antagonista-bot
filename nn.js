@@ -91,7 +91,8 @@ function crearNN(bot, ruta, rutaDatos, o) {
 
   function cerrarMuestra(m, s2, extra) {
     const dh = (m.hp2 - m.hp) / 20, dr = m.rhp !== null && m.rhp2 !== null ? (m.rhp - m.rhp2) / 20 : 0;
-    const r = c(dh + 0.5 * dr + (extra || 0), -1.5, 1.5);
+    const pn = bot._premio ? 0.5 * Math.tanh((bot._premio.neto() - (m.n0 || 0)) / 4) : 0;
+    const r = c(dh + 0.5 * dr + pn + (extra || 0), -1.5, 1.5);
     if (m.sug !== null) { if (m.sug === m.a) { st.ra += r; st.na++; } else { st.rd += r; st.nd++; } }
     buf.push({ s: m.s, a: m.a, r, s2: s2 || null });
     if (buf.length > 3000) buf.shift();
@@ -118,7 +119,7 @@ function crearNN(bot, ruta, rutaDatos, o) {
     const q = red.q(s), sug = mejor(q);
     ultSug = sug;
     if (bot._bandits) bot._bandits.nnExtra = sesgos(sug);
-    pend.push({ s, a: accion(t), sug, hp: bot.health, rhp: vidaRival(t), t: ahora });
+    pend.push({ s, a: accion(t), sug, hp: bot.health, rhp: vidaRival(t), t: ahora, n0: bot._premio ? bot._premio.neto() : 0 });
     while (pend.length && ahora - pend[0].t >= 4000) {
       const m = pend.shift(); m.hp2 = bot.health; m.rhp2 = vidaRival(t);
       cerrarMuestra(m, s);

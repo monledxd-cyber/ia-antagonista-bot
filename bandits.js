@@ -60,9 +60,10 @@ function crearBandits(ruta, diag) {
     if (diag) diag.estado.perfilPelea = (Object.keys(extra).length ? '[lec ' + Object.entries(extra).map(([k, v]) => k + v).join(',') + '] ' : '') + ctx + ' ' + Object.entries(p.mult).map(([k, v]) => k + 'x' + v).join(' ');
     return p;
   }
-  function perfilFin(res, dano) {
+  function perfilFin(res, dano, neto) {
     if (!perfil) return;
-    const r = res === 'gane' ? 0.6 + 0.4 * (1 - Math.min(20, dano) / 20) : res === 'perdi' ? -1 : 0.1 - Math.min(20, dano) / 40;
+    const r0 = res === 'gane' ? 0.6 + 0.4 * (1 - Math.min(20, dano) / 20) : res === 'perdi' ? -1 : 0.1 - Math.min(20, dano) / 40;
+    const r = typeof neto === 'number' ? 0.65 * r0 + 0.35 * Math.tanh(neto / 6) : r0;
     for (const dec of DECISIONES) premiar('cd_' + dec, perfil.ctx, String(perfil.mult[dec]), r);
     for (const k of RASGOS) premiar('rasgo_' + k, perfil.ctx, String(perfil.sesgo[k]), r);
     perfil = null; extra = {};

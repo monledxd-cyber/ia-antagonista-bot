@@ -2,14 +2,14 @@ const fs = require('fs');
 
 // Stats globales de AM: odio (sin tope) y sadismo (sin tope). Escala logaritmica: sube sin limite, cada vez mas lento.
 function crearStats(ruta) {
-  let d = { odio: 10, sadismo: 5 }, sucio = false;
+  let d = { odio: 10, sadismo: 5, sf: 0, hm: 0 }, sucio = false;
   try { d = Object.assign(d, JSON.parse(fs.readFileSync(ruta, 'utf8'))); } catch (e) { /* nuevo */ }
   const v = (k) => d[k] || 0;
   const mult = (k) => 1 + 0.35 * Math.log10(1 + v(k));
   const nivel = (k) => Math.floor(Math.log2(1 + v(k)));
   function sumar(k, n) { if (n > 0) { d[k] = v(k) + n; sucio = true; } }
   function guardar() { if (!sucio) return; try { fs.writeFileSync(ruta, JSON.stringify(d)); sucio = false; } catch (e) { /* ignorar */ } }
-  const resumen = () => `odio nivel ${nivel('odio')} (${v('odio').toFixed(0)}), sadismo nivel ${nivel('sadismo')} (${v('sadismo').toFixed(0)})`;
+  const resumen = () => `odio nivel ${nivel('odio')} (${v('odio').toFixed(0)}), sadismo nivel ${nivel('sadismo')} (${v('sadismo').toFixed(0)}), Sf ${v('sf').toFixed(0)}, Hm ${v('hm').toFixed(0)}`;
   return { v, mult, nivel, sumar, guardar, resumen };
 }
 
