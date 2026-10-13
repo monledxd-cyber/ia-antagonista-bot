@@ -68,10 +68,10 @@ function crearBandits(ruta, diag) {
     perfil = null; extra = {};
   }
   const mult = (dec) => (perfil && perfil.mult[dec]) || 1;
-  const sesgo = (r) => (perfil ? (perfil.sesgo[r] || 0) + (extra[r] || 0) : 0);
+  const sesgo = (r) => (perfil ? (perfil.sesgo[r] || 0) + (extra[r] || 0) + ((api.nnExtra || {})[r] || 0) : 0);
   const guardar = () => { if (!sucio) return; try { fs.writeFileSync(ruta, JSON.stringify(d)); sucio = false; } catch (e) { /* ignorar */ } };
   const resumen = () => { let n = 0; for (const [dk, dec] of Object.entries(d)) { if (dk === '_lec') continue; for (const c of Object.values(dec)) for (const a of Object.values(c)) n += a.n; } return n; };
-  const api = { elegir, premiar, perfilIniciar, perfilFin, descartar: () => { perfil = null; extra = {}; }, lecReg, lecRiesgo, lecciones: () => lec(), mult, sesgo, guardar, resumen, activo: () => !!perfil };
+  const api = { nnExtra: {}, elegir, premiar, perfilIniciar, perfilFin, descartar: () => { perfil = null; extra = {}; }, lecReg, lecRiesgo, lecciones: () => lec(), mult, sesgo, guardar, resumen, activo: () => !!perfil };
   module.exports.actual = api;
   return api;
 }

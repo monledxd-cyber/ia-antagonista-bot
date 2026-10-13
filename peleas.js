@@ -12,6 +12,7 @@ function crearPeleas(bot, memoria) {
       memoria.pelea(f.n, p);
       diag.log('info', 'peleas', `${f.n}: ${res} ${dur}s dano ${p.dano} armas ${p.armas.join('+')}`);
     }
+    if (bot._nn && dur >= 4) bot._nn.fin(res);
     f = null;
   };
   bot.on('health', () => { const h = bot.health; if (f && hpPrev !== null && h < hpPrev) f.dano += hpPrev - h; hpPrev = h; });

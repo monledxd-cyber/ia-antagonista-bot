@@ -5,6 +5,7 @@ function crearCuracion(bot, o) {
   const items = () => bot.inventory.items();
   let ocupado = false, umbral = { v: 11, t: 0 };
   const ult = {};
+  bot._curando = () => ocupado;
   const listo = (k, ms) => Date.now() - (ult[k] || 0) > ms;
 
   function textoPocion(i) {

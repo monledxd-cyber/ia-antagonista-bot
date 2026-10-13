@@ -960,7 +960,7 @@ function crearAbasto(bot, o) {
   }, 2000);
   bot.once('end', () => clearInterval(vigia));
 
-  const intervalo = setInterval(async () => {
+  const tick = async () => {
     if (!ON || bot._pausaAbasto || activo || !bot.entity || Date.now() - ultima < (ultimoOk ? 0 : 700)) return;
     diag.estado.abastoMotivo = !o.tranquilo() ? 'no tranquilo (combate, objetivo o enemigo a <14)' : jugadorCerca(bot._modoEquipo > Date.now() ? 14 : 24) ? 'jugador cerca' : bot.health <= 12 ? 'vida baja' : ''; // tras un exito sigue enseguida: siempre persigue la siguiente mejora
     bot._abortarPaso = false;
@@ -993,8 +993,10 @@ function crearAbasto(bot, o) {
       activo = false; o.ocupar(false); ultima = Date.now();
       try { if (!bot.pvp || !bot.pvp.target) bot.pathfinder.setGoal(null); } catch (e) { /* ignorar */ }
       try { o.equipar(); } catch (e) { /* ignorar */ }
+      if (ultimoOk && bot.entity) setTimeout(tick, 10);
     }
-  }, 500);
+  };
+  const intervalo = setInterval(tick, 500);
   bot.once('end', () => clearInterval(intervalo));
   return { activo: () => activo, estado: () => ({ activo, ultima, base, mina: mina && mina.fase, enfriando: Object.keys(fallos).filter((k) => fallos[k] > Date.now()) }) };
 }

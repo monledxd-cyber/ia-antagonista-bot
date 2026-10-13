@@ -52,7 +52,11 @@ function crearLag(bot) {
     const p = bot.player && bot.player.ping;
     if (typeof p === 'number' && p >= 0) ping = ema(ping, p, 0.3);
     try {
-      if (bot.pathfinder && bot.pathfinder.movements) bot.pathfinder.movements.allowParkour = !lag.malo();
+      const mv = bot.pathfinder && bot.pathfinder.movements;
+      if (mv) {
+        if (lag.malo() && mv.allowParkour && !mv._parkourLag) { mv._parkourLag = true; mv.allowParkour = false; }
+        else if (!lag.malo() && mv._parkourLag) { mv._parkourLag = false; mv.allowParkour = true; }
+      }
       if (bot.pvp) bot.pvp.attackRange = PVP0 - Math.min(0.4, ping / 600);
     } catch (e) { /* ignorar */ }
     diag.estado.lag = lag.estado();
