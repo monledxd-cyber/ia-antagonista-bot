@@ -1,3 +1,4 @@
+const { ignorado } = require('./modo');
 const { goals } = require('mineflayer-pathfinder');
 const { Vec3 } = require('vec3');
 const diag = require('./diag');
@@ -9,7 +10,7 @@ function crearEstratega(bot, o) {
   const est = {};
   bot.on('health', () => { const h = bot.health; if (bot._hpEst !== undefined && h < bot._hpEst - 1.5 && cont) cont.dano += bot._hpEst - h; bot._hpEst = h; });
   const rival = () => { const t = bot.pvp && bot.pvp.target; return t && t.type === 'player' && t.position ? t : null; };
-  const jugadores = () => Object.values(bot.entities).filter((e) => e.type === 'player' && e.username !== bot.username && e.gameMode !== 'spectator' && e.position);
+  const jugadores = () => Object.values(bot.entities).filter((e) => e.type === 'player' && e.username !== bot.username && !ignorado(bot, e) && e.position);
   const mano = (e) => (e.heldItem && e.heldItem.name) || '';
   const solido = (p) => { const b = bot.blockAt(p); return !!b && b.boundingBox === 'block'; };
   const libreCelda = (p) => { const a = bot.blockAt(p), b = bot.blockAt(p.offset(0, 1, 0)); return !!a && !!b && a.boundingBox === 'empty' && b.boundingBox === 'empty'; };

@@ -1,3 +1,4 @@
+const { ignorado } = require('./modo');
 // Speakerman update: el bot construye trampas por su cuenta (estilo 2b2t: TNT, lava, pistones, railgun de TNT).
 // Todo se construye con comandos (el bot necesita OP): son pocos comandos con /fill y estan limitados en ritmo para
 // que el servidor no lo expulse por spam. Hay planos fijos y, ademas, la IA puede disenar los suyos con [PLANO:...].
@@ -226,7 +227,7 @@ function crearTrampero(bot, opts = {}) {
 
 
   const jugadoresValidos = () => Object.values(bot.entities).filter((e) =>
-    e.type === 'player' && e.username && e.username !== bot.username && e.gameMode !== 'creative' && e.gameMode !== 'spectator');
+    e.type === 'player' && e.username && e.username !== bot.username && e.gameMode !== 'creative' && !ignorado(bot, e));
 
   const manualPosible = () => process.env.IA_PLANO_CMD !== '1' && !!bot.inventory;
   const cuentaItem = (n) => bot.inventory.items().filter((i) => i.name === n).reduce((a, i) => a + i.count, 0);

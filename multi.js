@@ -1,3 +1,4 @@
+const { ignorado } = require('./modo');
 const { goals } = require('mineflayer-pathfinder');
 const diag = require('./diag');
 
@@ -5,7 +6,7 @@ const diag = require('./diag');
 function crearMulti(bot, o) {
   let ultCambio = 0, ultPasillo = 0, modo = null;
   const dist = (e) => e.position.distanceTo(bot.entity.position);
-  const rivales = (r) => Object.values(bot.entities).filter((e) => e.type === 'player' && e.username !== bot.username && e.gameMode !== 'spectator' && e.gameMode !== 'creative' && e.position && dist(e) < r);
+  const rivales = (r) => Object.values(bot.entities).filter((e) => e.type === 'player' && e.username !== bot.username && !ignorado(bot, e) && e.gameMode !== 'creative' && e.position && dist(e) < r);
   const solido = (p) => { const b = bot.blockAt(p); return !!b && b.boundingBox === 'block'; };
   const pie = (p) => { const a = bot.blockAt(p), b = bot.blockAt(p.offset(0, 1, 0)); return !!a && !!b && a.boundingBox === 'empty' && b.boundingBox === 'empty' && solido(p.offset(0, -1, 0)); };
 

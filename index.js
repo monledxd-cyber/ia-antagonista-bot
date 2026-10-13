@@ -18,6 +18,7 @@ const { crearTrampero } = require('./trampas');
 const { crearMemoria } = require('./memoria');
 const { crearAbasto } = require('./abasto');
 const diag = require('./diag');
+const { ignorado } = require('./modo');
 const { crearClaves } = require('./claves');
 const { status: statusPing } = require('minecraft-server-util');
 const express = require('express');
@@ -116,7 +117,7 @@ const extrasCtx = (bot, nombre, falla) => {
     intencion: bot._intencion || '',
     stats: statsAM.resumen(),
     fase: (() => { try { if (bot._acecho && bot._acecho.fase()) return bot._acecho.fase(); const tg = bot.pvp && bot.pvp.target; if (Date.now() - diario.ultKill() < 60_000) return 'rival_muerto'; if (bot._retirada > Date.now()) return 'retirada'; if (!tg) return ''; const d = tg.position.distanceTo(bot.entity.position); if (d > 14) return 'rival_huye'; if (diag.estado.vida.ultimoDano && Date.now() - diag.estado.vida.ultimoDano < 5000) return 'intercambio'; return 'inicio'; } catch (e) { return ''; } })(),
-    animo: (() => { try { const hp = bot.health, golpe = diag.estado.vida.ultimoDano && Date.now() - diag.estado.vida.ultimoDano < 8000; const rivales = Object.values(bot.entities).filter((e) => e.type === 'player' && e.username !== BOT_USERNAME && bot.entity && e.position.distanceTo(bot.entity.position) < 14).length;
+    animo: (() => { try { const hp = bot.health, golpe = diag.estado.vida.ultimoDano && Date.now() - diag.estado.vida.ultimoDano < 8000; const rivales = Object.values(bot.entities).filter((e) => e.type === 'player' && e.username !== BOT_USERNAME && !ignorado(bot, e) && bot.entity && e.position.distanceTo(bot.entity.position) < 14).length;
       if (hp < 8) return 'herido'; if (golpe && rivales > 1) return 'acorralado'; if (diario.muertesRecientes(30) > 0) return 'vengativo'; if (golpe) return 'en_pelea'; return 'frio'; } catch (e) { return 'frio'; } })(),
     yo: (() => { try { const eq = bot.inventory.items().length; const tg = bot.pvp && bot.pvp.target; return `nombre=AM (usuario tecnico ${BOT_USERNAME})` + (tg && tg.username ? `; atacando a ${tg.username}` : '; sin objetivo') + '; ' + diario.resumen() + `; items=${eq}` + (diag.estado.metas && diag.estado.metas.length ? '; metas=' + diag.estado.metas.slice(0, 3).join('>') : '') + (bot._modoEquipo > Date.now() ? '; modo=reequipandome' : ''); } catch (e) { return ''; } })(),
     puedeConstruir: !!(t && t.listo()) || /PLANO|TRAMPERO/.test(falla || ''),
@@ -229,8 +230,7 @@ function iniciarHuida(bot) {
     // Validacion: el objetivo debe seguir existiendo en el mundo y no estar
     // en creative/spectator (atacar esos modos causa invalid_entity_attacked).
     const sigueValido = bot.entities[objetivo.id];
-    const gm = objetivo.gameMode;
-    if (!sigueValido || gm === 'creative' || gm === 'spectator') return;
+    if (!sigueValido || ignorado(bot, objetivo)) return;
 
     // Reach real: usa el attribute del bot si esta disponible (varia por
     // encantamientos/version), con 3 bloques como fallback conservador.
@@ -366,7 +366,7 @@ function iniciarHuida(bot) {
         setTimeout(() => bot.deactivateItem(), 800);
       }
       const atacante = Object.values(bot.entities).find(e =>
-        e !== bot.entity && e.username !== BOT_USERNAME && e.type === 'player' && bot.entity && e.position.distanceTo(bot.entity.position) < DISTANCIA_PELIGRO + 2
+        e !== bot.entity && e.username !== BOT_USERNAME && e.type === 'player' && !ignorado(bot, e) && bot.entity && e.position.distanceTo(bot.entity.position) < DISTANCIA_PELIGRO + 2
       );
       if (atacante) {
         if (atacante.position.distanceTo(bot.entity.position) < 3) atacar(atacante);
@@ -387,7 +387,7 @@ function iniciarHuida(bot) {
     if (!bot.entity) return false;
     return Object.values(bot.entities).some(e =>
       e !== bot.entity && e.position.distanceTo(bot.entity.position) < radio && (
-        (e.type === 'player' && e.username !== BOT_USERNAME && e.gameMode !== 'spectator' && e.gameMode !== 'creative') ||
+        (e.type === 'player' && e.username !== BOT_USERNAME && !ignorado(bot, e)) ||
         esMobHostil(e)
       )
     );
@@ -446,7 +446,7 @@ function iniciarHuida(bot) {
     }
     const jugadoresCercanos = Object.values(bot.entities).filter(e =>
       e.type === 'player' && e.username !== BOT_USERNAME &&
-      e.gameMode !== 'spectator' && e.gameMode !== 'creative' &&
+      !ignorado(bot, e) &&
       e.position.distanceTo(bot.entity.position) < (bot._emboscadaHasta > Date.now() ? 9 : RANGO_VIGILANCIA)
     );
     const mobsCercanos = Object.values(bot.entities).filter(e =>
@@ -960,7 +960,7 @@ async function crearBot() {
     }
     bot.on('death', () => {
       console.log('[bot] murio, respawneando en el mismo server (sin reconectar)');
-      const p = Object.values(bot.entities).filter(e => e.type === 'player' && e.username !== BOT_USERNAME && bot.entity && e.position.distanceTo(bot.entity.position) < 8)[0];
+      const p = Object.values(bot.entities).filter(e => e.type === 'player' && e.username !== BOT_USERNAME && !ignorado(bot, e) && bot.entity && e.position.distanceTo(bot.entity.position) < 8)[0];
       if (p) { memoria.mato(p.username); memoria.resultado(p.username, false); }
       const ar = p && p.heldItem && p.heldItem.name;
       const ultimo = diag.estado.vida.atacante;
@@ -1008,7 +1008,7 @@ async function crearBot() {
         if (!bot.entity || pensando || process.env.IA_VOLUNTAD === '0') return;
         const ocupadoYa = (bot.pvp && bot.pvp.target) || bot.health <= 8 || (bot._trampero && bot._trampero.pendientes() > 0);
         if (ocupadoYa) return;
-        const online = Object.values(bot.players).filter(p => p.username !== BOT_USERNAME);
+        const online = Object.values(bot.players).filter(p => p.username !== BOT_USERNAME && !ignorado(bot, p.username));
         if (!online.length) return;
         const p = online[Math.floor(Math.random() * online.length)];
         const real = ultimoContexto.get(p.username) || {};
@@ -1050,7 +1050,7 @@ async function crearBot() {
         if (!bot.entity) return;
         if (Math.random() > Math.min(0.95, PROB_HABLAR_BASE * Math.pow(require('./pesos').rasgo('crueldad'), 0.4))) return; // se salta este turno, silencio deliberado
         const candidato = Object.values(bot.entities).find(e =>
-          e.type === 'player' && e.username !== BOT_USERNAME &&
+          e.type === 'player' && e.username !== BOT_USERNAME && !ignorado(bot, e) &&
           e.position.distanceTo(bot.entity.position) < 30
         );
         if (!candidato) return;
@@ -1083,6 +1083,7 @@ async function crearBot() {
   // Responde cuando un jugador real escribe en el chat (no reportes del datapack)
 
   bot.on('chat', async (username, mensaje) => {
+    if (username !== BOT_USERNAME && ignorado(bot, username)) return;
     if (username !== BOT_USERNAME) memoria.dijo(username, mensaje);
     console.log(`[diag] evento chat recibido: username="${username}" mensaje="${mensaje}"`);
     try {
@@ -1380,7 +1381,7 @@ async function smashAttack(bot) {
   if (bot.health < 14) return { ok: false, motivo: 'poca vida para arriesgar la caida' };
   const objetivo = Object.values(bot.entities).find(e =>
     e.type === 'player' && e.username !== BOT_USERNAME &&
-    e.gameMode !== 'creative' && e.gameMode !== 'spectator' &&
+    !ignorado(bot, e) &&
     e.position.distanceTo(bot.entity.position) < 8
   );
   if (!objetivo) return { ok: false, motivo: 'no habia jugador a menos de 8 bloques' };
@@ -1563,7 +1564,7 @@ async function manejarRespuesta(bot, ctx, respuestaCruda) {
   if (mAtacar) {
     const objetivo = Object.values(bot.entities).find(e =>
       e.type === 'player' && e.username !== BOT_USERNAME &&
-      e.gameMode !== 'creative' && e.gameMode !== 'spectator' &&
+      !ignorado(bot, e) &&
       bot.entity && e.position.distanceTo(bot.entity.position) < 4
     );
     if (objetivo && bot.entities[objetivo.id]) {

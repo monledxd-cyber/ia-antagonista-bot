@@ -1,3 +1,4 @@
+const { ignorado } = require('./modo');
 const { goals } = require('mineflayer-pathfinder');
 const { pick } = require('./frases');
 
@@ -7,7 +8,7 @@ function crearAcecho(bot, o) {
   const cooldown = {};
   const ob = (n) => { const v = memoria.vec(n); return v.obsesion + v.rencor; };
   let st = null;
-  const jugador = (n) => { const p = bot.players[n]; return p && p.entity; };
+  const jugador = (n) => { const p = bot.players[n]; return p && p.entity && !ignorado(bot, n) ? p.entity : null; };
   const dist = (e) => e.position.distanceTo(bot.entity.position);
   const vida = (e) => { const h = e && e.metadata && e.metadata[9]; return typeof h === 'number' && h >= 0 && h <= 40 ? h : null; };
   const decir = (t) => { try { bot.chat(t.slice(0, 200)); } catch (e) { /* ignorar */ } };
@@ -91,7 +92,7 @@ function crearAcecho(bot, o) {
         if (b) { bot.pathfinder.setGoal(new goals.GoalNear(b.position.x, b.position.y, b.position.z, 2)); diag.log('info', 'ocio', 'va por madera'); return; }
       }
       if (r < 0.55) {
-        const c = Object.keys(bot.players).filter((n) => n !== bot.username && memoria.ultimo(n)).sort((a, b) => ob(b) - ob(a))[0];
+        const c = Object.keys(bot.players).filter((n) => n !== bot.username && !ignorado(bot, n) && memoria.ultimo(n)).sort((a, b) => ob(b) - ob(a))[0];
         const u = c && memoria.ultimo(c);
         if (u && now - u.t < 3 * 3600_000) { bot.pathfinder.setGoal(new goals.GoalNear(u.x, u.y, u.z, 18 + Math.random() * 10)); diag.log('info', 'ocio', 'revisa donde vio a ' + c); return; }
       }
@@ -105,7 +106,7 @@ function crearAcecho(bot, o) {
   bot.once('end', () => { clearInterval(tormento); clearInterval(acecho); clearInterval(ocio); });
   return {
     fase: () => (bot._tormento ? 'tormento' : st ? 'acecho_' + st.fase : ''),
-    radar: () => Object.keys(bot.players).filter((n) => n !== bot.username).map((n) => {
+    radar: () => Object.keys(bot.players).filter((n) => n !== bot.username && !ignorado(bot, n)).map((n) => {
       const u = memoria.ultimo(n), e = jugador(n);
       return { n, r: memoria.odio(n), d: memoria.dominante(n), s: e ? `cerca(${Math.round(dist(e))}m)` : u ? `visto hace ${Math.round((Date.now() - u.t) / 60000)}min en ${u.x},${u.z}` : 'sin datos' };
     }).sort((a, b) => b.r - a.r).slice(0, 3).map((x) => `${x.n}[${x.d}]: ${x.s}`).join(' | '),

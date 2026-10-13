@@ -1,3 +1,4 @@
+const { ignorado } = require('./modo');
 // Combate por reflejos (sin LLM): arco/ballesta con punteria balistica, cristales, mace y escudo.
 // Antes todo dependia de que la IA emitiera un tag; si la IA fallaba, el bot peleaba solo con espada.
 const { Vec3 } = require('vec3');
@@ -82,7 +83,7 @@ function iniciarCombate(bot, api) {
   const inv = () => bot.inventory.items();
   const tiene = (n) => inv().find((i) => i.name === n);
   const flechas = () => inv().some((i) => /(^|_)arrow$/.test(i.name));
-  const valido = (t) => t && bot.entities[t.id] && t.gameMode !== 'creative' && t.gameMode !== 'spectator';
+  const valido = (t) => t && bot.entities[t.id] && !ignorado(bot, t);
   const dist = (t) => t.position.distanceTo(bot.entity.position);
   const vista = (t) => {
     const ojo = bot.entity.position.offset(0, 1.62, 0);
@@ -451,7 +452,7 @@ function iniciarCombate(bot, api) {
     if (bot.health < hpPrev) {
       ultDano = Date.now();
       // Dano con el escudo arriba y un hacha cerca: probablemente nos lo inutilizo (5 s). No insistir.
-      const hacha = Object.values(bot.entities).find((e) => e !== bot.entity && e.type === 'player' &&
+      const hacha = Object.values(bot.entities).find((e) => e !== bot.entity && e.type === 'player' && !ignorado(bot, e) &&
         e.heldItem && /_axe$/.test(e.heldItem.name) && e.position.distanceTo(bot.entity.position) < 6);
       if (escudoArriba && hacha) { escudoRotoHasta = Date.now() + 5000; bajar(); }
     }
@@ -466,14 +467,14 @@ function iniciarCombate(bot, api) {
     const p = bot.entity.position;
     const todos = Object.values(bot.entities);
     if (todos.some((e) => (e.name === 'tnt' || e.name === 'creeper') && e.position.distanceTo(p) < 9)) { bajar(); return; }
-    if (todos.some((e) => e.type === 'player' && e !== bot.entity && e.heldItem && e.heldItem.name === 'mace' && e.position.distanceTo(p) < 8)) { bajar(); return; }
+    if (todos.some((e) => e.type === 'player' && e !== bot.entity && !ignorado(bot, e) && e.heldItem && e.heldItem.name === 'mace' && e.position.distanceTo(p) < 8)) { bajar(); return; }
     const proy = todos.find((e) => PROYECTIL.test(e.name || '') && e.velocity &&
       e.position.distanceTo(p) < 14 && e.position.plus(e.velocity).distanceTo(p) < e.position.distanceTo(p) - 0.2);
     if (proy) { alzar(900, true); return; }
-    const arquero = todos.find((e) => e !== bot.entity && e.type === 'player' && e.heldItem &&
+    const arquero = todos.find((e) => e !== bot.entity && e.type === 'player' && !ignorado(bot, e) && e.heldItem &&
       /^(bow|crossbow)$/.test(e.heldItem.name) && e.position.distanceTo(p) < 35);
     if (arquero && (ahora - ultDano < 4000 || usando(arquero))) { try { bot.lookAt(arquero.position.offset(0, 1.6, 0), true); } catch (e) { /* ignorar */ } alzar(700); return; }
-    const cerca = todos.find((e) => e !== bot.entity && (e.type === 'player' || e.type === 'hostile') &&
+    const cerca = todos.find((e) => e !== bot.entity && (e.type === 'hostile' || (e.type === 'player' && !ignorado(bot, e))) &&
       e.position.distanceTo(p) < 4.2 && e.username !== bot.username);
     if (cerca) {
       const arma = (cerca.heldItem && cerca.heldItem.name) || '';

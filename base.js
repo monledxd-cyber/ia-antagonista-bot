@@ -1,3 +1,4 @@
+const { ignorado } = require('./modo');
 const { goals } = require('mineflayer-pathfinder');
 const { Vec3 } = require('vec3');
 const diag = require('./diag');
@@ -5,7 +6,7 @@ const diag = require('./diag');
 function crearBase(bot, o) {
   const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
   let base = null, encerrado = false, emb = null, ultRegreso = 0, ultEnc = 0;
-  const jugadores = () => Object.values(bot.entities).filter((e) => e.type === 'player' && e.username !== bot.username && e.gameMode !== 'spectator' && e.gameMode !== 'creative' && e.position);
+  const jugadores = () => Object.values(bot.entities).filter((e) => e.type === 'player' && e.username !== bot.username && !ignorado(bot, e) && e.gameMode !== 'creative' && e.position);
   const rival = () => bot.pvp && bot.pvp.target;
   const dist = (e) => e.position.distanceTo(bot.entity.position);
 

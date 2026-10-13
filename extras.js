@@ -1,3 +1,4 @@
+const { ignorado } = require('./modo');
 // Pasos extra del abasto: encantar equipo, preparar pociones y asaltar bases de jugadores ausentes.
 function crearExtras(h) {
   const { bot, goals, diag, o, items, cuenta, tiene, bloqueN, colocar, craftear, cocinar, libre, dormir, memoria, VALIOSO, buscarVar } = h;
@@ -137,7 +138,7 @@ function crearExtras(h) {
   async function asalto() {
     if (process.env.IA_ASALTO === '0' || bot.health < 16 || !tiene(/_(sword|axe|pickaxe)$/)) return 'nada';
     const ahora = Date.now();
-    const nombres = Object.keys(bot.players || {}).filter((n) => n !== bot.username && (asaltado.get(n) || 0) < ahora);
+    const nombres = Object.keys(bot.players || {}).filter((n) => n !== bot.username && !ignorado(bot, n) && (asaltado.get(n) || 0) < ahora);
     const vistos = new Set(Object.values(bot.entities).filter((e) => e.type === 'player').map((e) => e.username));
     const c = nombres.filter((n) => !vistos.has(n) && (memoria.zonaHabitual(n) || memoria.ultimo(n))).map((n) => { const v = memoria.vec(n); return { n, p: v.rencor + v.obsesion + v.desprecio * 0.5 }; }).filter((x) => x.p >= 3).sort((a, b) => b.p - a.p)[0];
     if (!c) return 'nada';
