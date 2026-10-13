@@ -204,14 +204,15 @@ function crearAbasto(bot, o) {
   };
 
   // Sesion de mina: baja en diagonal excavando, abre ramas a esa profundidad, recoge menas y regresa a la superficie.
+  let forzarMina = null;
   async function paso_mina() {
-    const re = regexMenas();
+    const re = (mina && mina.re) || (forzarMina && forzarMina.re) || regexMenas();
     if (!re) return 'nada';
     if (!mina) {
       if (!pico() || bot.health < 16 || cuenta(COMIDA) < 3 || !libre()) return 'nada';
       const necesitaDiamante = /diamond/.test(re.source);
       const d = [[1, 0], [-1, 0], [0, 1], [0, -1]][Math.floor(Math.random() * 4)];
-      mina = { fase: 'bajar', d, sup: bot.entity.position.clone(), y: necesitaDiamante ? -50 : 14, legs: 0, t0: Date.now() };
+      mina = { fase: 'bajar', d, sup: bot.entity.position.clone(), y: forzarMina ? forzarMina.y : (necesitaDiamante ? -50 : 14), re: forzarMina ? forzarMina.re : null, legs: 0, t0: Date.now() };
       console.log('[abasto] inicia mina hacia y=' + mina.y);
     }
     const p = bot.entity.position;
@@ -224,7 +225,7 @@ function crearAbasto(bot, o) {
       return true;
     }
     if (mina.fase === 'rama') {
-      const ore = bot.findBlock({ maxDistance: 9, matching: (b) => b && re.test(b.name) });
+      const ore = bot.findBlock({ maxDistance: 24, matching: (b) => b && re.test(b.name) });
       if (ore) {
         if (await cavar(ore.position.x, ore.position.y, ore.position.z, 20000)) { await romper(ore); sinMenasDesde = Date.now(); }
         return true;
@@ -482,19 +483,14 @@ function crearAbasto(bot, o) {
       if (!bloqueN(/^crafting_table$/, 24)) { if (tiene(/^crafting_table$/)) await colocar('crafting_table'); else return 'nada'; }
       await irBase(); await o.mejorar(bot); return true;
     }],
-    ['carbon', async () => {
-      if (cuenta(/^coal$/) >= 6) return 'nada';
-      const b = buscarVar('carbon', /^(deepslate_)?coal_ore$/, 24);
-      if (!b) return 'nada';
-      return (await o.recolectar(bot, b.name, 4, Math.ceil(distA(b.position)) + 10)).ok;
-    }],
-    ['hierro', async () => {
-      if (cuenta(/^(raw_iron|iron_ingot)$/) >= 26) return 'nada';
-      const b = buscarVar('hierro', /^(deepslate_)?iron_ore$/, 28);
-      if (!b) return 'nada';
-      return (await o.recolectar(bot, b.name, 6, Math.ceil(distA(b.position)) + 10)).ok;
-    }],
-    ['fundir', async () => tiene(/^raw_iron$/) ? cocinar('raw_iron') : 'nada'],
+    ['carbon', () => menear('coal')],
+    ['hierro', () => menear('iron')],
+    ['cobre', () => menear('copper')],
+    ['oro', () => menear('gold')],
+    ['redstone', () => menear('redstone')],
+    ['lapis', () => menear('lapis')],
+    ['diamante', () => menear('diamond')],
+    ['fundir', async () => { const r = items().find((x) => /^(raw_iron|raw_gold|raw_copper)$/.test(x.name)); return r ? cocinar(r.name) : 'nada'; }],
     ['carne', async () => tiene(/^(beef|porkchop|mutton|chicken|cod|salmon)$/) ? cocinar(items().find((i) => /^(beef|porkchop|mutton|chicken|cod|salmon)$/.test(i.name)).name) : 'nada'],
     ['comida', async () => (cuenta(COMIDA) >= 6 || (noche() && enSuperficie())) ? 'nada' : cazar(/^(cow|pig|sheep|chicken)$/)],
     ['escudo', async () => (tiene(/^shield$/) || !tiene(/^iron_ingot$/) || cuenta(/_planks$/) < 6) ? 'nada' : craftear('shield')],
@@ -759,7 +755,6 @@ function crearAbasto(bot, o) {
     ['nether', nether.expedicion],
     ['end', finEnd.expedicion],
     ['encantar', ex.encantar],
-    ['lapis', ex.lapis],
     ['pociones', ex.pociones],
     ['asalto', ex.asalto],
     ['sondeo', async () => {
@@ -802,6 +797,56 @@ function crearAbasto(bot, o) {
     return 'equipo';
   };
   const necesitaArma = () => (tiene(/_(sword|axe)$/) ? null : 'equipo');
+
+  const MENAS = {
+    iron: { re: /^(deepslate_)?iron_ore$/, y: 16, tier: 'piedra', tengo: () => cuenta(/^(raw_iron|iron_ingot)$/), meta: 26 },
+    coal: { re: /^(deepslate_)?coal_ore$/, y: 45, tier: 'madera', tengo: () => cuenta(/^(coal|charcoal)$/), meta: 16 },
+    copper: { re: /^(deepslate_)?copper_ore$/, y: 48, tier: 'piedra', tengo: () => cuenta(/^(raw_copper|copper_ingot)$/), meta: 12 },
+    gold: { re: /^(deepslate_)?gold_ore$/, y: -16, tier: 'hierro', tengo: () => cuenta(/^(raw_gold|gold_ingot)$/), meta: 9 },
+    redstone: { re: /^(deepslate_)?redstone_ore$/, y: -58, tier: 'hierro', tengo: () => cuenta(/^redstone$/), meta: 16 },
+    lapis: { re: /^(deepslate_)?lapis_ore$/, y: 0, tier: 'piedra', tengo: () => cuenta(/^lapis_lazuli$/), meta: 8 },
+    diamond: { re: /^(deepslate_)?diamond_ore$/, y: -58, tier: 'hierro', tengo: () => cuenta(/^diamond$/), meta: 6 },
+  };
+  const peligrosa = (p) => {
+    for (const [dx, dy, dz] of [[0, 0, 0], [1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1], [0, 2, 0]]) {
+      const b = bot.blockAt(p.offset(dx, dy, dz));
+      if (b && /lava|magma/.test(b.name)) return true;
+    }
+    return false;
+  };
+  async function menear(tipo) {
+    const M = MENAS[tipo];
+    if (!M || M.tengo() >= M.meta) return 'nada';
+    if (!items().some((i) => PICO[M.tier].test(i.name))) return 'nada';
+    const clave = 'm_' + tipo;
+    const R = Math.min(128, 32 + (alcance[clave] || 0) * 24 + Math.round(Math.random() * 24));
+    const ids = Object.values(bot.registry.blocksByName).filter((b) => M.re.test(b.name)).map((b) => b.id);
+    const yo = bot.entity.position;
+    const lista = bot.findBlocks({ matching: ids, maxDistance: R, count: 48 }).filter((p) => !peligrosa(p)).sort((p, q) => (p.distanceTo(yo) + 1.5 * Math.abs(p.y - yo.y)) - (q.distanceTo(yo) + 1.5 * Math.abs(q.y - yo.y)));
+    if (!lista.length) {
+      alcance[clave] = Math.min(4, (alcance[clave] || 0) + 1);
+      if (Math.abs(yo.y - M.y) > 12 && cuenta(COMIDA) >= 3 && bot.health >= 16) {
+        forzarMina = { re: M.re, y: M.y };
+        try { const r = await paso_mina(); return r === undefined ? true : r; } finally { forzarMina = null; }
+      }
+      await explorar(30, 70);
+      return true;
+    }
+    alcance[clave] = 0;
+    const b = lista[0];
+    if (!(await cavar(b.x, b.y, b.z, 40000))) return false;
+    let n = 0, cur = b;
+    while (n < 14 && libre()) {
+      const blk = bot.blockAt(cur);
+      if (blk && M.re.test(blk.name) && (await romper(blk))) n++;
+      const sig = bot.findBlocks({ matching: ids, maxDistance: 6, count: 8 }).filter((p) => !peligrosa(p))[0];
+      if (!sig) break;
+      if (!(await cavar(sig.x, sig.y, sig.z, 15000))) break;
+      cur = sig;
+    }
+    await recoger(/^(raw_iron|raw_gold|raw_copper|coal|redstone|lapis_lazuli|diamond)$/, 10);
+    return n > 0;
+  }
   const REQ = {
     mesa: () => (cuenta(/_log$|_planks$/) < 6 ? 'madera' : null),
     palos: () => (cuenta(/_planks$/) < 2 ? 'madera' : null),
@@ -809,10 +854,15 @@ function crearAbasto(bot, o) {
     piedra: () => herramientaPara(PICO.madera),
     carbon: () => herramientaPara(PICO.madera),
     hierro: () => herramientaPara(PICO.piedra),
+    cobre: () => herramientaPara(PICO.piedra),
+    lapis: () => herramientaPara(PICO.piedra),
+    oro: () => herramientaPara(PICO.hierro),
+    redstone: () => herramientaPara(PICO.hierro),
+    diamante: () => herramientaPara(PICO.hierro),
     mina: () => herramientaPara(PICO.piedra),
     obsidiana: () => (!tiene(/^diamond_pickaxe$/) ? herramientaPara(PICO.diamante) : !tiene(/^water_bucket$/) ? (tiene(/^bucket$/) ? 'agua' : 'cubo') : null),
-    fundir: () => (hornoPosible() ? null : 'piedra'),
-    carne: () => (hornoPosible() ? null : 'piedra'),
+    fundir: () => (tiene(/^(raw_iron|raw_gold|raw_copper)$/) && !hornoPosible() ? 'piedra' : null),
+    carne: () => (tiene(/^(beef|porkchop|mutton|chicken|cod|salmon)$/) && !hornoPosible() ? 'piedra' : null),
     cubo: () => (cuenta(/^iron_ingot$/) < 3 ? (tiene(/^raw_iron$/) ? 'fundir' : 'hierro') : null),
     agua: () => (tiene(/^bucket$/) ? null : 'cubo'),
     polvora: necesitaArma, esqueletos: necesitaArma, cuerda: necesitaArma, perlas: necesitaArma, xp: necesitaArma,
@@ -836,7 +886,7 @@ function crearAbasto(bot, o) {
     const rank = (n) => { const i = frente.indexOf(n); return i < 0 ? 100 : i; };
     const env = {};
     for (const kv of (process.env.IA_PESOS || '').split(',')) { const [k, v] = kv.split('='); if (k && +v > 0) env[k.trim()] = +v; }
-    const urg = { madera: cuenta(/_log$|_planks$/) < 6 ? 2.5 : 1, comida: (tiene(/^(beef|porkchop|mutton|chicken|cod|salmon)$/) && hornoPosible()) ? 0.2 : cuenta(COMIDA) < 3 ? 3 : cuenta(COMIDA) < 6 ? 1.3 : 0.7, basura: items().length >= 32 ? 3 : 0.5, nether: nether.listo() ? 3 : 0.4, end: finEnd.quiere() ? 4 : 0.2, encantar: ((bot.experience && bot.experience.level) || 0) >= 5 ? 2 : 0.6, asalto: bot._sadismo ? bot._sadismo() : 1, xp: ((bot.experience && bot.experience.level) || 0) < 5 ? 1.8 : 1 };
+    const urg = { madera: cuenta(/_log$|_planks$/) < 6 ? 2.5 : 1, comida: (tiene(/^(beef|porkchop|mutton|chicken|cod|salmon)$/) && hornoPosible()) ? 0.2 : cuenta(COMIDA) < 3 ? 3 : cuenta(COMIDA) < 6 ? 1.3 : 0.7, basura: items().length >= 32 ? 3 : 0.5, nether: nether.listo() ? 3 : 0.4, cobre: 0.6, oro: 0.8, redstone: 0.7, lapis: (tiene(/^enchanting_table$/) || bloqueN(/^enchanting_table$/, 48)) ? 2 : 0.4, diamante: cuenta(/^diamond$/) < 3 ? 2.5 : 1, hierro: cuenta(/^(raw_iron|iron_ingot)$/) < 6 ? 2 : 1, carbon: cuenta(/^(coal|charcoal)$/) < 3 ? 2 : 1, end: finEnd.quiere() ? 4 : 0.2, encantar: ((bot.experience && bot.experience.level) || 0) >= 5 ? 2 : 0.6, asalto: bot._sadismo ? bot._sadismo() : 1, xp: ((bot.experience && bot.experience.level) || 0) < 5 ? 1.8 : 1 };
     const pesos = necesidades.map((x, i) => {
       const n = x[0], r = rank(n);
       const base = env[n] || Math.max(6, 60 - i * 0.9);
@@ -909,7 +959,7 @@ function crearAbasto(bot, o) {
   bot.once('end', () => clearInterval(vigia));
 
   const intervalo = setInterval(async () => {
-    if (!ON || bot._pausaAbasto || activo || !bot.entity || Date.now() - ultima < (ultimoOk ? 1200 : 6000)) return;
+    if (!ON || bot._pausaAbasto || activo || !bot.entity || Date.now() - ultima < (ultimoOk ? 0 : 700)) return;
     diag.estado.abastoMotivo = !o.tranquilo() ? 'no tranquilo (combate, objetivo o enemigo a <14)' : jugadorCerca(bot._modoEquipo > Date.now() ? 14 : 24) ? 'jugador cerca' : bot.health <= 12 ? 'vida baja' : ''; // tras un exito sigue enseguida: siempre persigue la siguiente mejora
     bot._abortarPaso = false;
     if (!libre() || bot.health <= 12) return;
@@ -917,6 +967,7 @@ function crearAbasto(bot, o) {
     try {
       const orden = ordenar();
       diag.estado.metas = orden.filter((x) => (fallos[x[0]] || 0) <= Date.now()).slice(0, 4).map((x) => x[0]); // varias metas a la vista
+      let hizo = false;
       for (const [nombre, paso] of orden) {
         if (!libre()) break;
         if ((fallos[nombre] || 0) > Date.now()) continue;
@@ -926,6 +977,7 @@ function crearAbasto(bot, o) {
         try { r = await paso(); } catch (e) { r = false; motivo = 'error: ' + e.message; diag.log('error', 'abasto', nombre + ': ' + e.message); }
         pasoActual = null;
         if (r === 'nada') continue;
+        hizo = true;
         if (!r && (bot._abortarPaso || !libre())) { bot._abortarPaso = false; break; }
         const veredicto = hab.registrar(nombre, r, antes, Date.now() - t0);
         diag.estado.habilidades = hab.resumen();
@@ -934,12 +986,13 @@ function crearAbasto(bot, o) {
         else { ultimoOk = true; delete diag.estado.fallosPaso[nombre]; diag.log('info', 'abasto', 'paso ' + nombre); console.log('[abasto] paso:', nombre); }
         break; // un paso por ciclo
       }
+      if (!hizo && libre()) { diag.log('info', 'abasto', 'sin nada util: explora'); await explorar(25, 70); ultimoOk = true; }
     } finally {
       activo = false; o.ocupar(false); ultima = Date.now();
       try { if (!bot.pvp || !bot.pvp.target) bot.pathfinder.setGoal(null); } catch (e) { /* ignorar */ }
       try { o.equipar(); } catch (e) { /* ignorar */ }
     }
-  }, 4000);
+  }, 500);
   bot.once('end', () => clearInterval(intervalo));
   return { activo: () => activo, estado: () => ({ activo, ultima, base, mina: mina && mina.fase, enfriando: Object.keys(fallos).filter((k) => fallos[k] > Date.now()) }) };
 }
