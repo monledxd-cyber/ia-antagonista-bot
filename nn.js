@@ -2,7 +2,7 @@ const fs = require('fs');
 const diag = require('./diag');
 
 const ACC = ['atacar', 'retroceder', 'curar', 'bloquear', 'esquivar', 'otra'];
-const NI = 31, NH = 32, NO = ACC.length, GAMMA = 0.8, LR = 0.01, VENT = 6;
+const NI = 35, NH = 32, NO = ACC.length, GAMMA = 0.8, LR = 0.01, VENT = 6;
 
 function rnn(w) {
   const r = (n, s) => Array.from({ length: n }, () => (Math.random() - 0.5) * 2 * s);
@@ -78,9 +78,10 @@ function rnn(w) {
 function crearNN(bot, ruta, rutaDatos) {
   let red = null, eps = [], act = [], pend = [], sucio = false, h = null, ultSug = null;
   let st = { na: 0, ra: 0, nd: 0, rd: 0, ent: 0, err: 0, pre: 0, sim: 0, simWin: 0, base: 0 };
-  try { const d = JSON.parse(fs.readFileSync(ruta, 'utf8')); if (d && d.m && d.m.u && d.m.w1.length === NI * NH) { red = rnn(d.m); st = Object.assign(st, d.st || {}); } } catch (e) { /* nueva */ }
+  try { const d = JSON.parse(fs.readFileSync(ruta, 'utf8')); if (d && d.m && d.m.u && d.m.w1.length === 31 * NH) { const ex = []; for (let i = 0; i < 4 * NH; i++) ex.push((Math.random() - 0.5) * 0.1); d.m.w1 = d.m.w1.concat(ex); }
+    if (d && d.m && d.m.u && d.m.w1.length === NI * NH) { red = rnn(d.m); st = Object.assign(st, d.st || {}); } } catch (e) { /* nueva */ }
   if (!red) red = rnn();
-  try { const d = JSON.parse(fs.readFileSync(rutaDatos, 'utf8')); if (Array.isArray(d)) eps = d.filter((e) => Array.isArray(e) && e.length && e[0].s && e[0].s.length === NI); } catch (e) { /* vacio */ }
+  try { const d = JSON.parse(fs.readFileSync(rutaDatos, 'utf8')); if (Array.isArray(d)) eps = d.filter((e) => Array.isArray(e) && e.length && e[0].s && (e[0].s.length === NI || e[0].s.length === 31)); for (const e of eps) for (const p of e) while (p.s.length < NI) p.s.push(0); } catch (e) { /* vacio */ }
   const MODO = process.env.IA_NN || 'auto';
   h = red.cero();
 
@@ -139,6 +140,7 @@ function crearNN(bot, ruta, rutaDatos) {
       noche, bot.entity.isInWater ? 1 : 0, c(cau, 0, 1),
       cnt(/^(golden_apple|enchanted_golden_apple)$/) > 0 ? 1 : 0, cnt(/^ender_pearl$/) > 0 ? 1 : 0, bot._premio ? bot._premio.ventaja(t) : 0,
       ...entorno(),
+      ...(bot._leng ? bot._leng.vector(t.username) : [0, 0, 0, 0]),
     ];
   }
 

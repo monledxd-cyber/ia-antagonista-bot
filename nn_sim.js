@@ -1,10 +1,10 @@
-const { experto } = require('./nn_casos');
+const { experto, NI } = require('./nn_casos');
 
 const ESTILOS = ['cuerpo', 'mace', 'arquero', 'escudo', 'cobarde'];
 const nuevo = () => ({ hp: 20, rhp: 20, dist: 3 + Math.random() * 7, curas: Math.random() < 0.6 ? 1 : 0, est: ESTILOS[Math.floor(Math.random() * ESTILOS.length)], flecha: 0, conoce: Math.random() < 0.4, t: 0, esc: Math.random() < 0.7 });
 
 function vec(e) {
-  const s = new Array(31).fill(0);
+  const s = new Array(NI).fill(0);
   s[0] = e.hp / 20; s[1] = 1; s[3] = e.conoce ? 0 : 1; s[2] = e.conoce ? e.rhp / 20 : 0.5;
   s[4] = Math.min(2, e.dist / 10); s[6] = 0.3; s[7] = 0;
   const idx = { cuerpo: 10, mace: 8, arquero: 12, escudo: 10, cobarde: 11 }[e.est];

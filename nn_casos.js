@@ -1,4 +1,4 @@
-const NI = 31;
+const NI = 35;
 const rnd = (a, b) => a + Math.random() * (b - a);
 
 function estado() {
@@ -17,6 +17,7 @@ function estado() {
   s[25] = Math.random() < 0.4 ? 1 : 0; s[26] = Math.random() < 0.3 ? 1 : 0;
   s[27] = Math.max(-1, Math.min(1, (s[0] - 0.5) + (s[17] - s[18]) + rnd(-0.4, 0.4)));
   s[28] = Math.random() < 0.2 ? rnd(0.3, 1) : 0; s[29] = Math.random() < 0.08 ? 1 : 0; s[30] = Math.random() < 0.06 ? 1 : 0;
+  for (let i = 31; i < 35; i++) s[i] = Math.random() < 0.25 ? rnd(0.3, 1) : 0;
   return s;
 }
 
@@ -35,6 +36,10 @@ function experto(s) {
   if (s[30]) { q[1] -= 0.45; q[4] -= 0.2; }
   if (s[23]) { q[0] -= 0.2; q[4] -= 0.1; }
   if (s[21]) q[0] += 0.2;
+  if (s[31]) { q[0] += 0.12 * s[31]; q[4] += 0.08 * s[31]; }
+  if (s[32]) { q[3] += 0.12 * s[32]; q[4] += 0.1 * s[32]; q[0] -= 0.05 * s[32]; }
+  if (s[33]) { q[0] += 0.2 * s[33]; q[1] -= 0.15 * s[33]; q[2] -= 0.05 * s[33]; }
+  if (s[34]) { q[0] += 0.08 * s[34]; q[5] += 0.05 * s[34]; }
   return q.map((v) => Math.max(-1.2, Math.min(1.2, v)));
 }
 
@@ -43,4 +48,4 @@ function generar(n) {
   for (let i = 0; i < n; i++) { const s = estado(); out.push({ s, q: experto(s).map((v) => v + rnd(-0.05, 0.05)) }); }
   return out;
 }
-module.exports = { generar, experto, estado };
+module.exports = { NI, generar, experto, estado };

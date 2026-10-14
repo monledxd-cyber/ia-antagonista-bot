@@ -49,7 +49,23 @@ function avisarFalloIA(bot, e) {
 const MAX_LLM_HORA = Number(process.env.IA_MAX_LLM_HORA) || 150;
 const llamadasTs = [];
 const usoLLM = () => { const h = Date.now() - 3_600_000; while (llamadasTs.length && llamadasTs[0] < h) llamadasTs.shift(); return llamadasTs.length; };
-function preguntarIA(...args) {
+let lengActual = null;
+async function preguntarIA(...args) {
+  const ctx = args[1] || {};
+  const L = lengActual && process.env.IA_LENGUAJE !== '0' ? lengActual : null;
+  let prep = null;
+  if (L) { try { prep = L.preparar(ctx); args[1] = Object.assign({}, ctx, { lenguaje: prep.texto }); } catch (e) { prep = null; } }
+  try {
+    const r = await preguntarIA_base(...args);
+    if (L && prep) { try { L.emitido(ctx.nombre, r, prep.meta, 'llm'); } catch (e) { /* ignorar */ } }
+    return r;
+  } catch (e) {
+    const f = L ? (() => { try { return L.local(ctx); } catch (e2) { return null; } })() : null;
+    if (f) { diag.log('info', 'lenguaje', 'frase local por fallo de IA'); return f; }
+    throw e;
+  }
+}
+function preguntarIA_base(...args) {
   const ctx = args[1] || {};
   const baja = !!(ctx.voluntad || ctx.espontaneo);
   const usado = usoLLM();
@@ -94,7 +110,7 @@ const lastCall = new Map(); // nombre -> timestamp
 const trampaLastUse = new Map(); // nombre -> timestamp de la ultima trampa activada
 const historialJugador = new Map(); // nombre -> { interacciones, ultimasRespuestas: [], eventos: [] }
 const persist = require('./persist');
-const RUTAS_MEM = [process.env.IA_MEMORIA || 'memoria_jugadores.json', process.env.IA_DIARIO || 'diario_am.json', process.env.IA_BASE || 'base_am.json', process.env.IA_CLAVES || 'claves_am.json', process.env.IA_APRENDIZAJE || 'aprendizaje.json', process.env.IA_HABILIDADES || 'habilidades_am.json', process.env.IA_STATS || 'stats_am.json', process.env.IA_BANDITS || 'bandits_am.json', process.env.IA_ITEMS || 'items_am.json', process.env.IA_NN_PESOS || 'nn_am.json', process.env.IA_NN_DATOS || 'datos_nn.json', process.env.IA_PREMIO || 'premio_am.json', process.env.IA_MAPA_ARCH || 'mapa_am.json', process.env.IA_AUTOPSIA_ARCH || 'autopsias_am.json']
+const RUTAS_MEM = [process.env.IA_MEMORIA || 'memoria_jugadores.json', process.env.IA_DIARIO || 'diario_am.json', process.env.IA_BASE || 'base_am.json', process.env.IA_CLAVES || 'claves_am.json', process.env.IA_APRENDIZAJE || 'aprendizaje.json', process.env.IA_HABILIDADES || 'habilidades_am.json', process.env.IA_STATS || 'stats_am.json', process.env.IA_BANDITS || 'bandits_am.json', process.env.IA_ITEMS || 'items_am.json', process.env.IA_NN_PESOS || 'nn_am.json', process.env.IA_NN_DATOS || 'datos_nn.json', process.env.IA_PREMIO || 'premio_am.json', process.env.IA_MAPA_ARCH || 'mapa_am.json', process.env.IA_AUTOPSIA_ARCH || 'autopsias_am.json', process.env.IA_LENGUAJE_ARCH || 'lenguaje_am.json', process.env.IA_CORPUS_ARCH || 'corpus_am.json']
   .map((r) => (require('path').isAbsolute(r) ? r : require('path').join(__dirname, r)));
 persist.restaurar(RUTAS_MEM); // Render: disco efimero -> recupera la memoria del gist si esta configurado
 const memoria = crearMemoria();
@@ -329,6 +345,7 @@ function iniciarHuida(bot) {
   bot._bandits = bandits;
   { const t = setInterval(() => bandits.guardar(), 60_000); if (t.unref) t.unref(); bot.once('end', () => { clearInterval(t); bandits.guardar(); }); }
   if (process.env.IA_LAG !== '0') require('./lag').crearLag(bot);
+  if (process.env.IA_LENGUAJE !== '0') lengActual = require('./lenguaje').crearLenguaje(bot, require('path').join(__dirname, process.env.IA_LENGUAJE_ARCH || 'lenguaje_am.json'), require('path').join(__dirname, process.env.IA_CORPUS_ARCH || 'corpus_am.json'));
   if (process.env.IA_NN !== '0') require('./nn').crearNN(bot, require('path').join(__dirname, process.env.IA_NN_PESOS || 'nn_am.json'), require('path').join(__dirname, process.env.IA_NN_DATOS || 'datos_nn.json'));
   if (process.env.IA_MAPA !== '0') require('./mapa').crearMapa(bot, require('path').join(__dirname, process.env.IA_MAPA_ARCH || 'mapa_am.json'));
   if (process.env.IA_AUTOPSIA !== '0') require('./autopsia').crearAutopsia(bot, require('path').join(__dirname, process.env.IA_AUTOPSIA_ARCH || 'autopsias_am.json'));

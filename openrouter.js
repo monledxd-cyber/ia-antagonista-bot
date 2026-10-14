@@ -23,6 +23,8 @@ o tu linea "tu:"). "vacio"/0 = no lo tiene; "desconocido" = no lo sabes. No pida
 si tu estado dice que no lo tienes. Comenta items solo si el momento lo justifica. Si ves
 "fallo_anterior", no repitas esa accion igual: burlate del fallo y cambia de enfoque.
 
+Si ves "accion_real", "estilo", "rasgos_rival", "rival_dijo", "ejemplos_que_funcionaron" o "aperturas_que_fallaron": tu frase debe reflejar esa accion real, seguir ese estilo, responder a lo que dijo el rival segun sus rasgos (suplica: usala; amenaza: desprecia su escala; burla: no rias, castiga), imitar la FORMA de los ejemplos sin copiarlos y no usar nunca esas aperturas.
+
 NUNCA TE REPITAS (estructura, conteos "van N intentos", chistes). Si abajo ves tus respuestas
 previas a ese jugador, esta PROHIBIDO repetir su estructura o chiste.
 
@@ -102,7 +104,7 @@ async function preguntarIA(apiKey, contextoJugador) {
   if (contextoJugador.mensajeDirecto) {
     userMsg = `${historialLinea}${antiRepeticion}${eventosLinea}
 El jugador ${contextoJugador.nombre} te dice directamente: "${contextoJugador.mensajeDirecto}"
-
+${contextoJugador.lenguaje ? contextoJugador.lenguaje + '\n' : ''}
 Respondele en personaje, con tu tono sadico y orgulloso.`;
   } else {
     const ep = contextoJugador.estadoPropio;
@@ -117,7 +119,8 @@ Respondele en personaje, con tu tono sadico y orgulloso.`;
       (contextoJugador.radar ? `\nradar:${contextoJugador.radar}` : '') +
       (contextoJugador.intencion ? `\nintencion:${contextoJugador.intencion}` : '') +
       (contextoJugador.stats ? `\nstats:${contextoJugador.stats}` : '') +
-      (contextoJugador.animo && contextoJugador.animo !== 'frio' ? `\nanimo:${contextoJugador.animo}` : '');
+      (contextoJugador.animo && contextoJugador.animo !== 'frio' ? `\nanimo:${contextoJugador.animo}` : '') +
+      (contextoJugador.lenguaje ? `\n${contextoJugador.lenguaje}` : '');
     const posStr = contextoJugador.x !== undefined ? `${Math.round(contextoJugador.x)},${Math.round(contextoJugador.y)},${Math.round(contextoJugador.z)}` : '?';
     const dimStr = contextoJugador.dimension ? contextoJugador.dimension.replace('minecraft:', '') : '?';
     const horaStr = contextoJugador.hora_dia !== undefined ? (contextoJugador.hora_dia % 24000 >= 13000 && contextoJugador.hora_dia % 24000 < 23000 ? 'noche' : 'dia') : '?';
