@@ -50,7 +50,7 @@ function crearMapa(bot, ruta) {
   actual = { peligro };
   if (!Movements.prototype._mapaParche) {
     const orig = Movements.prototype.exclusionStep;
-    Movements.prototype.exclusionStep = function (b) { const p = actual && b && b.position ? actual.peligro(b.position) : 0; return orig.call(this, b) + (p >= 0.5 ? Math.min(40, p * 8) : 0); };
+    Movements.prototype.exclusionStep = function (b) { const p = actual && b && b.position ? actual.peligro(b.position) : 0; return orig.call(this, b) + (p >= 1 ? Math.min(12, p * 3) : 0); };
     Movements.prototype._mapaParche = true;
   }
 

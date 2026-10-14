@@ -472,7 +472,20 @@ function crearAbasto(bot, o) {
       const b = buscarVar('madera', /_log$/, 24);
       if (!b) { alcance.madera = Math.min(8, (alcance.madera || 0) + 1); if (tengo >= 6) return 'nada'; await explorar(30, 100); return true; }
       alcance.madera = 0;
-      return (await o.recolectar(bot, b.name, 5, Math.ceil(distA(b.position)) + 10)).ok;
+      const rr = await o.recolectar(bot, b.name, 5, Math.ceil(distA(b.position)) + 10);
+      if (rr.ok) return true;
+      const ids = Object.values(bot.registry.blocksByName).filter((x) => /_log$/.test(x.name)).map((x) => x.id);
+      const yo = bot.entity.position;
+      const cand = bot.findBlocks({ matching: ids, maxDistance: 48, count: 24 }).sort((p, q) => p.distanceTo(yo) - q.distanceTo(yo)).slice(0, 3);
+      for (const c of cand) {
+        if (!libre()) break;
+        if (!(await cavar(c.x, c.y, c.z, 30000))) { if (bot._mapa) bot._mapa.marcarFallo(c); continue; }
+        let n = 0;
+        for (const l of bot.findBlocks({ matching: ids, maxDistance: 5, count: 12 }).sort((p, q) => p.y - q.y)) { const blk = bot.blockAt(l); if (blk && (await romper(blk))) n++; }
+        await recoger(/_log$/, 8);
+        if (n > 0) return true;
+      }
+      return false;
     }],
     ['mesa', async () => (bloqueN(/^crafting_table$/, 24) || cuenta(/_log$|_planks$/) < 6) ? 'nada' : mesa()],
     ['palos', async () => (cuenta(/^stick$/) >= 4 || cuenta(/_planks$/) < 2) ? 'nada' : craftear('stick', 1)],
@@ -731,14 +744,14 @@ function crearAbasto(bot, o) {
       return cazarMob(/^(zombie|skeleton|spider|witch)$/, true);
     }],
     ['esquejes', async () => {
-      if (cuenta(/_sapling$/) >= 3 || !enSuperficie()) return 'nada';
+      if (cuenta(/_sapling$/) >= 3 || !enSuperficie() || cuenta(/_log$|_planks$/) < 8) return 'nada';
       const b = bloqueN(/_leaves$/, 24);
       if (!b) return 'nada';
       return (await o.recolectar(bot, b.name, 14)).ok;
     }],
     ['replantar', async () => {
       const s = items().find((i) => /_sapling$/.test(i.name));
-      if (!s || !enSuperficie()) return 'nada';
+      if (!s || !enSuperficie() || cuenta(/_log$|_planks$/) < 8) return 'nada';
       const p = bot.entity.position.floored();
       for (let r = 1; r <= 6; r++) {
         for (const [dx, dz] of [[r, 0], [-r, 0], [0, r], [0, -r], [r, r], [-r, -r]]) {
@@ -893,7 +906,7 @@ function crearAbasto(bot, o) {
     const rank = (n) => { const i = frente.indexOf(n); return i < 0 ? 100 : i; };
     const env = {};
     for (const kv of (process.env.IA_PESOS || '').split(',')) { const [k, v] = kv.split('='); if (k && +v > 0) env[k.trim()] = +v; }
-    const urg = { madera: cuenta(/_log$|_planks$/) < 6 ? 2.5 : 1, comida: (tiene(CRUDO) && hornoPosible()) ? 0.2 : cuenta(COMIDA) < 3 ? 3 : cuenta(COMIDA) < 6 ? 1.3 : 0.7, basura: items().length >= 32 ? 3 : 0.5, nether: nether.listo() ? (bot._lag && bot._lag.malo() ? 0.6 : 3) : 0.4, cobre: 0.6, oro: 0.8, redstone: 0.7, lapis: (tiene(/^enchanting_table$/) || bloqueN(/^enchanting_table$/, 48)) ? 2 : 0.4, diamante: cuenta(/^diamond$/) < 3 ? 2.5 : 1, hierro: cuenta(/^(raw_iron|iron_ingot)$/) < 6 ? 2 : 1, carbon: cuenta(/^(coal|charcoal)$/) < 3 ? 2 : 1, end: finEnd.quiere() ? (bot._lag && bot._lag.malo() ? 0.6 : 4) : 0.2, encantar: ((bot.experience && bot.experience.level) || 0) >= 5 ? 2 : 0.6, asalto: (bot._sadismo ? bot._sadismo() : 1) * (bot._lag && bot._lag.malo() ? 0.4 : 1), xp: ((bot.experience && bot.experience.level) || 0) < 5 ? 1.8 : 1 };
+    const urg = { esquejes: 0.3, replantar: 0.4, madera: cuenta(/_log$|_planks$/) < 6 ? 2.5 : 1, comida: (tiene(CRUDO) && hornoPosible()) ? 0.2 : cuenta(COMIDA) < 3 ? 3 : cuenta(COMIDA) < 6 ? 1.3 : 0.7, basura: items().length >= 32 ? 3 : 0.5, nether: nether.listo() ? (bot._lag && bot._lag.malo() ? 0.6 : 3) : 0.4, cobre: 0.6, oro: 0.8, redstone: 0.7, lapis: (tiene(/^enchanting_table$/) || bloqueN(/^enchanting_table$/, 48)) ? 2 : 0.4, diamante: cuenta(/^diamond$/) < 3 ? 2.5 : 1, hierro: cuenta(/^(raw_iron|iron_ingot)$/) < 6 ? 2 : 1, carbon: cuenta(/^(coal|charcoal)$/) < 3 ? 2 : 1, end: finEnd.quiere() ? (bot._lag && bot._lag.malo() ? 0.6 : 4) : 0.2, encantar: ((bot.experience && bot.experience.level) || 0) >= 5 ? 2 : 0.6, asalto: (bot._sadismo ? bot._sadismo() : 1) * (bot._lag && bot._lag.malo() ? 0.4 : 1), xp: ((bot.experience && bot.experience.level) || 0) < 5 ? 1.8 : 1 };
     const pesos = necesidades.map((x, i) => {
       const n = x[0], r = rank(n);
       const base = env[n] || Math.max(6, 60 - i * 0.9);

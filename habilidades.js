@@ -4,7 +4,8 @@ function crearHabilidades(bot, ruta) {
   let d = {}, sucio = false;
   try { d = JSON.parse(fs.readFileSync(ruta, 'utf8')); } catch (e) { d = {}; }
   const EXENTOS = /^(base|guardar|cofre|dormir|granja|lava|tnt|rearmar|sondeo|rastrear|recuperar|claves|cosecha|equipo|yunque|trampas|explorar|mina|botin|asalto|nether|end)$/;
-  const g = (n) => (d[n] = d[n] || { ok: 0, fail: 0, dudoso: 0, seguidos: 0, ult: 0, ms: 0 });
+  const ESENCIAL = /^(madera|piedra|mesa|palos|equipo|comida|carne|carbon)$/;
+  const g = (n) => { const h = (d[n] = d[n] || { ok: 0, fail: 0, dudoso: 0, seguidos: 0, ult: 0, ms: 0 }); if (h.seguidos && h.ult && Date.now() - h.ult > 10 * 60_000) { h.seguidos = 0; sucio = true; } return h; };
 
   function snap() {
     const inv = {};
@@ -44,7 +45,8 @@ function crearHabilidades(bot, ruta) {
   function espera(nombre) {
     const h = g(nombre);
     const base = 90_000 * Math.pow(2, Math.min(Math.max(h.seguidos - 1, 0), 5));
-    return Math.round(base * (0.7 + Math.random() * 0.6));
+    const tope = ESENCIAL.test(nombre) ? 60_000 : Infinity;
+    return Math.round(Math.min(base, tope) * (0.7 + Math.random() * 0.6));
   }
   const atascado = (nombre) => g(nombre).seguidos >= 3;
   const tasaDe = (h) => { const t = h.ok + h.fail + h.dudoso; return t ? h.ok / t : 0.5; };
