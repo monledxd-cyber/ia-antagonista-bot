@@ -1286,9 +1286,9 @@ async function craftearConMesa(bot, nombre) {
 }
 
 const PIEZAS_CRAFT = [
-  { p: 'sword', slot: null, tiers: ['wooden', 'stone', 'iron', 'diamond'] },
   { p: 'pickaxe', slot: null, tiers: ['wooden', 'stone', 'iron', 'diamond'] },
   { p: 'axe', slot: null, tiers: ['wooden', 'stone', 'iron', 'diamond'] },
+  { p: 'sword', slot: null, tiers: ['wooden', 'stone', 'iron', 'diamond'] },
   { p: 'shovel', slot: null, tiers: ['wooden', 'stone', 'iron', 'diamond'] },
   { p: 'helmet', slot: 5, tiers: ['iron', 'diamond'] },
   { p: 'chestplate', slot: 6, tiers: ['iron', 'diamond'] },

@@ -854,6 +854,7 @@ function crearAbasto(bot, o) {
     return n > 0;
   }
   const REQ = {
+    madera: () => (cuenta(/_log$|_planks$/) >= 8 && !tiene(/_axe$/) && (mesaCerca() || cuenta(/_planks$/) >= 8) ? 'equipo' : null),
     mesa: () => (cuenta(/_log$|_planks$/) < 6 ? 'madera' : null),
     palos: () => (cuenta(/_planks$/) < 2 ? 'madera' : null),
     equipo: () => (mesaCerca() ? null : 'mesa'),
