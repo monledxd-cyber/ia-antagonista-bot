@@ -4,7 +4,7 @@ const diag = require('./diag');
 // Red neuronal pequena (MLP, JS puro) que aprende el valor esperado de cada accion de pelea.
 // Modo sombra: sugiere y mide si coincidir con ella rinde mas; solo si rinde mas, sesga levemente el temperamento.
 const ACC = ['atacar', 'retroceder', 'curar', 'bloquear', 'esquivar', 'otra'];
-const NI = 28, NH = 16, NO = ACC.length, GAMMA = 0.8, LR = 0.01;
+const NI = 28, NH = 32, NO = ACC.length, GAMMA = 0.8, LR = 0.01;
 
 function mlp(w) {
   const r = (n, s) => Array.from({ length: n }, () => (Math.random() - 0.5) * 2 * s);
@@ -26,13 +26,30 @@ function mlp(w) {
     for (let j = 0; j < NH; j++) { for (let i = 0; i < NI; i++) m.w1[i * NH + j] -= LR * dh[j] * x[i]; m.b1[j] -= LR * dh[j]; }
     return e * e;
   };
-  return { m, fwd, paso, q: (x) => fwd(x).o };
+  const pre = (x, q, lr) => {
+    const { h, o } = fwd(x);
+    const dh = new Array(NH).fill(0);
+    for (let k = 0; k < NO; k++) {
+      const e = Math.max(-1, Math.min(1, o[k] - q[k]));
+      for (let j = 0; j < NH; j++) { dh[j] += e * m.w2[j * NO + k]; m.w2[j * NO + k] -= lr * e * h[j]; }
+      m.b2[k] -= lr * e;
+    }
+    for (let j = 0; j < NH; j++) { const g = dh[j] * (1 - h[j] * h[j]); for (let i = 0; i < NI; i++) m.w1[i * NH + j] -= lr * g * x[i]; m.b1[j] -= lr * g; }
+  };
+  return { m, fwd, paso, pre, q: (x) => fwd(x).o };
 }
 
 function crearNN(bot, ruta, rutaDatos, o) {
   let red = null, buf = [], pend = [], sucio = false, st = { n: 0, acu: 0, ra: 0, na: 0, rd: 0, nd: 0, ent: 0, err: 0 };
   try { const d = JSON.parse(fs.readFileSync(ruta, 'utf8')); if (d && d.m && d.m.w1 && d.m.w1.length === NI * NH) { red = mlp(d.m); st = Object.assign(st, d.st || {}); } } catch (e) { /* nueva */ }
-  if (!red) red = mlp();
+  let nueva = false;
+  if (!red) { red = mlp(); nueva = true; }
+  function precalentar(n = 6000, epocas = 12) {
+    const casos = require('./nn_casos').generar(n);
+    for (let e = 0; e < epocas; e++) { const lr = 0.02 * Math.pow(0.8, e); for (const c of casos) red.pre(c.s, c.q, lr); }
+    st.pre = (st.pre || 0) + 1; sucio = true;
+  }
+  if (nueva) precalentar();
   try { const d = JSON.parse(fs.readFileSync(rutaDatos, 'utf8')); if (Array.isArray(d)) buf = d.filter((x) => x && x.s && x.s.length === NI); } catch (e) { /* vacio */ }
   const MODO = process.env.IA_NN || 'auto';
 
@@ -103,7 +120,8 @@ function crearNN(bot, ruta, rutaDatos, o) {
     if (buf.length < 30) return;
     let err = 0;
     for (let k = 0; k < n; k++) {
-      const x = buf[Math.floor(Math.random() * buf.length)];
+      let x = buf[Math.floor(Math.random() * buf.length)];
+      if (Math.random() < 0.4) { const y = buf[Math.floor(Math.random() * buf.length)]; if (Math.abs(y.r) > Math.abs(x.r)) x = y; }
       const obj = x.r + (x.s2 ? GAMMA * Math.max(...red.q(x.s2)) : 0);
       err += red.paso(x.s, x.a, c(obj, -3, 3));
     }
@@ -144,7 +162,7 @@ function crearNN(bot, ruta, rutaDatos, o) {
       if (bot._bandits) bot._bandits.nnExtra = {};
       guardar();
     },
-    sugerir: () => (ultSug === null ? null : ACC[ultSug]), estado: () => st, activo, guardar, ACC, entrenar, _estadoDe: estado,
+    precalentar, sugerir: () => (ultSug === null ? null : ACC[ultSug]), estado: () => st, activo, guardar, ACC, entrenar, _estadoDe: estado,
   };
   bot._nn = api;
   return api;
