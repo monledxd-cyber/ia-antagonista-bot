@@ -332,6 +332,7 @@ function iniciarHuida(bot) {
   if (process.env.IA_NN !== '0') require('./nn').crearNN(bot, require('path').join(__dirname, process.env.IA_NN_PESOS || 'nn_am.json'), require('path').join(__dirname, process.env.IA_NN_DATOS || 'datos_nn.json'));
   if (process.env.IA_MAPA !== '0') require('./mapa').crearMapa(bot, require('path').join(__dirname, process.env.IA_MAPA_ARCH || 'mapa_am.json'));
   if (process.env.IA_AUTOPSIA !== '0') require('./autopsia').crearAutopsia(bot, require('path').join(__dirname, process.env.IA_AUTOPSIA_ARCH || 'autopsias_am.json'));
+  if (process.env.IA_ATASCO !== '0') setTimeout(() => require('./atasco').crearAtasco(bot), 0);
   if (process.env.IA_NADO !== '0') require('./nado').crearNado(bot);
   bot._modelo = (n) => (memoria.modelo ? memoria.modelo(n) : null);
   require('./peleas').crearPeleas(bot, memoria);

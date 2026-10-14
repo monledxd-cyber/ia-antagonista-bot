@@ -1002,6 +1002,6 @@ function crearAbasto(bot, o) {
   };
   const intervalo = setInterval(tick, 500);
   bot.once('end', () => clearInterval(intervalo));
-  return { activo: () => activo, estado: () => ({ activo, ultima, base, mina: mina && mina.fase, enfriando: Object.keys(fallos).filter((k) => fallos[k] > Date.now()) }) };
+  return { activo: () => activo, paso: () => pasoActual, forzarFallo: (n) => { fallos[n] = Date.now() + hab.espera(n); }, estado: () => ({ activo, ultima, base, mina: mina && mina.fase, enfriando: Object.keys(fallos).filter((k) => fallos[k] > Date.now()) }) };
 }
 module.exports = { crearAbasto };
