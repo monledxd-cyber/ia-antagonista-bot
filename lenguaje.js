@@ -47,7 +47,7 @@ const limpiar = (t) => String(t || '').replace(/\[[A-Z_]+[^\]]*\]/g, '').replace
 const apertura = (t) => norm(t).replace(/[^a-z0-9 ]/g, '').split(' ').filter(Boolean).slice(0, 3).join(' ');
 
 function crearLenguaje(bot, ruta, rutaCorpus) {
-  let d = { tok: {}, est: {}, buenas: [], evitar: [], pl: {}, n: 0 };
+  let d = { tok: {}, est: {}, buenas: [], evitar: [], pl: {}, n: 0, or: {} };
   let corpus = [], sucio = false, sucioC = false;
   try { d = Object.assign(d, JSON.parse(fs.readFileSync(ruta, 'utf8'))); } catch (e) { /* nuevo */ }
   try { const c = JSON.parse(fs.readFileSync(rutaCorpus, 'utf8')); if (Array.isArray(c)) corpus = c; } catch (e) { /* vacio */ }
@@ -192,6 +192,7 @@ function crearLenguaje(bot, ruta, rutaCorpus) {
     for (const k of [p.clave + '#' + p.estilo, '*#' + p.estilo]) { const a = arm(k); a.n++; a.r += r; }
     if (p.base) { const q = d.pl[p.base] || (d.pl[p.base] = { n: 0, r: 0 }); q.n++; q.r += r; }
     d.n++; sucio = true;
+    { const o = d.or[p.origen] || (d.or[p.origen] = { n: 0, r: 0 }); o.n++; o.r += r; }
     if (r > 0.45 && p.f.length > 15) {
       const g = p.f.replace(new RegExp('\\b' + p.nombre.replace(/[^\w]/g, '.') + '\\b', 'g'), '{n}');
       if (!d.buenas.some((b) => b.f === g)) { d.buenas.push({ f: g, a: p.acc, e: p.estilo, r }); if (d.buenas.length > 120) { d.buenas.sort((a, b) => b.r - a.r); d.buenas.length = 100; } }
@@ -224,7 +225,8 @@ function crearLenguaje(bot, ruta, rutaCorpus) {
 
   function resumen() {
     const top = Object.entries(d.est).filter(([k, v]) => k.startsWith('*#') && v.n).map(([k, v]) => k.slice(2) + ' ' + (v.r / v.n).toFixed(2) + '/' + v.n).join(' ');
-    return `frases ${d.n} buenas ${d.buenas.length} evitar ${d.evitar.length} tokens ${Object.keys(d.tok).length} corpus ${corpus.length} | ${top}`;
+    const po = Object.entries(d.or).map(([k, v]) => k + ' ' + (v.r / Math.max(1, v.n)).toFixed(2) + '/' + v.n).join(' ');
+    return `origen ${po} | frases ${d.n} buenas ${d.buenas.length} evitar ${d.evitar.length} tokens ${Object.keys(d.tok).length} corpus ${corpus.length} | ${top}`;
   }
   const guardar = () => {
     try {
@@ -235,8 +237,11 @@ function crearLenguaje(bot, ruta, rutaCorpus) {
   const gt = setInterval(guardar, 60_000);
   bot.once('end', () => { clearInterval(it); clearInterval(gt); guardar(); });
 
-  const api = { ciclo, analizar, vector, preparar, emitido, local, guardar, resumen, rasgos: decay, corpus: () => corpus };
+  const media = (o) => (d.or[o] && d.or[o].n >= 8 ? d.or[o].r / d.or[o].n : null);
+  const pSLM = (base) => { const a = media('slm'), b = media('llm'); if (a === null || b === null) return base; return Math.max(0.05, Math.min(0.9, base + 0.6 * (a - b))); };
+  const infoSLM = (meta) => { const z = meta.clave.split('|'); return { acc: meta.acc, estilo: meta.estilo, rs: vector(meta.nombre), vb: z[1] || 'v0', vida: z[2] || 'ok' }; };
+  const api = { pSLM, infoSLM, evitar: () => d.evitar, ciclo, analizar, vector, preparar, emitido, local, guardar, resumen, rasgos: decay, corpus: () => corpus };
   bot._leng = api;
   return api;
 }
-module.exports = { crearLenguaje, RASGOS, ESTILOS };
+module.exports = { crearLenguaje, RASGOS, ESTILOS, DIRECTIVA, ACCION, PLANT };

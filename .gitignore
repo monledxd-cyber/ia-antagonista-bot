@@ -18,3 +18,8 @@ mapa_am.json
 autopsias_am.json
 lenguaje_am.json
 corpus_am.json
+corpus_lote.json
+slm/dataset.jsonl
+slm/datos/
+slm/modelo.onnx
+slm/vocab.json

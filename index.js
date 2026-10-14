@@ -50,17 +50,24 @@ const MAX_LLM_HORA = Number(process.env.IA_MAX_LLM_HORA) || 150;
 const llamadasTs = [];
 const usoLLM = () => { const h = Date.now() - 3_600_000; while (llamadasTs.length && llamadasTs[0] < h) llamadasTs.shift(); return llamadasTs.length; };
 let lengActual = null;
+const slmActual = process.env.IA_SLM === '0' ? null : require('./slm').crearSLM(require('path').join(__dirname, 'slm'));
 async function preguntarIA(...args) {
   const ctx = args[1] || {};
   const L = lengActual && process.env.IA_LENGUAJE !== '0' ? lengActual : null;
   let prep = null;
   if (L) { try { prep = L.preparar(ctx); args[1] = Object.assign({}, ctx, { lenguaje: prep.texto }); } catch (e) { prep = null; } }
+  if (L && prep && slmActual && slmActual.listo() && !ctx.voluntad && Math.random() < L.pSLM(Number(process.env.IA_SLM_P) || 0.3)) {
+    const f = await slmActual.generar(L.infoSLM(prep.meta), { evitar: L.evitar() });
+    if (f) { L.emitido(ctx.nombre, f, prep.meta, 'slm'); return f; }
+  }
   try {
     const r = await preguntarIA_base(...args);
     if (L && prep) { try { L.emitido(ctx.nombre, r, prep.meta, 'llm'); } catch (e) { /* ignorar */ } }
     return r;
   } catch (e) {
-    const f = L ? (() => { try { return L.local(ctx); } catch (e2) { return null; } })() : null;
+    let f = null;
+    if (L && prep && slmActual && slmActual.listo()) { f = await slmActual.generar(L.infoSLM(prep.meta), { evitar: L.evitar() }); if (f) L.emitido(ctx.nombre, f, prep.meta, 'slm'); }
+    if (!f && L) { try { f = L.local(ctx); } catch (e2) { f = null; } }
     if (f) { diag.log('info', 'lenguaje', 'frase local por fallo de IA'); return f; }
     throw e;
   }
