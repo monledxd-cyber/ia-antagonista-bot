@@ -108,7 +108,7 @@ function crearAbasto(bot, o) {
       hornoPend = horno.position.clone();
       const limite = Date.now() + cant * 10_500 + 3000;
       while (Date.now() < limite && libre()) {
-        await dormir(2000);
+        await dormir(1000);
         if (f.outputItem()) { try { await f.takeOutput(); } catch (e) { /* sigue */ } }
         const ent = f.inputItem();
         if (!ent && !f.outputItem()) break;
@@ -196,18 +196,34 @@ function crearAbasto(bot, o) {
       bot.pathfinder.setGoal(new goals.GoalNear(x, y, z, 1));
       const fin = Date.now() + ms;
       while (Date.now() < fin && libre() && bot.health > 10) {
-        await dormir(600);
+        await dormir(250);
         if (distA({ x, y, z }) <= 2.2) return true;
         if (bot.entity.position.distanceTo(ult) > 0.6) { ult = bot.entity.position.clone(); quieto = Date.now(); }
-        else if (Date.now() - quieto > 7000) return false;
+        else if (Date.now() - quieto > 5000) return false;
       }
       return distA({ x, y, z }) <= 2.5;
     } finally {
       try { bot.pathfinder.setGoal(null); bot.pathfinder.setMovements(bot._movBase || o.base()); } catch (e) { /* ignorar */ }
     }
   }
+  const vista = (bl) => {
+    try {
+      const ojo = bot.entity.position.offset(0, bot.entity.height * 0.9, 0), c = bl.position.offset(0.5, 0.5, 0.5), dir = c.minus(ojo), len = dir.norm();
+      const r = bot.world.raycast(ojo, dir.normalize(), Math.min(6, len + 0.5));
+      return r && r.position ? (r.position.equals(bl.position) ? null : r) : null;
+    } catch (e) { return null; }
+  };
   async function romper(b) {
-    const bl = bot.blockAt(b.position);
+    let bl = bot.blockAt(b.position);
+    if (!bl || !bot.canDigBlock(bl)) return false;
+    for (let i = 0; i < 4; i++) {
+      const tapa = vista(bl);
+      if (!tapa) break;
+      const t = bot.blockAt(tapa.position);
+      if (!t || t.boundingBox !== 'block' || !bot.canDigBlock(t) || /^(chest|furnace|crafting_table|bedrock|obsidian)$/.test(t.name) || peligrosa(t.position)) return false;
+      try { await o.herramienta(bot, t); await bot.dig(t); } catch (e) { return false; }
+    }
+    bl = bot.blockAt(b.position);
     if (!bl || !bot.canDigBlock(bl)) return false;
     try { await o.herramienta(bot, bl); await bot.dig(bl); return true; } catch (e) { return false; }
   }

@@ -1,4 +1,4 @@
-const NI = 35;
+const NI = 43;
 const rnd = (a, b) => a + Math.random() * (b - a);
 
 function estado() {
@@ -18,6 +18,7 @@ function estado() {
   s[27] = Math.max(-1, Math.min(1, (s[0] - 0.5) + (s[17] - s[18]) + rnd(-0.4, 0.4)));
   s[28] = Math.random() < 0.2 ? rnd(0.3, 1) : 0; s[29] = Math.random() < 0.08 ? 1 : 0; s[30] = Math.random() < 0.06 ? 1 : 0;
   for (let i = 31; i < 35; i++) s[i] = Math.random() < 0.25 ? rnd(0.3, 1) : 0;
+  for (let i = 35; i < 43; i++) s[i] = Math.random() < 0.4 ? rnd(0, 1) : 0;
   return s;
 }
 
@@ -40,6 +41,12 @@ function experto(s) {
   if (s[32]) { q[3] += 0.12 * s[32]; q[4] += 0.1 * s[32]; q[0] -= 0.05 * s[32]; }
   if (s[33]) { q[0] += 0.2 * s[33]; q[1] -= 0.15 * s[33]; q[2] -= 0.05 * s[33]; }
   if (s[34]) { q[0] += 0.08 * s[34]; q[5] += 0.05 * s[34]; }
+  if (s[35] > 0.4) { q[1] += 0.2 * s[35]; q[3] += 0.12 * s[35]; q[0] -= 0.1 * s[35]; }
+  if (s[36] > 0.3 && s[37] < 0.4) q[0] += 0.12;
+  if (s[37] > 0.5 && cerca) q[0] += 0.18 * s[37];
+  if (s[38] > 0 && hp < 0.5) q[2] += 0.1;
+  if (s[40] > 0.3 && hp < 0.5) q[2] += 0.12 * s[40];
+  if (s[41] > 0.5 || s[42] > 0.5) { q[1] += 0.12; q[4] += 0.08; q[0] -= 0.1; }
   return q.map((v) => Math.max(-1.2, Math.min(1.2, v)));
 }
 

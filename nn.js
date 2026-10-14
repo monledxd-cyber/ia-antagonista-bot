@@ -2,7 +2,7 @@ const fs = require('fs');
 const diag = require('./diag');
 
 const ACC = ['atacar', 'retroceder', 'curar', 'bloquear', 'esquivar', 'otra'];
-const NI = 35, NH = 32, NO = ACC.length, GAMMA = 0.8, LR = 0.01, VENT = 6;
+const NI = 43, NH = 64, NO = ACC.length, GAMMA = 0.8, LR = 0.01, VENT = 6;
 
 function rnn(w) {
   const r = (n, s) => Array.from({ length: n }, () => (Math.random() - 0.5) * 2 * s);
@@ -75,13 +75,24 @@ function rnn(w) {
   return { m, step, seq, grad, pre, tdVentana, cero };
 }
 
+function migrar(m) {
+  const nh0 = m.b1.length, ni0 = Math.round(m.w1.length / nh0), r = () => (Math.random() - 0.5) * 0.1;
+  if (ni0 === NI && nh0 === NH) return m;
+  const w1 = new Array(NI * NH), u = new Array(NH * NH), w2 = new Array(NH * NO), b1 = new Array(NH).fill(0);
+  for (let i = 0; i < NI; i++) for (let j = 0; j < NH; j++) w1[i * NH + j] = i < ni0 && j < nh0 ? m.w1[i * nh0 + j] : r();
+  for (let i = 0; i < NH; i++) for (let j = 0; j < NH; j++) u[i * NH + j] = i < nh0 && j < nh0 ? m.u[i * nh0 + j] : r() * 0.5;
+  for (let j = 0; j < NH; j++) for (let k = 0; k < NO; k++) w2[j * NO + k] = j < nh0 ? m.w2[j * NO + k] : r();
+  for (let j = 0; j < nh0 && j < NH; j++) b1[j] = m.b1[j];
+  return { w1, u, b1, w2, b2: m.b2 };
+}
+
 function crearNN(bot, ruta, rutaDatos) {
   let red = null, eps = [], act = [], pend = [], sucio = false, h = null, ultSug = null;
   let st = { na: 0, ra: 0, nd: 0, rd: 0, ent: 0, err: 0, pre: 0, sim: 0, simWin: 0, base: 0 };
-  try { const d = JSON.parse(fs.readFileSync(ruta, 'utf8')); if (d && d.m && d.m.u && d.m.w1.length === 31 * NH) { const ex = []; for (let i = 0; i < 4 * NH; i++) ex.push((Math.random() - 0.5) * 0.1); d.m.w1 = d.m.w1.concat(ex); }
-    if (d && d.m && d.m.u && d.m.w1.length === NI * NH) { red = rnn(d.m); st = Object.assign(st, d.st || {}); } } catch (e) { /* nueva */ }
+  try { const d = JSON.parse(fs.readFileSync(ruta, 'utf8'));
+    if (d && d.m && d.m.u && d.m.w1 && d.m.b1) { d.m = migrar(d.m); red = rnn(d.m); st = Object.assign(st, d.st || {}); } } catch (e) { /* nueva */ }
   if (!red) red = rnn();
-  try { const d = JSON.parse(fs.readFileSync(rutaDatos, 'utf8')); if (Array.isArray(d)) eps = d.filter((e) => Array.isArray(e) && e.length && e[0].s && (e[0].s.length === NI || e[0].s.length === 31)); for (const e of eps) for (const p of e) while (p.s.length < NI) p.s.push(0); } catch (e) { /* vacio */ }
+  try { const d = JSON.parse(fs.readFileSync(rutaDatos, 'utf8')); if (Array.isArray(d)) eps = d.filter((e) => Array.isArray(e) && e.length && e[0].s && e[0].s.length <= NI); for (const e of eps) for (const p of e) while (p.s.length < NI) p.s.push(0); } catch (e) { /* vacio */ }
   const MODO = process.env.IA_NN || 'auto';
   h = red.cero();
 
@@ -99,6 +110,10 @@ function crearNN(bot, ruta, rutaDatos) {
   if (!st.pre) precalentar();
   if (!st.sim && process.env.IA_NN_SIM !== '0') simular();
 
+  const dmgIn = [], hitsOut = [];
+  let hpAnt = null;
+  bot.on('health', () => { const h = bot.health; if (hpAnt !== null && h < hpAnt) dmgIn.push({ t: Date.now(), v: hpAnt - h }); hpAnt = h; while (dmgIn.length > 40) dmgIn.shift(); });
+  bot.on('entityHurt', (e) => { const t = bot.pvp && bot.pvp.target; if (t && e && e.id === t.id) { hitsOut.push(Date.now()); while (hitsOut.length > 40) hitsOut.shift(); } });
   const c = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
   const clase = (n) => /mace/.test(n) ? 0 : /crystal|anchor/.test(n) ? 1 : /_sword/.test(n) ? 2 : /_axe/.test(n) ? 3 : /bow|trident/.test(n) ? 4 : 5;
   const vidaRival = (e) => { const v = e && e.metadata && e.metadata[9]; return typeof v === 'number' && v >= 0 && v <= 40 ? v : null; };
@@ -115,6 +130,20 @@ function crearNN(bot, ruta, rutaDatos) {
     } catch (e) { /* ignorar */ }
     const flechas = Object.values(bot.entities).filter((e) => /^(arrow|spectral_arrow|trident|snowball|fireball|wind_charge)$/.test(e.name || '') && e.position.distanceTo(bot.entity.position) < 12 && e.velocity && e.position.plus(e.velocity).distanceTo(bot.entity.position) < e.position.distanceTo(bot.entity.position)).length;
     return [c(flechas / 2, 0, 1), lava, vacio];
+  }
+
+  function extra(t) {
+    const ahora = Date.now(), cnt = (re) => bot.inventory.items().filter((i) => re.test(i.name)).reduce((a, i) => a + i.count, 0);
+    const din = dmgIn.filter((x) => ahora - x.t < 3000).reduce((a, x) => a + x.v, 0), hout = hitsOut.filter((x) => ahora - x < 3000).length;
+    const ult = hitsOut.length ? (ahora - hitsOut[hitsOut.length - 1]) / 1000 : 2;
+    const yo = bot.entity.position;
+    let hostiles = 0, jugadores = 0;
+    for (const e of Object.values(bot.entities)) {
+      if (!e || e === bot.entity || !e.position) continue;
+      const d = e.position.distanceTo(yo);
+      if (e.type === 'player') { if (e.id !== t.id && d < 24) jugadores++; } else if (e.type === 'hostile' && d < 12) hostiles++;
+    }
+    return [c(din / 10, 0, 1), c(hout / 6, 0, 1), c(Math.min(2, ult) / 2, 0, 1), c(cnt(/^totem_of_undying$/) / 2, 0, 1), c(cnt(/potion$/) / 4, 0, 1), c(bot.inventory.items().filter((i) => bot.registry.foodsByName && bot.registry.foodsByName[i.name]).reduce((a, i) => a + i.count, 0) / 16, 0, 1), c(hostiles / 4, 0, 1), c(jugadores / 3, 0, 1)];
   }
 
   function estado(t) {
@@ -141,6 +170,7 @@ function crearNN(bot, ruta, rutaDatos) {
       cnt(/^(golden_apple|enchanted_golden_apple)$/) > 0 ? 1 : 0, cnt(/^ender_pearl$/) > 0 ? 1 : 0, bot._premio ? bot._premio.ventaja(t) : 0,
       ...entorno(),
       ...(bot._leng ? bot._leng.vector(t.username) : [0, 0, 0, 0]),
+      ...extra(t),
     ];
   }
 
