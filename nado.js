@@ -55,6 +55,7 @@ function crearNado(bot) {
       activo = true; metaPrev = g || null; ult = ahora;
       try { bot.pathfinder.setGoal(null); } catch (e) { /* ignorar */ }
       orilla = buscarOrilla(g && g.x !== undefined ? { x: g.x, z: g.z } : null);
+      if (bot._mapa) bot._mapa.marcarPeligro(p, 0.8, 'agua atasco');
       diag.log('info', 'nado', orilla ? 'sale a la orilla ' + orilla.floored() : 'sin orilla visible');
     }
     if (!activo) return;

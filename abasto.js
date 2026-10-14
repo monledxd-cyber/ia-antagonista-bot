@@ -826,6 +826,7 @@ function crearAbasto(bot, o) {
     const ids = Object.values(bot.registry.blocksByName).filter((b) => M.re.test(b.name)).map((b) => b.id);
     const yo = bot.entity.position;
     const lista = bot.findBlocks({ matching: ids, maxDistance: R, count: 48 }).filter((p) => !peligrosa(p)).sort((p, q) => (p.distanceTo(yo) + 1.5 * Math.abs(p.y - yo.y)) - (q.distanceTo(yo) + 1.5 * Math.abs(q.y - yo.y)));
+    if (!lista.length && bot._mapa) { const k = bot._mapa.menaCercana(tipo); if (k) { lista.push(new Vec3(k.x, k.y, k.z)); diag.log('info', 'abasto', 'mena conocida del mapa ' + tipo); } }
     if (!lista.length) {
       alcance[clave] = Math.min(4, (alcance[clave] || 0) + 1);
       if (Math.abs(yo.y - M.y) > 12 && cuenta(COMIDA) >= 3 && bot.health >= 16) {
@@ -837,7 +838,7 @@ function crearAbasto(bot, o) {
     }
     alcance[clave] = 0;
     const b = lista[0];
-    if (!(await cavar(b.x, b.y, b.z, 40000))) { if (bot._premio) bot._premio.evento('mineral_perdido', { k: tipo }); return false; }
+    if (!(await cavar(b.x, b.y, b.z, 40000))) { if (bot._premio) bot._premio.evento('mineral_perdido', { k: tipo }); if (bot._mapa) bot._mapa.marcarFallo(b); return false; }
     let n = 0, cur = b;
     while (n < 14 && libre()) {
       const blk = bot.blockAt(cur);

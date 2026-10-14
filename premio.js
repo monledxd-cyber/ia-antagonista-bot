@@ -9,7 +9,7 @@ const REGLAS = {
   craft_armadura: { v: 2, hab: 1 }, craft_herramienta: { v: 1.2, hab: 1 }, craft_arma: { v: 1.2, hab: 1 }, equipar: { v: 0.8, hab: 1 },
   item_nuevo: { v: 1 }, ganar_valioso: { v: 0.25, hab: 1 }, mineral: { v: 0.4, hab: 1 },
   mineral_perdido: { v: -0.8, hab: 1 }, paso_ok: { v: 0.1, hab: 1 }, paso_fallo: { v: -0.1, hab: 1 }, sin_nada: { v: -0.2, hab: 1 },
-  hambre: { v: -0.05 }, aire: { v: -0.2 }, libre: { v: 1 },
+  muerte_repetida: { v: -3 }, hambre: { v: -0.05 }, aire: { v: -0.2 }, libre: { v: 1 },
 };
 const COMBATE = new Set(['golpe', 'gana', 'muere_jugador', 'huye', 'kill_con_nuevo']);
 const SIN_CREDITO = new Set(['golpe', 'gana', 'dano', 'muerte', 'pierde', 'hambre', 'aire', 'libre', 'perder_valioso', 'perder_equipo']);

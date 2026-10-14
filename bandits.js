@@ -53,6 +53,7 @@ function crearBandits(ruta, diag) {
     if (r && r.perd >= 0.6) { extra.cautela = 0.25; extra.agresion = -0.2; }
     else if (r && r.gan >= 0.8) extra.agresion = 0.15;
     if (modelo && modelo.huye >= 0.4) extra.agresion = (extra.agresion || 0) + 0.2;
+    if (modelo && modelo.muertes >= 2) { extra.cautela = (extra.cautela || 0) + 0.15; extra.agresion = (extra.agresion || 0) - 0.1; }
     const p = { ctx, mult: {}, sesgo: {} };
     for (const dec of DECISIONES) p.mult[dec] = elegir('cd_' + dec, ctx, MULT.map((v) => ({ k: String(v), v }))).v;
     for (const r of RASGOS) p.sesgo[r] = elegir('rasgo_' + r, ctx, SESGOS.map((v) => ({ k: String(v), v }))).v;
