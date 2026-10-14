@@ -1,7 +1,5 @@
 const fs = require('fs');
 
-// Conocimiento de items: ficha derivada de minecraft-data (tipo, comida, herramientas por bloque, materiales de equipo)
-// mas aprendizaje por uso (efectos observados al consumir/usar) persistido en disco.
 function crearItems(bot, ruta) {
   const R = bot.registry;
   let datos = {}, sucio = false;
@@ -109,7 +107,6 @@ function crearItems(bot, ruta) {
   };
   const valioso = (n) => { const r = roles(n); return !r.has('malo') && (r.has('explosivo') || r.has('material_equipo') || r.has('cura') || r.has('buff') || r.has('lanzable') || r.has('armadura') || r.has('arma') || (BL[n] && BL[n].hardness >= 20)) && !/_log$|_planks$|^(stick)$/.test(n); };
 
-  // Herramientas capaces de romper un bloque (por harvestTools de minecraft-data): regex de nombres de item.
   const herramientasPara = (bloque) => {
     const b = BL[bloque];
     if (!b || !b.harvestTools) return null;
@@ -117,7 +114,6 @@ function crearItems(bot, ruta) {
     return nombres.length ? new RegExp('^(' + nombres.join('|') + ')$') : null;
   };
 
-  // --- aprendizaje por uso ---
   const efectos = () => { const o = {}; try { for (const e of Object.values((bot.entity && bot.entity.effects) || {})) { const d = e && R.effects[e.id]; if (d) o[d.name] = 1; } } catch (x) { /* ignorar */ } return o; };
   const cuenta = (n) => bot.inventory.items().filter((i) => i.name === n).reduce((a, i) => a + i.count, 0);
   const visto = {};

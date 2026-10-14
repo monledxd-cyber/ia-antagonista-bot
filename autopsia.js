@@ -1,7 +1,6 @@
 const fs = require('fs');
 const diag = require('./diag');
 
-// Autopsia: al morir reconstruye los ultimos 15 s y aprende por causa y lugar (zona peligrosa, castigo si repite).
 function crearAutopsia(bot, ruta) {
   let lista = [], sucio = false;
   try { lista = JSON.parse(fs.readFileSync(ruta, 'utf8')) || []; } catch (e) { lista = []; }

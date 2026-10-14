@@ -1,7 +1,6 @@
 const { Vec3 } = require('vec3');
 const diag = require('./diag');
 
-// Nado: si el pathfinder no avanza en el agua (flota quieto), sale por la orilla mas cercana con control directo.
 function crearNado(bot) {
   let hist = [], activo = false, metaPrev = null, orilla = null, ult = 0, desde = 0;
   const agua = (b) => !!b && (b.name === 'water' || b.name === 'bubble_column' || (b.getProperties && b.getProperties().waterlogged === true));
@@ -13,7 +12,6 @@ function crearNado(bot) {
     for (let k = 0; k < 20; k++) { const b = bot.blockAt(new Vec3(Math.floor(p.x), y + 1, Math.floor(p.z))); if (!agua(b)) return y; y++; }
     return y;
   }
-  // Orilla mas cercana: bloque solido con aire encima, a lo sumo 1 sobre la superficie. Prefiere la direccion de la meta.
   function buscarOrilla(meta) {
     const p = bot.entity.position, sy = superficie(p);
     let mejor = null, mp = 1e9;

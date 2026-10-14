@@ -1,8 +1,6 @@
 const fs = require('fs');
 const diag = require('./diag');
 
-// Premio (Sf) y castigo (Hm). Cada evento tiene un valor base, un multiplicador aprendido, habituacion por repeticion y,
-// en el combate, escala con el sadismo. Positivo suma a Sf, negativo a Hm. La senal neta (Sf - Hm) alimenta bandits y NN.
 const REGLAS = {
   golpe: { v: 0.3 }, gana: { v: 4 }, muere_jugador: { v: 1.5 }, huye: { v: 1 }, kill_con_nuevo: { v: 2 },
   pierde: { v: -2 }, dano: { v: -0.25 }, muerte: { v: -6 }, perder_valioso: { v: -0.3 }, perder_equipo: { v: -1.5 },
@@ -55,7 +53,6 @@ function crearPremio(bot, stats, memoria, ruta) {
     }
   }
 
-  // ---- combate ----
   bot.on('health', () => { const h = bot.health; if (hpPrev !== null && h < hpPrev) evento('dano', { v: -(hpPrev - h) * 0.25 }); hpPrev = h; });
   bot.on('entityHurt', (e) => {
     const t = bot.pvp && bot.pvp.target;
@@ -69,7 +66,6 @@ function crearPremio(bot, stats, memoria, ruta) {
     }
   });
 
-  // ---- inventario / equipo (generico por roles de items.js) ----
   let inv = null, eq = null, ultInv = {}, desde = Date.now() + 6000;
   const IC = () => bot._items;
   const contar = () => { const o = {}; for (const i of bot.inventory.items()) o[i.name] = (o[i.name] || 0) + i.count; return o; };
@@ -104,7 +100,6 @@ function crearPremio(bot, stats, memoria, ruta) {
     inv = ahora; eq = e2;
   }
 
-  // ---- continuo ----
   const it = setInterval(() => {
     if (!bot.entity) return;
     try { revisarInv(); } catch (e) { /* ignorar */ }
@@ -126,7 +121,6 @@ function crearPremio(bot, stats, memoria, ruta) {
 
   const TIER = (n) => /netherite/.test(n) ? 5 : /diamond/.test(n) ? 4 : /iron/.test(n) ? 3 : /chainmail|golden|gold|turtle|stone/.test(n) ? 2 : /leather|wooden/.test(n) ? 1 : 0;
   const armaPts = (n) => (/mace/.test(n) ? 5 : /_sword|_axe/.test(n) ? TIER(n) : /bow|crossbow|trident/.test(n) ? 2 : 0);
-  // Ventaja inicial de -1 (muy desfavorable) a +1 (muy favorable): equipo, vida, comida, curas y numero de enemigos.
   function ventaja(t) {
     try {
       const mio = [5, 6, 7, 8].reduce((a, s) => a + (bot.inventory.slots[s] ? TIER(bot.inventory.slots[s].name) : 0), 0) / 2

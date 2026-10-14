@@ -1,10 +1,4 @@
-// Casos sinteticos para precalentar la red de pelea: estados plausibles con el valor esperado de cada accion segun
-// conocimiento experto. La red real los refina con peleas verdaderas.
-// Indices de estado: 0 vida, 1 comida, 2 vida rival, 3 vida rival desconocida, 4 distancia/10, 5 dy, 6 velocidad rival, 7 cierre,
-// 8-13 arma rival (mace, cristal, espada, hacha, rango, otro), 14 escudo rival, 15 arco, 16 mi arma/5, 17 mi armadura, 18 armadura rival,
-// 19 ping, 20 tps, 21 rival con lag, 22 noche, 23 agua, 24 cautela, 25 gapple, 26 perla, 27 ventaja.
-// Acciones: 0 atacar, 1 retroceder, 2 curar, 3 bloquear, 4 esquivar, 5 otra.
-const NI = 28;
+const NI = 31;
 const rnd = (a, b) => a + Math.random() * (b - a);
 
 function estado() {
@@ -22,6 +16,7 @@ function estado() {
   s[22] = Math.random() < 0.4 ? 1 : 0; s[23] = Math.random() < 0.08 ? 1 : 0; s[24] = rnd(0, 1);
   s[25] = Math.random() < 0.4 ? 1 : 0; s[26] = Math.random() < 0.3 ? 1 : 0;
   s[27] = Math.max(-1, Math.min(1, (s[0] - 0.5) + (s[17] - s[18]) + rnd(-0.4, 0.4)));
+  s[28] = Math.random() < 0.2 ? rnd(0.3, 1) : 0; s[29] = Math.random() < 0.08 ? 1 : 0; s[30] = Math.random() < 0.06 ? 1 : 0;
   return s;
 }
 
@@ -35,6 +30,9 @@ function experto(s) {
   q[3] = 0.1 + 0.55 * rango * (d > 0.3 ? 1 : 0.2) + 0.15 * s[15] + (escudo ? 0 : 0.05);
   q[4] = 0.05 + 0.55 * mace * (cerca || medio ? 1 : 0) + 0.5 * cris * (cerca ? 1 : 0.3) + 0.15 * Math.abs(s[7]) + (s[23] ? -0.2 : 0);
   q[5] = 0.12 - 0.1 * Math.abs(hp - 0.6);
+  if (s[28]) { q[3] += 0.4 * s[28]; q[4] += 0.3 * s[28]; q[0] -= 0.1 * s[28]; }
+  if (s[29]) { q[1] -= 0.4; q[4] -= 0.3; }
+  if (s[30]) { q[1] -= 0.45; q[4] -= 0.2; }
   if (s[23]) { q[0] -= 0.2; q[4] -= 0.1; }
   if (s[21]) q[0] += 0.2;
   return q.map((v) => Math.max(-1.2, Math.min(1.2, v)));

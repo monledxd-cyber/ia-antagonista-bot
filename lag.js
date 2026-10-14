@@ -1,6 +1,5 @@
 const diag = require('./diag');
 
-// Ping y TPS propios, y lag de los rivales. Todo se mide solo; IA_LAG=0 lo apaga.
 function crearLag(bot) {
   let ping = 0, tps = 20, tAge = null, aliveTs = Date.now();
   const rv = new Map();

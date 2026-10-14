@@ -1,61 +1,120 @@
 const fs = require('fs');
 const diag = require('./diag');
 
-// Red neuronal pequena (MLP, JS puro) que aprende el valor esperado de cada accion de pelea.
-// Modo sombra: sugiere y mide si coincidir con ella rinde mas; solo si rinde mas, sesga levemente el temperamento.
 const ACC = ['atacar', 'retroceder', 'curar', 'bloquear', 'esquivar', 'otra'];
-const NI = 28, NH = 32, NO = ACC.length, GAMMA = 0.8, LR = 0.01;
+const NI = 31, NH = 32, NO = ACC.length, GAMMA = 0.8, LR = 0.01, VENT = 6;
 
-function mlp(w) {
+function rnn(w) {
   const r = (n, s) => Array.from({ length: n }, () => (Math.random() - 0.5) * 2 * s);
-  const m = w || { w1: r(NI * NH, 0.35), b1: new Array(NH).fill(0), w2: r(NH * NO, 0.35), b2: new Array(NO).fill(0) };
-  const fwd = (x) => {
+  const ok = w && w.w1 && w.w1.length === NI * NH && w.u && w.u.length === NH * NH;
+  const m = ok ? w : { w1: r(NI * NH, 0.3), u: r(NH * NH, 0.12), b1: new Array(NH).fill(0), w2: r(NH * NO, 0.3), b2: new Array(NO).fill(0) };
+  const cero = () => new Array(NH).fill(0);
+  const step = (x, hp) => {
     const h = new Array(NH);
-    for (let j = 0; j < NH; j++) { let s = m.b1[j]; for (let i = 0; i < NI; i++) s += x[i] * m.w1[i * NH + j]; h[j] = Math.tanh(s); }
+    for (let j = 0; j < NH; j++) {
+      let s = m.b1[j];
+      for (let i = 0; i < NI; i++) s += x[i] * m.w1[i * NH + j];
+      for (let i = 0; i < NH; i++) s += hp[i] * m.u[i * NH + j];
+      h[j] = Math.tanh(s);
+    }
     const o = new Array(NO);
     for (let k = 0; k < NO; k++) { let s = m.b2[k]; for (let j = 0; j < NH; j++) s += h[j] * m.w2[j * NO + k]; o[k] = s; }
     return { h, o };
   };
-  const paso = (x, a, objetivo) => {
-    const { h, o } = fwd(x);
-    const e = Math.max(-1, Math.min(1, o[a] - objetivo));
-    const dh = new Array(NH);
-    for (let j = 0; j < NH; j++) dh[j] = e * m.w2[j * NO + a] * (1 - h[j] * h[j]);
-    for (let j = 0; j < NH; j++) m.w2[j * NO + a] -= LR * e * h[j];
-    m.b2[a] -= LR * e;
-    for (let j = 0; j < NH; j++) { for (let i = 0; i < NI; i++) m.w1[i * NH + j] -= LR * dh[j] * x[i]; m.b1[j] -= LR * dh[j]; }
-    return e * e;
+  const seq = (xs, h0) => {
+    const hs = [h0 || cero()], os = [];
+    for (const x of xs) { const r2 = step(x, hs[hs.length - 1]); hs.push(r2.h); os.push(r2.o); }
+    return { hs, os };
+  };
+  const clip = (v) => Math.max(-1, Math.min(1, v));
+  const grad = (xs, dOs, h0, lr) => {
+    const { hs } = seq(xs, h0);
+    let dhSig = cero();
+    for (let t = xs.length - 1; t >= 0; t--) {
+      const h = hs[t + 1], hprev = hs[t], dh = dhSig.slice();
+      for (let k = 0; k < NO; k++) {
+        const e = dOs[t][k];
+        if (!e) continue;
+        for (let j = 0; j < NH; j++) { dh[j] += e * m.w2[j * NO + k]; m.w2[j * NO + k] -= lr * e * h[j]; }
+        m.b2[k] -= lr * e;
+      }
+      const dp = new Array(NH);
+      for (let j = 0; j < NH; j++) dp[j] = clip(dh[j] * (1 - h[j] * h[j]));
+      const nuevo = cero();
+      for (let i = 0; i < NH; i++) { let s = 0; for (let j = 0; j < NH; j++) s += m.u[i * NH + j] * dp[j]; nuevo[i] = s; }
+      for (let j = 0; j < NH; j++) {
+        if (!dp[j]) continue;
+        for (let i = 0; i < NI; i++) m.w1[i * NH + j] -= lr * dp[j] * xs[t][i];
+        for (let i = 0; i < NH; i++) m.u[i * NH + j] -= lr * dp[j] * hprev[i];
+        m.b1[j] -= lr * dp[j];
+      }
+      dhSig = nuevo;
+    }
   };
   const pre = (x, q, lr) => {
-    const { h, o } = fwd(x);
-    const dh = new Array(NH).fill(0);
-    for (let k = 0; k < NO; k++) {
-      const e = Math.max(-1, Math.min(1, o[k] - q[k]));
-      for (let j = 0; j < NH; j++) { dh[j] += e * m.w2[j * NO + k]; m.w2[j * NO + k] -= lr * e * h[j]; }
-      m.b2[k] -= lr * e;
-    }
-    for (let j = 0; j < NH; j++) { const g = dh[j] * (1 - h[j] * h[j]); for (let i = 0; i < NI; i++) m.w1[i * NH + j] -= lr * g * x[i]; m.b1[j] -= lr * g; }
+    const { o } = step(x, cero());
+    grad([x], [o.map((v, k) => clip(v - q[k]))], null, lr);
   };
-  return { m, fwd, paso, pre, q: (x) => fwd(x).o };
+  const tdVentana = (ep, ini, lr) => {
+    const w = ep.slice(ini, ini + VENT), n = w.length;
+    if (n < 2 && !ep[ini + n - 1].fin) return 0;
+    const xs = w.map((p) => p.s), { os } = seq(xs, null), dOs = w.map(() => new Array(NO).fill(0));
+    let err = 0, cnt = 0;
+    for (let t = 0; t < n; t++) {
+      let obj;
+      if (w[t].fin) obj = w[t].r;
+      else if (t + 1 < n) obj = w[t].r + GAMMA * Math.max(...os[t + 1]);
+      else continue;
+      obj = Math.max(-3, Math.min(3, obj));
+      const e = clip(os[t][w[t].a] - obj);
+      dOs[t][w[t].a] = e; err += e * e; cnt++;
+    }
+    if (cnt) grad(xs, dOs, null, lr);
+    return cnt ? err / cnt : 0;
+  };
+  return { m, step, seq, grad, pre, tdVentana, cero };
 }
 
-function crearNN(bot, ruta, rutaDatos, o) {
-  let red = null, buf = [], pend = [], sucio = false, st = { n: 0, acu: 0, ra: 0, na: 0, rd: 0, nd: 0, ent: 0, err: 0 };
-  try { const d = JSON.parse(fs.readFileSync(ruta, 'utf8')); if (d && d.m && d.m.w1 && d.m.w1.length === NI * NH) { red = mlp(d.m); st = Object.assign(st, d.st || {}); } } catch (e) { /* nueva */ }
-  let nueva = false;
-  if (!red) { red = mlp(); nueva = true; }
+function crearNN(bot, ruta, rutaDatos) {
+  let red = null, eps = [], act = [], pend = [], sucio = false, h = null, ultSug = null;
+  let st = { na: 0, ra: 0, nd: 0, rd: 0, ent: 0, err: 0, pre: 0, sim: 0, simWin: 0, base: 0 };
+  try { const d = JSON.parse(fs.readFileSync(ruta, 'utf8')); if (d && d.m && d.m.u && d.m.w1.length === NI * NH) { red = rnn(d.m); st = Object.assign(st, d.st || {}); } } catch (e) { /* nueva */ }
+  if (!red) red = rnn();
+  try { const d = JSON.parse(fs.readFileSync(rutaDatos, 'utf8')); if (Array.isArray(d)) eps = d.filter((e) => Array.isArray(e) && e.length && e[0].s && e[0].s.length === NI); } catch (e) { /* vacio */ }
+  const MODO = process.env.IA_NN || 'auto';
+  h = red.cero();
+
   function precalentar(n = 6000, epocas = 12) {
     const casos = require('./nn_casos').generar(n);
     for (let e = 0; e < epocas; e++) { const lr = 0.02 * Math.pow(0.8, e); for (const c of casos) red.pre(c.s, c.q, lr); }
-    st.pre = (st.pre || 0) + 1; sucio = true;
+    st.pre++; sucio = true;
   }
-  if (nueva) precalentar();
-  try { const d = JSON.parse(fs.readFileSync(rutaDatos, 'utf8')); if (Array.isArray(d)) buf = d.filter((x) => x && x.s && x.s.length === NI); } catch (e) { /* vacio */ }
-  const MODO = process.env.IA_NN || 'auto';
+  function simular(n = 600) {
+    const S = require('./nn_sim');
+    const r = S.entrenar(red, n);
+    st.sim++; st.simWin = r.win; st.base = r.base; sucio = true;
+    diag.log('info', 'nn', `sim ${n} episodios: gana ${Math.round(r.win * 100)}% (experto ${Math.round(r.base * 100)}%)`);
+  }
+  if (!st.pre) precalentar();
+  if (!st.sim && process.env.IA_NN_SIM !== '0') simular();
 
   const c = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
   const clase = (n) => /mace/.test(n) ? 0 : /crystal|anchor/.test(n) ? 1 : /_sword/.test(n) ? 2 : /_axe/.test(n) ? 3 : /bow|trident/.test(n) ? 4 : 5;
-  const vidaRival = (e) => { const h = e && e.metadata && e.metadata[9]; return typeof h === 'number' && h >= 0 && h <= 40 ? h : null; };
+  const vidaRival = (e) => { const v = e && e.metadata && e.metadata[9]; return typeof v === 'number' && v >= 0 && v <= 40 ? v : null; };
+  const bq = (p) => bot.blockAt(p);
+
+  function entorno() {
+    const p = bot.entity.position.floored();
+    let lava = 0, vacio = 0;
+    try {
+      for (let dx = -2; dx <= 2; dx++) for (let dz = -2; dz <= 2; dz++) for (let dy = -2; dy <= 1; dy++) { const b = bq(p.offset(dx, dy, dz)); if (b && (b.name === 'lava' || b.name === 'fire' || b.name === 'magma_block')) lava = 1; }
+      let suelo = 0;
+      for (let dy = 1; dy <= 4; dy++) { const b = bq(p.offset(0, -dy, 0)); if (b && b.boundingBox === 'block') { suelo = 1; break; } }
+      vacio = suelo ? 0 : 1;
+    } catch (e) { /* ignorar */ }
+    const flechas = Object.values(bot.entities).filter((e) => /^(arrow|spectral_arrow|trident|snowball|fireball|wind_charge)$/.test(e.name || '') && e.position.distanceTo(bot.entity.position) < 12 && e.velocity && e.position.plus(e.velocity).distanceTo(bot.entity.position) < e.position.distanceTo(bot.entity.position)).length;
+    return [c(flechas / 2, 0, 1), lava, vacio];
+  }
 
   function estado(t) {
     const yo = bot.entity.position, d = t.position.distanceTo(yo);
@@ -67,9 +126,7 @@ function crearNN(bot, ruta, rutaDatos, o) {
     const mia = (bot.heldItem && bot.heldItem.name) || '';
     const escudoR = Array.isArray(t.equipment) && t.equipment.some((x) => x && x.name === 'shield') ? 1 : 0;
     const arm = (sl) => sl.filter((x) => x).length / 4;
-    const hr = vidaRival(t);
-    const lag = bot._lag;
-    const IC = bot._items;
+    const hr = vidaRival(t), lag = bot._lag;
     const cnt = (re) => bot.inventory.items().filter((i) => re.test(i.name)).reduce((a, i) => a + i.count, 0);
     const cau = bot._cautela ? bot._cautela(t.username) : 0;
     const noche = bot.time && bot.time.timeOfDay >= 13000 ? 1 : 0;
@@ -81,6 +138,7 @@ function crearNN(bot, ruta, rutaDatos, o) {
       lag ? c(lag.ping() / 300, 0, 1) : 0, lag ? c(lag.tps() / 20, 0, 1) : 1, lag && lag.rival(t) ? 1 : 0,
       noche, bot.entity.isInWater ? 1 : 0, c(cau, 0, 1),
       cnt(/^(golden_apple|enchanted_golden_apple)$/) > 0 ? 1 : 0, cnt(/^ender_pearl$/) > 0 ? 1 : 0, bot._premio ? bot._premio.ventaja(t) : 0,
+      ...entorno(),
     ];
   }
 
@@ -98,57 +156,51 @@ function crearNN(bot, ruta, rutaDatos, o) {
 
   const mejor = (q) => q.indexOf(Math.max(...q));
   const activo = () => MODO !== '0' && MODO !== 'sombra' && st.na >= 40 && st.nd >= 40 && (st.ra / st.na) - (st.rd / st.nd) > 0.02;
-
-  function sesgos(sug) {
+  const sesgos = (sug) => {
     if (!activo()) return {};
     if (sug === 1 || sug === 2) return { cautela: 0.15, agresion: -0.1 };
     if (sug === 0) return { agresion: 0.15 };
     return {};
-  }
+  };
 
-  function cerrarMuestra(m, s2, extra) {
+  function cerrarMuestra(m, extra, fin) {
     const dh = (m.hp2 - m.hp) / 20, dr = m.rhp !== null && m.rhp2 !== null ? (m.rhp - m.rhp2) / 20 : 0;
     const pn = bot._premio ? 0.5 * Math.tanh((bot._premio.neto() - (m.n0 || 0)) / 4) : 0;
     const r = c(dh + 0.5 * dr + pn + (extra || 0), -1.5, 1.5);
     if (m.sug !== null) { if (m.sug === m.a) { st.ra += r; st.na++; } else { st.rd += r; st.nd++; } }
-    buf.push({ s: m.s, a: m.a, r, s2: s2 || null });
-    if (buf.length > 3000) buf.shift();
+    act.push({ s: m.s, a: m.a, r, fin: !!fin });
     sucio = true;
   }
 
   function entrenar(n) {
-    if (buf.length < 30) return;
+    const total = eps.reduce((a, e) => a + e.length, 0);
+    if (total < 30) return;
     let err = 0;
     for (let k = 0; k < n; k++) {
-      let x = buf[Math.floor(Math.random() * buf.length)];
-      if (Math.random() < 0.4) { const y = buf[Math.floor(Math.random() * buf.length)]; if (Math.abs(y.r) > Math.abs(x.r)) x = y; }
-      const obj = x.r + (x.s2 ? GAMMA * Math.max(...red.q(x.s2)) : 0);
-      err += red.paso(x.s, x.a, c(obj, -3, 3));
+      let ep = eps[Math.floor(Math.random() * eps.length)];
+      if (Math.random() < 0.4) { const y = eps[Math.floor(Math.random() * eps.length)]; if (y.reduce((a, p) => a + Math.abs(p.r), 0) > ep.reduce((a, p) => a + Math.abs(p.r), 0)) ep = y; }
+      const ini = Math.max(0, Math.floor(Math.random() * Math.max(1, ep.length - 1)) - 1);
+      err += red.tdVentana(ep, ini, LR);
     }
     st.ent += n; st.err = err / n; sucio = true;
   }
 
-  let ultSug = null;
   const it = setInterval(() => {
     if (!bot.entity) return;
     const ahora = Date.now(), t = bot.pvp && bot.pvp.target;
     if (!t || t.type !== 'player' || !t.position) { if (bot._bandits) bot._bandits.nnExtra = {}; return; }
     let s; try { s = estado(t); } catch (e) { return; }
-    const q = red.q(s), sug = mejor(q);
-    ultSug = sug;
+    const r = red.step(s, h); h = r.h;
+    const sug = mejor(r.o); ultSug = sug;
     if (bot._bandits) bot._bandits.nnExtra = sesgos(sug);
     pend.push({ s, a: accion(t), sug, hp: bot.health, rhp: vidaRival(t), t: ahora, n0: bot._premio ? bot._premio.neto() : 0 });
-    while (pend.length && ahora - pend[0].t >= 4000) {
-      const m = pend.shift(); m.hp2 = bot.health; m.rhp2 = vidaRival(t);
-      cerrarMuestra(m, s);
-    }
-    st.acu = st.na + st.nd;
-    diag.estado.nn = `muestras ${buf.length} ent ${st.ent} err ${st.err.toFixed(3)} sug ${ACC[ultSug]} ${activo() ? 'ACTIVA' : 'sombra'} acuerdo ${st.na}/${st.nd} r ${(st.na ? st.ra / st.na : 0).toFixed(2)}/${(st.nd ? st.rd / st.nd : 0).toFixed(2)}`;
+    while (pend.length && ahora - pend[0].t >= 4000) { const m = pend.shift(); m.hp2 = bot.health; m.rhp2 = vidaRival(t); cerrarMuestra(m, 0, false); }
+    diag.estado.nn = `eps ${eps.length} ent ${st.ent} err ${st.err.toFixed(3)} sug ${ACC[ultSug]} ${activo() ? 'ACTIVA' : 'sombra'} acuerdo ${st.na}/${st.nd} r ${(st.na ? st.ra / st.na : 0).toFixed(2)}/${(st.nd ? st.rd / st.nd : 0).toFixed(2)} sim ${Math.round(st.simWin * 100)}%/${Math.round(st.base * 100)}%`;
   }, 1000);
 
   const guardar = () => {
     if (!sucio) return;
-    try { fs.writeFileSync(ruta, JSON.stringify({ m: red.m, st })); fs.writeFileSync(rutaDatos, JSON.stringify(buf.slice(-3000))); sucio = false; } catch (e) { /* ignorar */ }
+    try { fs.writeFileSync(ruta, JSON.stringify({ m: red.m, st })); fs.writeFileSync(rutaDatos, JSON.stringify(eps)); sucio = false; } catch (e) { /* ignorar */ }
   };
   const gt = setInterval(guardar, 60_000);
   bot.once('end', () => { clearInterval(it); clearInterval(gt); guardar(); });
@@ -157,14 +209,16 @@ function crearNN(bot, ruta, rutaDatos, o) {
     fin: (res) => {
       const extra = res === 'gane' ? 0.5 : res === 'perdi' ? -0.8 : 0;
       const n = pend.length;
-      for (const m of pend.splice(0)) { m.hp2 = bot.health; m.rhp2 = null; cerrarMuestra(m, null, extra / Math.max(1, n)); }
+      for (const m of pend.splice(0)) { m.hp2 = bot.health; m.rhp2 = null; cerrarMuestra(m, extra / Math.max(1, n), false); }
+      if (act.length) { act[act.length - 1].fin = true; eps.push(act); let tot = eps.reduce((a, e) => a + e.length, 0); while (tot > 4000 && eps.length > 1) tot -= eps.shift().length; }
+      act = []; h = red.cero();
       entrenar(150);
       if (bot._bandits) bot._bandits.nnExtra = {};
       guardar();
     },
-    precalentar, sugerir: () => (ultSug === null ? null : ACC[ultSug]), estado: () => st, activo, guardar, ACC, entrenar, _estadoDe: estado,
+    precalentar, simular, sugerir: () => (ultSug === null ? null : ACC[ultSug]), estado: () => st, activo, guardar, ACC, entrenar, _estadoDe: estado,
   };
   bot._nn = api;
   return api;
 }
-module.exports = { crearNN, mlp, ACC, NI };
+module.exports = { crearNN, rnn, ACC, NI, NO };

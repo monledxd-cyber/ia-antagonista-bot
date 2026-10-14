@@ -5,7 +5,6 @@ const diag = require('./diag');
 const FAM = { coal: /^(deepslate_)?coal_ore$/, iron: /^(deepslate_)?iron_ore$/, copper: /^(deepslate_)?copper_ore$/, gold: /^(deepslate_|nether_)?gold_ore$/, redstone: /^(deepslate_)?redstone_ore$/, lapis: /^(deepslate_)?lapis_ore$/, diamond: /^(deepslate_)?diamond_ore$/, emerald: /^(deepslate_)?emerald_ore$/ };
 let actual = null;
 
-// Mapa persistente: menas vistas y zonas peligrosas para el pathfinder (lava, caidas, agua donde se atasca, muertes).
 function crearMapa(bot, ruta) {
   let d = { menas: {}, pel: {} }, sucio = false;
   try { d = Object.assign(d, JSON.parse(fs.readFileSync(ruta, 'utf8'))); for (const k of Object.keys(d.pel)) { d.pel[k] *= 0.85; if (d.pel[k] < 0.3) delete d.pel[k]; } } catch (e) { /* nuevo */ }

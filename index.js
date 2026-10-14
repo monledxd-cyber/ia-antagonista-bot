@@ -880,7 +880,7 @@ async function crearBot() {
   });
   protegerAutoAtaque(bot);
   bot._t0 = Date.now(); bot._inf0 = diario.contadores();
-  bot.setMaxListeners(40); // varios modulos escuchan 'end'; evita el aviso de posible fuga
+  bot.setMaxListeners(120);
   } catch (e) {
     console.error('[bot] createBot lanzo excepcion, se reintenta:', e.message);
     registrarFallo('createBot_excepcion');
