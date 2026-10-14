@@ -199,7 +199,7 @@ function proveedoresActivos(keyOpenRouter) {
     { nombre: 'xai', etiqueta: 'xAI', url: 'https://api.x.ai/v1/chat/completions', key: process.env.XAI_API_KEY,
       model: process.env.XAI_MODEL || 'grok-4.6', maxTokens: 400 },
     { nombre: 'openrouter', etiqueta: 'OpenRouter', url: OPENROUTER_URL, key: keyOpenRouter || process.env.OPENROUTER_API_KEY,
-      model: process.env.OPENROUTER_MODEL || 'meta-llama/llama-3.3-70b-instruct:free', maxTokens: 200 },
+      model: process.env.OPENROUTER_MODEL || 'meta-llama/llama-3.3-70b-instruct', maxTokens: 200 },
     { nombre: 'gemini', etiqueta: 'Gemini', url: 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', key: process.env.GEMINI_API_KEY,
       model: process.env.GEMINI_MODEL || 'gemini-3.8-flash', maxTokens: 400 },
     { nombre: 'groq', etiqueta: 'Groq', url: 'https://api.groq.com/openai/v1/chat/completions', key: process.env.GROQ_API_KEY,
