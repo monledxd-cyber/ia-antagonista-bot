@@ -1,6 +1,6 @@
 const diag = require('./diag');
 
-const ESPERA = /^(fundir|carne|dormir|pesca|encantar|pociones|nether|end)$/;
+const ESPERA = /^(horno|fundir|carne|dormir|pesca|encantar|pociones|nether|end)$/;
 
 function crearAtasco(bot) {
   let ref = null, nivel = 0, total = 0;

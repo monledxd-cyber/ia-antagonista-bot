@@ -10,6 +10,9 @@ function crearAbasto(bot, o) {
   const ext = (re, f) => ({ test: (n) => re.test(n) || (!!IC && f(n)), source: re.source });
   const ON = process.env.IA_ABASTO !== '0';
   const tratos = new Map();
+  const fallosCtx = {};
+  const firmaInv = () => items().reduce((a, i) => a + i.count, 0);
+  const marcarFallo = (n, ms) => { fallos[n] = Date.now() + ms; fallosCtx[n] = { p: bot.entity.position.clone(), inv: firmaInv() }; };
   let activo = false, ultima = 0, fallos = {}, sinHallazgo = 0, ultimoOk = false;
   const hab = require('./habilidades').crearHabilidades(bot, require('path').join(__dirname, process.env.IA_HABILIDADES || 'habilidades_am.json'));
   bot._hab = hab;
@@ -70,6 +73,19 @@ function crearAbasto(bot, o) {
   }
 
   // Cocina/funde: horno colocado cerca, combustible y entrada; espera y recoge.
+  let hornoPend = null;
+  async function recogerHorno() {
+    if (!hornoPend) return 'nada';
+    const h = bot.blockAt(hornoPend);
+    if (!h || !/furnace/.test(h.name)) { hornoPend = null; return 'nada'; }
+    if (h.position.distanceTo(bot.entity.position) > 3.5 && !(await o.irCerca(bot, h.position))) return false;
+    const f = await bot.openFurnace(h);
+    try {
+      for (let i = 0; i < 4 && f.outputItem(); i++) { await f.takeOutput().catch(() => {}); await dormir(150); }
+      if (!f.inputItem() && !f.outputItem()) hornoPend = null;
+    } finally { try { f.close(); } catch (e) { /* ignorar */ } }
+    return true;
+  }
   async function cocinar(entrada) {
     const n = cuenta(new RegExp('^' + entrada + '$'));
     if (!n) return false;
@@ -89,6 +105,7 @@ function crearAbasto(bot, o) {
       await f.putFuel(fuelX.type, null, Math.min(fuelX.count, /coal|charcoal/.test(fuelX.name) ? 2 : 8));
       try { if (IC && f.fuelItem && f.fuelItem()) IC.aprender(fuelX.name, 'fuel'); } catch (e) { /* ignorar */ }
       await f.putInput(bot.registry.itemsByName[entrada].id, null, cant);
+      hornoPend = horno.position.clone();
       const limite = Date.now() + cant * 10_500 + 3000;
       while (Date.now() < limite && libre()) {
         await dormir(2000);
@@ -97,6 +114,7 @@ function crearAbasto(bot, o) {
         if (!ent && !f.outputItem()) break;
       }
       if (f.outputItem()) await f.takeOutput().catch(() => {});
+      if (!f.inputItem() && !f.outputItem()) hornoPend = null;
     } finally { try { f.close(); } catch (e) { /* ignorar */ } }
     return true;
   }
@@ -506,6 +524,7 @@ function crearAbasto(bot, o) {
     ['redstone', () => menear('redstone')],
     ['lapis', () => menear('lapis')],
     ['diamante', () => menear('diamond')],
+    ['horno', recogerHorno],
     ['fundir', async () => { const r = items().find((x) => /^(raw_iron|raw_gold|raw_copper)$/.test(x.name)); return r ? cocinar(r.name) : 'nada'; }],
     ['carne', async () => { const c = items().find((i) => CRUDO.test(i.name)); if (c) return cocinar(c.name); if (cuenta(/^wheat$/) >= 3 && (tiene(/^crafting_table$/) || bloqueN(/^crafting_table$/, 16))) return craftear('bread', 1); return 'nada'; }],
     ['comida', async () => (cuenta(COMIDA) >= 6 || (noche() && enSuperficie())) ? 'nada' : cazar(/^(cow|pig|sheep|chicken|rabbit)$/)],
@@ -906,13 +925,13 @@ function crearAbasto(bot, o) {
     const rank = (n) => { const i = frente.indexOf(n); return i < 0 ? 100 : i; };
     const env = {};
     for (const kv of (process.env.IA_PESOS || '').split(',')) { const [k, v] = kv.split('='); if (k && +v > 0) env[k.trim()] = +v; }
-    const urg = { esquejes: 0.3, replantar: 0.4, madera: cuenta(/_log$|_planks$/) < 6 ? 2.5 : 1, comida: (tiene(CRUDO) && hornoPosible()) ? 0.2 : cuenta(COMIDA) < 3 ? 3 : cuenta(COMIDA) < 6 ? 1.3 : 0.7, basura: items().length >= 32 ? 3 : 0.5, nether: nether.listo() ? (bot._lag && bot._lag.malo() ? 0.6 : 3) : 0.4, cobre: 0.6, oro: 0.8, redstone: 0.7, lapis: (tiene(/^enchanting_table$/) || bloqueN(/^enchanting_table$/, 48)) ? 2 : 0.4, diamante: cuenta(/^diamond$/) < 3 ? 2.5 : 1, hierro: cuenta(/^(raw_iron|iron_ingot)$/) < 6 ? 2 : 1, carbon: cuenta(/^(coal|charcoal)$/) < 3 ? 2 : 1, end: finEnd.quiere() ? (bot._lag && bot._lag.malo() ? 0.6 : 4) : 0.2, encantar: ((bot.experience && bot.experience.level) || 0) >= 5 ? 2 : 0.6, asalto: (bot._sadismo ? bot._sadismo() : 1) * (bot._lag && bot._lag.malo() ? 0.4 : 1), xp: ((bot.experience && bot.experience.level) || 0) < 5 ? 1.8 : 1 };
+    const urg = { horno: hornoPend ? 4 : 0.1, esquejes: 0.3, replantar: 0.4, madera: cuenta(/_log$|_planks$/) < 6 ? 2.5 : 1, comida: (tiene(CRUDO) && hornoPosible()) ? 0.2 : cuenta(COMIDA) < 3 ? 3 : cuenta(COMIDA) < 6 ? 1.3 : 0.7, basura: items().length >= 32 ? 3 : 0.5, nether: nether.listo() ? (bot._lag && bot._lag.malo() ? 0.6 : 3) : 0.4, cobre: 0.6, oro: 0.8, redstone: 0.7, lapis: (tiene(/^enchanting_table$/) || bloqueN(/^enchanting_table$/, 48)) ? 2 : 0.4, diamante: cuenta(/^diamond$/) < 3 ? 2.5 : 1, hierro: cuenta(/^(raw_iron|iron_ingot)$/) < 6 ? 2 : 1, carbon: cuenta(/^(coal|charcoal)$/) < 3 ? 2 : 1, end: finEnd.quiere() ? (bot._lag && bot._lag.malo() ? 0.6 : 4) : 0.2, encantar: ((bot.experience && bot.experience.level) || 0) >= 5 ? 2 : 0.6, asalto: (bot._sadismo ? bot._sadismo() : 1) * (bot._lag && bot._lag.malo() ? 0.4 : 1), xp: ((bot.experience && bot.experience.level) || 0) < 5 ? 1.8 : 1 };
     const pesos = necesidades.map((x, i) => {
       const n = x[0], r = rank(n);
       const base = env[n] || Math.max(6, 60 - i * 0.9);
       const boost = r < 100 ? 60 - r * 1.5 : 0;
       const exito = 0.6 + 0.8 * (hab.tasa ? hab.tasa(n) : 0.5);
-      const atasco = hab.atascado(n) ? 0.3 : 1;
+      const atasco = hab.atascado(n) ? 0.6 : 1;
       return { x, n, w: (base * (urg[n] || 1) + boost) * exito * atasco * (det ? 1 : require('./pesos').peso(1, { paciencia: n === 'asalto' || n === 'encantar' || n === 'pociones' ? 0.5 : 0 })) };
     }).sort((p, q) => q.w - p.w);
     // jerarquia logica: un paso con prerequisito sin cumplir cede su peso al prerequisito (recursivo)
@@ -981,6 +1000,7 @@ function crearAbasto(bot, o) {
     if (!ON || bot._pausaAbasto || activo || !bot.entity || Date.now() - ultima < (ultimoOk ? 0 : 700)) return;
     diag.estado.abastoMotivo = !o.tranquilo() ? 'no tranquilo (combate, objetivo o enemigo a <14)' : jugadorCerca(bot._modoEquipo > Date.now() ? 14 : 24) ? 'jugador cerca' : bot.health <= 12 ? 'vida baja' : ''; // tras un exito sigue enseguida: siempre persigue la siguiente mejora
     bot._abortarPaso = false;
+    for (const n of Object.keys(fallosCtx)) { const c = fallosCtx[n]; if ((fallos[n] || 0) > Date.now() && (bot.entity.position.distanceTo(c.p) > 30 || Math.abs(firmaInv() - c.inv) >= 3)) { fallos[n] = 0; delete fallosCtx[n]; } }
     if (!libre() || bot.health <= 12) return;
     activo = true; o.ocupar(true); ultimoOk = false;
     try {
@@ -1001,7 +1021,7 @@ function crearAbasto(bot, o) {
         const veredicto = hab.registrar(nombre, r, antes, Date.now() - t0);
         diag.estado.habilidades = hab.resumen();
         if (veredicto === 'dudoso') { diag.log('warn', 'abasto', nombre + ' sin cambio verificable'); if (hab.atascado(nombre)) { r = false; motivo = 'sin cambio verificable 3 veces seguidas'; } }
-        if (!r) { if (bot._premio) bot._premio.evento('paso_fallo', { k: nombre }); fallos[nombre] = Date.now() + hab.espera(nombre); const p = diag.estado.fallosPaso[nombre] || { n: 0 }; diag.estado.fallosPaso[nombre] = { n: p.n + 1, t: Date.now(), motivo }; diag.log('warn', 'abasto', nombre + ' fallo: ' + motivo); }
+        if (!r) { if (bot._premio) bot._premio.evento('paso_fallo', { k: nombre }); marcarFallo(nombre, hab.espera(nombre)); const p = diag.estado.fallosPaso[nombre] || { n: 0 }; diag.estado.fallosPaso[nombre] = { n: p.n + 1, t: Date.now(), motivo }; diag.log('warn', 'abasto', nombre + ' fallo: ' + motivo); }
         else { ultimoOk = true; if (bot._premio) bot._premio.evento('paso_ok', { k: nombre }); delete diag.estado.fallosPaso[nombre]; diag.log('info', 'abasto', 'paso ' + nombre); console.log('[abasto] paso:', nombre); }
         break; // un paso por ciclo
       }
@@ -1015,6 +1035,6 @@ function crearAbasto(bot, o) {
   };
   const intervalo = setInterval(tick, 500);
   bot.once('end', () => clearInterval(intervalo));
-  return { activo: () => activo, paso: () => pasoActual, forzarFallo: (n) => { fallos[n] = Date.now() + hab.espera(n); }, estado: () => ({ activo, ultima, base, mina: mina && mina.fase, enfriando: Object.keys(fallos).filter((k) => fallos[k] > Date.now()) }) };
+  return { activo: () => activo, paso: () => pasoActual, forzarFallo: (n) => marcarFallo(n, hab.espera(n)), estado: () => ({ activo, ultima, base, mina: mina && mina.fase, enfriando: Object.keys(fallos).filter((k) => fallos[k] > Date.now()) }) };
 }
 module.exports = { crearAbasto };
