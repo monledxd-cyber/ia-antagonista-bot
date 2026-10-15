@@ -7,6 +7,12 @@ try {
     if (m && process.env[m[1]] === undefined) process.env[m[1]] = m[2].replace(/^["']|["']$/g, '');
   }
 } catch (e) { /* sin .env */ }
+try {
+  for (const l of fs.readFileSync(path.join(raiz, 'iniciar.bat'), 'utf8').split(/\r?\n/)) {
+    const m = /^\s*set\s+"?([A-Za-z0-9_]+)=(.*?)"?\s*$/i.exec(l);
+    if (m && m[2] && process.env[m[1]] === undefined) process.env[m[1]] = m[2];
+  }
+} catch (e) { /* sin iniciar.bat */ }
 const { preguntarIA } = require(path.join(raiz, 'openrouter'));
 const { ESTILOS, RASGOS, DIRECTIVA, ACCION } = require(path.join(raiz, 'lenguaje'));
 
