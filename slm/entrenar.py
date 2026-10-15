@@ -1,4 +1,4 @@
-import json, math, os, sys, random
+import json, math, os, sys, random, time
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -8,8 +8,8 @@ D = int(os.environ.get("SLM_D", "256"))
 L = int(os.environ.get("SLM_L", "6"))
 H = int(os.environ.get("SLM_H", "8"))
 CTX = int(os.environ.get("SLM_CTX", "192"))
-EPOCAS = int(os.environ.get("SLM_EPOCAS", "20"))
-BATCH = int(os.environ.get("SLM_BATCH", "64"))
+EPOCAS = int(os.environ.get("SLM_EPOCAS", "0"))
+BATCH = int(os.environ.get("SLM_BATCH", "0"))
 LR = float(os.environ.get("SLM_LR", "0.0006"))
 FIN = "\n"
 PAD = "\x00"
@@ -78,6 +78,12 @@ def main():
     m = SLM(V).to(dev)
     print("parametros", sum(p.numel() for p in m.parameters()), "vocab", V, "dev", dev)
     opt = torch.optim.AdamW(m.parameters(), lr=LR, weight_decay=0.01)
+    global EPOCAS, BATCH
+    if BATCH <= 0:
+        BATCH = 16 if len(tr) < 4000 else 64
+    if EPOCAS <= 0:
+        EPOCAS = max(20, math.ceil(3000 / max(1, math.ceil(len(tr) / BATCH))))
+    print('lote', BATCH, 'epocas', EPOCAS, 'pasos', EPOCAS * math.ceil(len(tr) / BATCH))
     pasos = EPOCAS * math.ceil(len(tr) / BATCH)
     sch = torch.optim.lr_scheduler.OneCycleLR(opt, max_lr=LR, total_steps=pasos)
 
@@ -99,22 +105,26 @@ def main():
         mk = ms[:, 1:]
         return ((l * mk).sum(1) / mk.sum(1).clamp(min=1) * ws).mean()
 
-    for ep in range(EPOCAS):
-        m.train()
-        random.shuffle(tr)
-        tot = 0
-        for i in range(0, len(tr), BATCH):
-            opt.zero_grad()
-            l = perdida(tr[i : i + BATCH])
-            l.backward()
-            torch.nn.utils.clip_grad_norm_(m.parameters(), 1.0)
-            opt.step()
-            sch.step()
-            tot += l.item()
-        m.eval()
-        with torch.no_grad():
-            v = sum(perdida(val[i : i + BATCH]).item() for i in range(0, len(val), BATCH)) / max(1, math.ceil(len(val) / BATCH))
-        print(f"epoca {ep + 1}/{EPOCAS} train {tot / max(1, math.ceil(len(tr) / BATCH)):.3f} val {v:.3f}")
+    t0 = time.time()
+    try:
+        for ep in range(EPOCAS):
+            m.train()
+            random.shuffle(tr)
+            tot = 0
+            for i in range(0, len(tr), BATCH):
+                opt.zero_grad()
+                l = perdida(tr[i : i + BATCH])
+                l.backward()
+                torch.nn.utils.clip_grad_norm_(m.parameters(), 1.0)
+                opt.step()
+                sch.step()
+                tot += l.item()
+            m.eval()
+            with torch.no_grad():
+                v = sum(perdida(val[i : i + BATCH]).item() for i in range(0, len(val), BATCH)) / max(1, math.ceil(len(val) / BATCH))
+            print(f"epoca {ep + 1}/{EPOCAS} {time.time() - t0:.0f}s train {tot / max(1, math.ceil(len(tr) / BATCH)):.3f} val {v:.3f}")
+    except KeyboardInterrupt:
+        print('interrumpido: exporto lo entrenado hasta ahora')
 
     m.eval().cpu()
     dummy = torch.zeros(1, 24, dtype=torch.long)
