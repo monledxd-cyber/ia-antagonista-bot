@@ -352,6 +352,7 @@ function iniciarHuida(bot) {
   bot._bandits = bandits;
   { const t = setInterval(() => bandits.guardar(), 60_000); if (t.unref) t.unref(); bot.once('end', () => { clearInterval(t); bandits.guardar(); }); }
   if (process.env.IA_LAG !== '0') require('./lag').crearLag(bot);
+  require('./bucle').crearBucle(bot);
   if (process.env.IA_LENGUAJE !== '0') lengActual = require('./lenguaje').crearLenguaje(bot, require('path').join(__dirname, process.env.IA_LENGUAJE_ARCH || 'lenguaje_am.json'), require('path').join(__dirname, process.env.IA_CORPUS_ARCH || 'corpus_am.json'));
   if (process.env.IA_NN !== '0') require('./nn').crearNN(bot, require('path').join(__dirname, process.env.IA_NN_PESOS || 'nn_am.json'), require('path').join(__dirname, process.env.IA_NN_DATOS || 'datos_nn.json'));
   if (process.env.IA_MAPA !== '0') require('./mapa').crearMapa(bot, require('path').join(__dirname, process.env.IA_MAPA_ARCH || 'mapa_am.json'));
