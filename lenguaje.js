@@ -47,7 +47,7 @@ const limpiar = (t) => String(t || '').replace(/\[[A-Z_]+[^\]]*\]/g, '').replace
 const apertura = (t) => norm(t).replace(/[^a-z0-9 ]/g, '').split(' ').filter(Boolean).slice(0, 3).join(' ');
 
 function crearLenguaje(bot, ruta, rutaCorpus) {
-  let d = { tok: {}, est: {}, buenas: [], evitar: [], pl: {}, n: 0, or: {} };
+  let d = { tok: {}, est: {}, buenas: [], evitar: [], pl: {}, n: 0, or: {}, base: 0 };
   let corpus = [], sucio = false, sucioC = false;
   try { d = Object.assign(d, JSON.parse(fs.readFileSync(ruta, 'utf8'))); } catch (e) { /* nuevo */ }
   try { const c = JSON.parse(fs.readFileSync(rutaCorpus, 'utf8')); if (Array.isArray(c)) corpus = c; } catch (e) { /* vacio */ }
@@ -181,11 +181,13 @@ function crearLenguaje(bot, ruta, rutaCorpus) {
     const e = bot.players[p.nombre] && bot.players[p.nombre].entity;
     const d1 = e && bot.entity ? e.position.distanceTo(bot.entity.position) : null;
     let r = 0;
-    for (const m of l) { r += 0.2 + 0.5 * m.r.suplica - 0.55 * m.r.burla + 0.1 * m.r.amenaza; }
-    r = Math.max(-0.9, Math.min(0.9, r));
-    if (d1 !== null && p.d0 !== null && d1 - p.d0 > 4 && d1 > 7) r += 0.4;
+    for (const m of l) r += 0.3 + 0.3 * m.r.hostil + 0.15 * m.r.amenaza + 0.3 * m.r.suplica + 0.1 * m.r.pregunta;
+    r = Math.min(0.9, r);
+    if (d1 !== null && p.d0 !== null) { if (d1 - p.d0 > 4 && d1 > 7) r += 0.4; else if (p.d0 - d1 > 3) r += 0.2; }
     if (!l.length && !(d1 !== null && p.d0 !== null && Math.abs(d1 - p.d0) > 3)) r -= 0.15;
     if (bot._premio) r += 0.3 * Math.tanh((bot._premio.neto() - p.n0) / 4);
+    d.base = (d.base || 0) * 0.95 + r * 0.05;
+    r -= 0.5 * d.base;
     return Math.max(-1.2, Math.min(1.2, r));
   }
 
