@@ -7,6 +7,9 @@ function crearBucle(bot) {
     ult = ahora; n++; suma += lag; if (lag > max) max = lag;
     if (lag > 500) { const p = bot._abasto && bot._abasto.paso ? bot._abasto.paso() : ''; diag.log('warn', 'bucle', `bloqueado ${lag} ms (paso ${p || '-'})`); console.log(`[bucle] bloqueado ${lag} ms paso=${p || '-'}`); }
   }, 200);
+  bot.on('path_update', (r) => {
+    if (r && r.time > 800) { diag.log('warn', 'bucle', `ruta ${r.status} calculo ${Math.round(r.time)} ms nodos ${r.visitedNodes}`); console.log(`[bucle] ruta ${r.status} calculo ${Math.round(r.time)} ms nodos=${r.visitedNodes} largo=${r.path ? r.path.length : 0}`); }
+  });
   const rep = setInterval(() => { diag.estado.bucle = `max ${max} ms prom ${n ? Math.round(suma / n) : 0} ms`; max = 0; n = 0; suma = 0; }, 30_000);
   for (const nombre of ['findBlocks', 'findBlock']) {
     const orig = bot[nombre];

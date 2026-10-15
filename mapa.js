@@ -10,16 +10,20 @@ function crearMapa(bot, ruta) {
   try { d = Object.assign(d, JSON.parse(fs.readFileSync(ruta, 'utf8'))); for (const k of Object.keys(d.pel)) { d.pel[k] *= 0.85; if (d.pel[k] < 0.3) delete d.pel[k]; } } catch (e) { /* nuevo */ }
   const fallos = new Map();
   const dim = () => String((bot.game && bot.game.dimension) || 'overworld').replace(/.*:/, '');
-  const celda = (x, y, z) => dim() + ':' + (Math.floor(x) >> 2) + ',' + (Math.floor(y) >> 2) + ',' + (Math.floor(z) >> 2);
+  let dimC = 'overworld', nPel = Object.keys(d.pel).length;
+  const refrescar = () => { dimC = dim(); nPel = Object.keys(d.pel).length; };
+  refrescar();
+  const rf = setInterval(refrescar, 1000);
+  const celda = (x, y, z) => dimC + ':' + (Math.floor(x) >> 2) + ',' + (Math.floor(y) >> 2) + ',' + (Math.floor(z) >> 2);
   const ids = {};
   const idsDe = (t) => (ids[t] = ids[t] || Object.values(bot.registry.blocksByName).filter((b) => FAM[t].test(b.name)).map((b) => b.id));
 
   function marcarPeligro(p, v, motivo) {
     const k = celda(p.x, p.y, p.z);
-    d.pel[k] = Math.min(6, (d.pel[k] || 0) + v); sucio = true;
+    d.pel[k] = Math.min(6, (d.pel[k] || 0) + v); nPel = Math.max(nPel, 1); sucio = true;
     if (motivo) diag.log('info', 'mapa', 'peligro ' + motivo + ' en ' + Math.floor(p.x) + ',' + Math.floor(p.y) + ',' + Math.floor(p.z));
   }
-  const peligro = (p) => d.pel[celda(p.x, p.y, p.z)] || 0;
+  const peligro = (p) => (nPel ? d.pel[celda(p.x, p.y, p.z)] || 0 : 0);
   const marcarFallo = (p) => { fallos.set(Math.floor(p.x) + ',' + Math.floor(p.y) + ',' + Math.floor(p.z), Date.now()); };
 
   function anotar(t, p) {
@@ -83,7 +87,7 @@ function crearMapa(bot, ruta) {
   const resumen = () => `menas ${Object.entries(d.menas).map(([k, l]) => k + l.length).join(' ')} zonas_peligro ${Object.keys(d.pel).length}`;
   const guardar = () => { if (!sucio) return; try { fs.writeFileSync(ruta, JSON.stringify(d)); sucio = false; } catch (e) { /* ignorar */ } };
   const gt = setInterval(() => { guardar(); diag.estado.mapa = resumen(); }, 60_000);
-  bot.once('end', () => { clearInterval(esc); clearInterval(med); clearInterval(gt); guardar(); });
+  bot.once('end', () => { clearInterval(rf); clearInterval(esc); clearInterval(med); clearInterval(gt); guardar(); });
 
   const api = { menaCercana, marcarPeligro, marcarFallo, peligro, guardar, resumen };
   bot._mapa = api;
