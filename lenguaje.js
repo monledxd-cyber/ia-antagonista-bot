@@ -149,6 +149,7 @@ function crearLenguaje(bot, ruta, rutaCorpus) {
     if (!f || !meta) return;
     const e = bot.players[nombre] && bot.players[nombre].entity;
     pend.push({ ...meta, f, origen: origen || 'llm', d0: e && bot.entity ? e.position.distanceTo(bot.entity.position) : null, n0: bot._premio ? bot._premio.neto() : 0, hp0: bot.health, nm: (msgs.get(nombre) || []).length });
+    console.log(`[habla ${(origen || 'llm').toUpperCase()} ${meta.estilo}] ${f}`);
     const u = ult.get(nombre) || []; u.push(meta.estilo); while (u.length > 6) u.shift(); ult.set(nombre, u);
     while (pend.length > 12) pend.shift();
   }
