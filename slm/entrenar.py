@@ -58,8 +58,9 @@ class SLM(nn.Module):
 
 def main():
     filas = [json.loads(l) for l in open(os.path.join(R, "dataset.jsonl"), encoding="utf8")]
-    if len(filas) < 200:
-        sys.exit("dataset muy pequeno (<200). Corre preparar.py con mas datos")
+    minimo = int(os.environ.get("SLM_MIN", "200"))
+    if len(filas) < minimo:
+        sys.exit(f"dataset muy pequeno (<{minimo}). Corre preparar.py con mas datos o usa SLM_MIN=100 para probar")
     chars = sorted({c for x in filas for c in x["p"] + x["t"]} | {FIN, PAD})
     idx = {c: i for i, c in enumerate(chars)}
     V = len(chars)
@@ -118,7 +119,15 @@ def main():
     m.eval().cpu()
     dummy = torch.zeros(1, 24, dtype=torch.long)
     torch.onnx.export(m, dummy, os.path.join(R, "modelo.onnx"), input_names=["ids"], output_names=["logits"], dynamic_axes={"ids": {1: "t"}, "logits": {1: "t"}}, opset_version=17, dynamo=False)
-    json.dump({"chars": chars, "ctx": CTX, "fin": FIN}, open(os.path.join(R, "vocab.json"), "w", encoding="utf8"), ensure_ascii=False)
+    import re
+    cuenta = {}
+    for x in filas:
+        for w in re.findall(r"[^\W\d_]+", x["t"].lower()):
+            cuenta[w] = cuenta.get(w, 0) + 1
+    palabras = sorted(cuenta, key=lambda w: -cuenta[w])[:30000]
+    acc = sorted({x["p"].split("|")[0] for x in filas})
+    est = sorted({x["p"].split("|")[1] for x in filas})
+    json.dump({"chars": chars, "ctx": CTX, "fin": FIN, "acc": acc, "est": est, "palabras": palabras}, open(os.path.join(R, "vocab.json"), "w", encoding="utf8"), ensure_ascii=False)
     print("listo: slm/modelo.onnx slm/vocab.json (copialos junto al bot)")
 
 

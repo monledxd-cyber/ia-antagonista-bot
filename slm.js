@@ -34,17 +34,21 @@ function crearSLM(dir) {
     for (let i = 0; i < c.length; i++) { r -= ps[i]; if (r <= 0) return c[i][1]; }
     return c[0][1];
   }
+  let ultLog = 0, motivo = '', conocidas = null;
+  const rechazo = (m, crudo) => { motivo = m; if (Date.now() - ultLog > 10_000) { ultLog = Date.now(); console.log(`[slm] sin frase (${m})${crudo ? ': ' + String(crudo).slice(0, 70) : ''}`); } return null; };
   async function generar(info, opc) {
     await cargar();
-    if (!sesion) return null;
+    if (!sesion) return rechazo('modelo no cargado');
     opc = opc || {};
-    const p = prefijo(info.acc, info.estilo, info.rs, info.vb, info.vida);
+    const acc = vocab.acc && !vocab.acc.includes(info.acc) ? (vocab.acc.includes('otra') ? 'otra' : vocab.acc[0]) : info.acc;
+    const est = vocab.est && !vocab.est.includes(info.estilo) ? (vocab.est.includes('libre') ? 'libre' : vocab.est[0]) : info.estilo;
+    const p = prefijo(acc, est, est === 'libre' ? [0, 0, 0, 0] : info.rs, info.vb, info.vida);
     const ids = [...p].map((c) => idx.get(c));
-    if (ids.some((x) => x === undefined)) return null;
-    const fin = idx.get(vocab.fin), pad = idx.get('\x00'), max = Math.min(opc.max || 130, vocab.ctx - ids.length - 1);
+    if (ids.some((x) => x === undefined)) return rechazo('prefijo con simbolos fuera del vocabulario ' + p);
+    const fin = idx.get(vocab.fin), pad = idx.get('\x00'), max = Math.min(opc.max || 110, vocab.ctx - ids.length - 1);
     const prohibidos = new Set([pad]);
     const salida = [];
-    const t0 = Date.now();
+    const t0 = Date.now(), limite = opc.limite || 20000;
     try {
       for (let i = 0; i < max; i++) {
         const t = new ort.Tensor('int64', BigInt64Array.from(ids.map((x) => BigInt(x))), [1, ids.length]);
@@ -53,22 +57,32 @@ function crearSLM(dir) {
         const nx = muestra(lg.subarray(off, off + V), opc.temp || 0.8, opc.k || 12, i < 8 ? new Set([...prohibidos, fin]) : prohibidos);
         if (nx === fin) break;
         ids.push(nx); salida.push(vocab.chars[nx]);
-        if (Date.now() - t0 > 8000) return null;
+        if (Date.now() - t0 > limite) return rechazo(`tardo mas de ${limite} ms (${i + 1} letras)`, salida.join(''));
       }
-    } catch (e) { fallos++; diag.log('warn', 'slm', 'generacion: ' + String(e.message).slice(0, 100)); return null; }
-    return validar(salida.join(''), opc.evitar || []);
+    } catch (e) { fallos++; diag.log('warn', 'slm', 'generacion: ' + String(e.message).slice(0, 100)); return rechazo('error ' + String(e.message).slice(0, 80)); }
+    const crudo = salida.join('');
+    const m = validar(crudo, opc.evitar || []);
+    if (m.motivo) return rechazo(m.motivo, crudo);
+    return m.f;
   }
   function validar(f, evitar) {
     f = f.replace(/\s+/g, ' ').trim();
-    if (f.length < 12 || f.length > 140 || /https?:|\[|\]/.test(f)) return null;
+    if (f.length < 12) return { motivo: 'muy corta' };
+    if (f.length > 140) return { motivo: 'muy larga' };
+    if (/https?:|\[|\]/.test(f)) return { motivo: 'trae enlaces o corchetes' };
     const w = f.toLowerCase().split(' ');
-    if (new Set(w).size < Math.min(4, w.length)) return null;
-    for (let i = 0; i + 6 < f.length; i++) if (f.indexOf(f.slice(i, i + 6), i + 6) > -1 && /^[a-z]{6}$/i.test(f.slice(i, i + 6))) return null;
-    const ap = w.slice(0, 3).join(' ').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9 ]/g, '');
-    if (evitar.includes(ap)) return null;
-    return f;
+    if (new Set(w).size < Math.min(4, w.length)) return { motivo: 'palabras repetidas' };
+    const ap = w.slice(0, 3).join(' ').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9 ]/g, '');
+    if (evitar.includes(ap)) return { motivo: 'apertura prohibida' };
+    if (vocab.palabras && vocab.palabras.length) {
+      if (!conocidas) conocidas = new Set(vocab.palabras);
+      const ws = f.toLowerCase().match(/[^\W\d_]+/g) || [];
+      const ok = ws.filter((x) => conocidas.has(x)).length;
+      if (!ws.length || ok / ws.length < 0.7) return { motivo: `texto sin sentido (${ok}/${ws.length} palabras conocidas)` };
+    }
+    return { f };
   }
   cargar();
-  return { generar, listo, prefijo };
+  return { generar, listo, prefijo, motivo: () => motivo };
 }
 module.exports = { crearSLM, prefijo };
