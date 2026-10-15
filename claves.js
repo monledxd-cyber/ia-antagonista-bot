@@ -10,9 +10,9 @@ function crearClaves(bot) {
   let mapa = new Map(), sucio = false;
   try { for (const c of JSON.parse(fs.readFileSync(ARCH, 'utf8'))) mapa.set(c.x + ',' + c.y + ',' + c.z, c); } catch (e) { mapa = new Map(); }
   const escanear = () => {
-    if (!bot.entity) return;
+    if (!bot.entity || (bot.pvp && bot.pvp.target)) return;
     let pos;
-    try { pos = bot.findBlocks({ matching: ids(), maxDistance: 48, count: 150 }); } catch (e) { return; }
+    try { pos = bot.findBlocks({ matching: ids(), maxDistance: 32, count: 100 }); } catch (e) { return; }
     for (const p of pos) {
       const b = bot.blockAt(p);
       if (!b) continue;
@@ -24,7 +24,7 @@ function crearClaves(bot) {
     }
     while (mapa.size > 500) { mapa.delete(mapa.keys().next().value); sucio = true; }
   };
-  const t1 = setInterval(escanear, 8000);
+  const t1 = setInterval(escanear, 10000);
   const t2 = setInterval(() => { if (sucio) { try { fs.writeFileSync(ARCH, JSON.stringify([...mapa.values()])); sucio = false; } catch (e) { /* disco de solo lectura */ } } }, 60_000);
   [t1, t2].forEach((t) => t.unref && t.unref());
   bot.once('end', () => { clearInterval(t1); clearInterval(t2); });
