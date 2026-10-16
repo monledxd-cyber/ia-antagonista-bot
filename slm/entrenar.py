@@ -175,7 +175,7 @@ def main():
     if pre:
         pv, pt = pre[: max(1, len(pre) // 50)], pre[max(1, len(pre) // 50) :]
         pb = 32
-        pasos = int(os.environ.get("SLM_PRE_PASOS", "4000"))
+        pasos = int(os.environ.get("SLM_PRE_PASOS", "1500"))
         ciclo(pt, pv, max(1, pasos // max(1, math.ceil(len(pt) / pb))), pb, LR, "pre")
         lr = LR * 0.5
     ciclo(tr, val, EPOCAS, BATCH, lr, "ajuste")
