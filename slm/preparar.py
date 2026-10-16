@@ -4,6 +4,15 @@ R = os.path.dirname(os.path.abspath(__file__))
 RAIZ = os.path.dirname(R)
 MIN_R = float(os.environ.get("SLM_MIN_R", "0.0"))
 MAXLEN = 140
+ESTILO_ARCH = [("sarcasmo", "burla_fallo"), ("gana", "burla_fallo"), ("muerte", "burla_fallo"), ("respawn", "burla_fallo"), ("provoc", "pregunta"), ("hablan", "pregunta"), ("amenaza", "frio"), ("rencor", "frio"), ("sadismo", "susurro"), ("odio", "escala"), ("atacan", "escala"), ("desprecio", "escala")]
+
+
+def estilo_de(nombre):
+    n = nombre.lower()
+    for k, v in ESTILO_ARCH:
+        if k in n:
+            return v
+    return "libre"
 
 
 def q(x):
@@ -40,11 +49,12 @@ def main():
             partes = (e.get("i") or "otra|v0|ok|-").split("|") + ["v0", "ok"]
             filas.append({"p": prefijo(partes[0], e.get("e", "frio"), e.get("rs"), partes[1], partes[2]), "t": f, "r": e.get("r", 0.5)})
     for ruta in glob.glob(os.path.join(R, "datos", "*.txt")):
+        est = estilo_de(os.path.basename(ruta))
         with open(ruta, encoding="utf8", errors="ignore") as fh:
             for linea in fh:
                 f = limpio(linea)
                 if 12 <= len(f) <= MAXLEN:
-                    filas.append({"p": prefijo("otra", "libre", [0, 0, 0, 0], "v0", "ok"), "t": f, "r": 0.0})
+                    filas.append({"p": prefijo("otra", est, [0, 0, 0, 0], "v0", "ok"), "t": f, "r": 0.0})
     vistos, out = set(), []
     for x in filas:
         k = (x["p"], x["t"].lower())
