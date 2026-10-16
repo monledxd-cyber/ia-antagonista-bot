@@ -3,6 +3,7 @@ const diag = require('./diag');
 
 const ACC = ['atacar', 'retroceder', 'curar', 'bloquear', 'esquivar', 'otra'];
 const NI = 43, NH = 64, NO = ACC.length, GAMMA = 0.85, LR = 0.01, VENT = 8;
+const NE = Math.max(1, Number(process.env.IA_NN_N) || 3);
 const TICK_MS = Number(process.env.IA_NN_MS) || 400;
 
 function rnn(w) {
@@ -89,16 +90,16 @@ function migrar(m) {
 }
 
 function crearNN(bot, ruta, rutaDatos) {
-  let red = null, eps = [], act = [], pend = [], sucio = false, h = null, ultSug = null;
+  let red = null, eps = [], act = [], pend = [], sucio = false, hs = [], ultSug = null, inc = 0, extras = [];
   let st = { na: 0, ra: 0, nd: 0, rd: 0, ent: 0, err: 0, pre: 0, sim: 0, simWin: 0, base: 0 };
   try { const d = JSON.parse(fs.readFileSync(ruta, 'utf8'));
-    if (d && d.m && d.m.u && d.m.w1 && d.m.b1) { d.m = migrar(d.m); red = rnn(d.m); st = Object.assign(st, d.st || {}); } } catch (e) { /* nueva */ }
+    if (d && d.m && d.m.u && d.m.w1 && d.m.b1) { d.m = migrar(d.m); red = rnn(d.m); st = Object.assign(st, d.st || {}); if (Array.isArray(d.ms)) extras = d.ms.filter((x) => x && x.w1 && x.u && x.b1).map((x) => rnn(migrar(x))); } } catch (e) { /* nueva */ }
   if (!red) red = rnn();
   try { const d = JSON.parse(fs.readFileSync(rutaDatos, 'utf8')); if (Array.isArray(d)) eps = d.filter((e) => Array.isArray(e) && e.length && e[0].s && e[0].s.length <= NI); for (const e of eps) for (const p of e) while (p.s.length < NI) p.s.push(0); } catch (e) { /* vacio */ }
   const MODO = process.env.IA_NN || 'auto';
-  h = red.cero();
-  const objetivo = rnn(JSON.parse(JSON.stringify(red.m)));
   let sinc = 0, ultLibre = Date.now();
+  const clon = (r, ruido) => { const m = JSON.parse(JSON.stringify(r.m)); if (ruido) for (const k of ['w1', 'u', 'w2']) for (let i = 0; i < m[k].length; i++) m[k][i] += (Math.random() - 0.5) * ruido; return rnn(m); };
+  let redes = [red], objetivos = [];
 
   function precalentar(n = 6000, epocas = 12) {
     const casos = require('./nn_casos').generar(n);
@@ -113,6 +114,10 @@ function crearNN(bot, ruta, rutaDatos) {
   }
   if (!st.pre) precalentar();
   if (!st.sim && process.env.IA_NN_SIM !== '0') simular();
+  for (const x of extras.slice(0, NE - 1)) redes.push(x);
+  while (redes.length < NE) redes.push(clon(red, 0.1));
+  objetivos = redes.map((r) => clon(r, 0));
+  hs = redes.map((r) => r.cero());
 
   const dmgIn = [], hitsOut = [];
   let hpAnt = null;
@@ -215,15 +220,17 @@ function crearNN(bot, ruta, rutaDatos) {
     for (let k = 0; k < n; k++) {
       const ep = elegirEp();
       const ini = Math.max(0, Math.floor(Math.random() * Math.max(1, ep.length - 1)) - 1);
-      err += red.tdVentana(ep, ini, LR, objetivo);
+      const i = k % redes.length, e2 = i === 0 ? ep : elegirEp();
+      const ini2 = i === 0 ? ini : Math.max(0, Math.floor(Math.random() * Math.max(1, e2.length - 1)) - 1);
+      err += redes[i].tdVentana(e2, ini2, LR, objetivos[i]);
     }
-    if (++sinc >= 4) { objetivo.copiar(red); sinc = 0; }
+    if (++sinc >= 4) { redes.forEach((r, i) => objetivos[i].copiar(r)); sinc = 0; }
     st.ent += n; st.err = err / n; sucio = true;
   }
 
   const softmax = (q, T) => { const mx = Math.max(...q), e = q.map((v) => Math.exp((v - mx) / T)), s = e.reduce((a, b) => a + b, 0); return e.map((v) => v / s); };
   function elegirAccion(q) {
-    const e0 = Math.max(0.04, 0.3 * Math.exp(-st.ent / 1500));
+    const e0 = Math.min(0.6, Math.max(0.04, 0.3 * Math.exp(-st.ent / 1500)) + 0.3 * Math.min(1, inc * 2));
     if (Math.random() >= e0) return mejor(q);
     const p = softmax(q, 0.5); let r = Math.random();
     for (let i = 0; i < p.length; i++) { r -= p[i]; if (r <= 0) return i; }
@@ -232,7 +239,7 @@ function crearNN(bot, ruta, rutaDatos) {
   const confianza = (q) => { const o = q.slice().sort((a, b) => b - a); return Math.tanh(2 * (o[0] - o[1])); };
   const sesgos = (sug, q) => {
     if (!activo()) return {};
-    const k = 0.4 + 0.6 * confianza(q);
+    const k = (0.4 + 0.6 * confianza(q)) / (1 + 3 * inc);
     const e = (o) => { const r = {}; for (const [n, v] of Object.entries(o)) r[n] = v * k; return r; };
     if (sug === 0) return e({ agresion: 0.2 });
     if (sug === 1) return e({ cautela: 0.2, agresion: -0.12 });
@@ -250,12 +257,15 @@ function crearNN(bot, ruta, rutaDatos) {
     ocupado = true; ultTick = ahora;
     try {
       let s; try { s = estado(t); } catch (e) { return; }
-      const r = red.step(s, h); h = r.h;
-      const sug = elegirAccion(r.o); ultSug = sug;
-      if (bot._bandits) bot._bandits.nnExtra = sesgos(sug, r.o);
+      const rs = redes.map((r, i) => r.step(s, hs[i]));
+      hs = rs.map((x) => x.h);
+      const q = new Array(NO).fill(0).map((_, k) => rs.reduce((a, x) => a + x.o[k], 0) / rs.length);
+      inc = rs.length > 1 ? q.reduce((a, m, k) => a + Math.sqrt(rs.reduce((b, x) => b + (x.o[k] - m) * (x.o[k] - m), 0) / rs.length), 0) / NO : 0;
+      const sug = elegirAccion(q); ultSug = sug;
+      if (bot._bandits) bot._bandits.nnExtra = sesgos(sug, q);
       pend.push({ s, a: accion(t), sug, hp: bot.health, rhp: vidaRival(t), t: ahora, n0: bot._premio ? bot._premio.neto() : 0 });
       while (pend.length && ahora - pend[0].t >= 3000) { const m = pend.shift(); m.hp2 = bot.health; m.rhp2 = vidaRival(t); cerrarMuestra(m, 0, false); }
-      diag.estado.nn = `eps ${eps.length} ent ${st.ent} err ${st.err.toFixed(3)} sug ${ACC[ultSug]} ${activo() ? 'ACTIVA' : 'sombra'} acuerdo ${st.na}/${st.nd} r ${(st.na ? st.ra / st.na : 0).toFixed(2)}/${(st.nd ? st.rd / st.nd : 0).toFixed(2)} sim ${Math.round(st.simWin * 100)}%/${Math.round(st.base * 100)}%`;
+      diag.estado.nn = `eps ${eps.length} ent ${st.ent} err ${st.err.toFixed(3)} sug ${ACC[ultSug]} redes ${redes.length} desacuerdo ${inc.toFixed(2)} ${activo() ? 'ACTIVA' : 'sombra'} acuerdo ${st.na}/${st.nd} r ${(st.na ? st.ra / st.na : 0).toFixed(2)}/${(st.nd ? st.rd / st.nd : 0).toFixed(2)} sim ${Math.round(st.simWin * 100)}%/${Math.round(st.base * 100)}%`;
     } finally { ocupado = false; }
   }
   const it = setInterval(() => {
@@ -267,7 +277,7 @@ function crearNN(bot, ruta, rutaDatos) {
 
   const guardar = () => {
     if (!sucio) return;
-    try { fs.writeFileSync(ruta, JSON.stringify({ m: red.m, st })); fs.writeFileSync(rutaDatos, JSON.stringify(eps)); sucio = false; } catch (e) { /* ignorar */ }
+    try { fs.writeFileSync(ruta, JSON.stringify({ m: red.m, ms: redes.slice(1).map((r) => r.m), st })); fs.writeFileSync(rutaDatos, JSON.stringify(eps)); sucio = false; } catch (e) { /* ignorar */ }
   };
   const gt = setInterval(guardar, 60_000);
   bot.once('end', () => { clearInterval(it); clearInterval(gt); guardar(); });
@@ -278,7 +288,7 @@ function crearNN(bot, ruta, rutaDatos) {
       const n = pend.length;
       for (const m of pend.splice(0)) { m.hp2 = bot.health; m.rhp2 = null; cerrarMuestra(m, extra / Math.max(1, n), false); }
       if (act.length) { act[act.length - 1].fin = true; eps.push(act); let tot = eps.reduce((a, e) => a + e.length, 0); while (tot > 4000 && eps.length > 1) tot -= eps.shift().length; }
-      act = []; h = red.cero();
+      act = []; hs = redes.map((r) => r.cero());
       entrenar(150);
       if (bot._bandits) bot._bandits.nnExtra = {};
       guardar();
