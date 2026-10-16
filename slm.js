@@ -8,7 +8,41 @@ const prefijo = (acc, est, rs, vb, vida) => `${acc}|${est}|${(rs || [0, 0, 0, 0]
 function crearSLM(dir) {
   const rm = path.join(dir, 'modelo.onnx'), rv = path.join(dir, 'vocab.json');
   let ort = null, sesion = null, vocab = null, idx = null, cargando = null, fallos = 0;
-  const listo = () => !!sesion;
+  let filas = null;
+  const usadas = [];
+  function corpus() {
+    if (filas) return filas;
+    filas = [];
+    try {
+      for (const l of fs.readFileSync(path.join(dir, 'dataset.jsonl'), 'utf8').split('\n')) {
+        if (!l.trim()) continue;
+        const x = JSON.parse(l), a = String(x.p).replace('>', '').split('|');
+        filas.push({ t: x.t, acc: a[0], est: a[1], rs: (a[2] || '0000').split('').map(Number), r: x.r || 0 });
+      }
+    } catch (e) {}
+    return filas;
+  }
+  function recuperar(info, evitar) {
+    const c = corpus();
+    if (!c.length) return null;
+    const rs = (info.rs || [0, 0, 0, 0]).slice(0, 4).map((v) => Math.min(3, Math.floor(Math.max(0, v) * 4)));
+    const pt = [];
+    for (const x of c) {
+      if (usadas.includes(x.t)) continue;
+      const v = validar(x.t, evitar, true);
+      if (v.motivo) continue;
+      let sc = (x.acc === info.acc ? 3 : 0) + (x.est === info.estilo ? 3 : 0) + (x.est === 'libre' ? 0.5 : 0);
+      for (let i = 0; i < 4; i++) sc -= Math.abs((x.rs[i] || 0) - rs[i]) * 0.4;
+      pt.push([sc + x.r + Math.random() * 0.8, x.t]);
+    }
+    if (!pt.length) return null;
+    pt.sort((a, b) => b[0] - a[0]);
+    const top = pt.filter((x) => x[0] >= pt[0][0] - 1.5).slice(0, 8), f = top[Math.floor(Math.random() * top.length)][1];
+    usadas.push(f);
+    if (usadas.length > 60) usadas.shift();
+    return f;
+  }
+  const listo = () => !!sesion || corpus().length > 0;
   async function cargar() {
     if (sesion || fallos >= 3 || process.env.IA_SLM === '0') return;
     if (!fs.existsSync(rm) || !fs.existsSync(rv)) return;
@@ -38,8 +72,12 @@ function crearSLM(dir) {
   const rechazo = (m, crudo) => { motivo = m; if (Date.now() - ultLog > 10_000) { ultLog = Date.now(); console.log(`[slm] sin frase (${m})${crudo ? ': ' + String(crudo).slice(0, 70) : ''}`); } return null; };
   async function generar(info, opc) {
     await cargar();
-    if (!sesion) return rechazo('modelo no cargado');
     opc = opc || {};
+    if (!sesion) return recuperar(info, opc.evitar || []) || rechazo('modelo no cargado');
+    const r = await generarModelo(info, opc);
+    return r || recuperar(info, opc.evitar || []);
+  }
+  async function generarModelo(info, opc) {
     const acc = vocab.acc && !vocab.acc.includes(info.acc) ? (vocab.acc.includes('otra') ? 'otra' : vocab.acc[0]) : info.acc;
     const est = vocab.est && !vocab.est.includes(info.estilo) ? (vocab.est.includes('libre') ? 'libre' : vocab.est[0]) : info.estilo;
     const p = prefijo(acc, est, est === 'libre' ? [0, 0, 0, 0] : info.rs, info.vb, info.vida);
@@ -65,7 +103,7 @@ function crearSLM(dir) {
     if (m.motivo) return rechazo(m.motivo, crudo);
     return m.f;
   }
-  function validar(f, evitar) {
+  function validar(f, evitar, sinVocab) {
     f = f.replace(/\s+/g, ' ').trim();
     if (f.length < 12) return { motivo: 'muy corta' };
     if (f.length > 140) return { motivo: 'muy larga' };
@@ -74,7 +112,7 @@ function crearSLM(dir) {
     if (new Set(w).size < Math.min(4, w.length)) return { motivo: 'palabras repetidas' };
     const ap = w.slice(0, 3).join(' ').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9 ]/g, '');
     if (evitar.includes(ap)) return { motivo: 'apertura prohibida' };
-    if (vocab.palabras && vocab.palabras.length) {
+    if (!sinVocab && vocab && vocab.palabras && vocab.palabras.length) {
       if (!conocidas) conocidas = new Set(vocab.palabras);
       const ws = f.toLowerCase().match(/[^\W\d_]+/g) || [];
       const ok = ws.filter((x) => conocidas.has(x)).length;
