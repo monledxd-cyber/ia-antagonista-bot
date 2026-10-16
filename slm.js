@@ -92,7 +92,7 @@ function crearSLM(dir) {
         const t = new ort.Tensor('int64', BigInt64Array.from(ids.map((x) => BigInt(x))), [1, ids.length]);
         const out = await sesion.run({ ids: t });
         const lg = out.logits.data, V = vocab.chars.length, off = (ids.length - 1) * V;
-        const nx = muestra(lg.subarray(off, off + V), opc.temp || 0.8, opc.k || 12, i < 8 ? new Set([...prohibidos, fin]) : prohibidos);
+        const nx = muestra(lg.subarray(off, off + V), opc.temp || Number(process.env.SLM_TEMP) || 0.8, opc.k || Number(process.env.SLM_K) || 12, i < 8 ? new Set([...prohibidos, fin]) : prohibidos);
         if (nx === fin) break;
         ids.push(nx); salida.push(vocab.chars[nx]);
         if (Date.now() - t0 > limite) return rechazo(`tardo mas de ${limite} ms (${i + 1} letras)`, salida.join(''));
