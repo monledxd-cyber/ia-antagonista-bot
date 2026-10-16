@@ -167,6 +167,9 @@ def main():
                     opt.step()
                     sch.step()
                     tot += l.item()
+                    n = i // batch + 1
+                    if n % 50 == 0:
+                        print(f"{tag} epoca {ep + 1}/{epocas} paso {n}/{nb} {time.time() - t0:.0f}s loss {tot / n:.3f}", flush=True)
                 m.eval()
                 with torch.no_grad():
                     v = sum(perdida(val[i : i + batch]).item() for i in range(0, len(val), batch)) / max(1, math.ceil(len(val) / batch))
