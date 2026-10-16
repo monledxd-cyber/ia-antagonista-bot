@@ -72,6 +72,17 @@ async function preguntarIA(...args) {
     throw e;
   }
 }
+const llmOk = () => { const i = diag.estado.ia; return !i.ultimoError || !!(i.ultimoOk && i.ultimoOk >= i.ultimoError.t); };
+const autonomo = () => process.env.IA_AUTONOMO === '1' || (process.env.IA_AUTONOMO !== '0' && !llmOk());
+async function fraseLocal(ctx) {
+  const L = lengActual && process.env.IA_LENGUAJE !== '0' ? lengActual : null;
+  if (!L) return '';
+  try {
+    const prep = L.preparar(ctx);
+    if (slmActual && slmActual.listo()) { const f = await slmActual.generar(L.infoSLM(prep.meta), { evitar: L.evitar() }); if (f) { L.emitido(ctx.nombre, f, prep.meta, 'slm'); return f; } }
+    return L.local(ctx) || '';
+  } catch (e) { return ''; }
+}
 function preguntarIA_base(...args) {
   const ctx = args[1] || {};
   const baja = !!(ctx.voluntad || ctx.espontaneo);
@@ -350,6 +361,7 @@ function iniciarHuida(bot) {
   bot._estMarca = (n, k, ok) => memoria.estMarca(n, k, ok);
   bot._cautela = (n) => memoria.cautela(n);
   bot._bandits = bandits;
+  bot._plan = require('./planificador').crearPlanificador(bot, bandits);
   { const t = setInterval(() => bandits.guardar(), 60_000); if (t.unref) t.unref(); bot.once('end', () => { clearInterval(t); bandits.guardar(); }); }
   if (process.env.IA_LAG !== '0') require('./lag').crearLag(bot);
   require('./bucle').crearBucle(bot);
@@ -1040,7 +1052,7 @@ async function crearBot() {
     // Voluntad propia: sin que nadie hable ni dispare el datapack, cada ~2 min decide solo que hacer (incluye [CMD]).
     if (!bot._voluntadActiva) {
       bot._voluntadActiva = true;
-      const BASE = Number(process.env.IA_VOLUNTAD_MS) || 120_000;
+      const BASE = Number(process.env.IA_VOLUNTAD_MS) || 120_000, PLAN_MS = Number(process.env.IA_PLAN_MS) || 30_000;
       let ultCmd = 0, cdCmd = 8_000, pensando = false;
       const ciclo = async () => {
         if (!bot.entity || pensando || process.env.IA_VOLUNTAD === '0') return;
@@ -1052,6 +1064,19 @@ async function crearBot() {
         const real = ultimoContexto.get(p.username) || {};
         const ent = p.entity;
         const hist = registrarInteraccion(p.username);
+        if (autonomo() && bot._plan) {
+          pensando = true;
+          try {
+            const d = bot._plan.decidir(p.username, ent);
+            if (d) {
+              const frase = d.k === 'esperar' ? '' : await fraseLocal({ nombre: p.username, vida: real.vida ?? 'desconocida', interacciones: hist.interacciones, ultimasRespuestas: hist.ultimasRespuestas, eventosRecientes: formatearEventos(p.username), estadoPropio: obtenerEstadoPropio(bot), voluntad: true, enVista: !!ent });
+              diag.log('info', 'plan', `${d.k} @${d.ctx}`);
+              await manejarRespuesta(bot, { nombre: p.username }, ((frase || '') + ' ' + d.tag).trim());
+            }
+          } catch (e) { console.error('[plan] error:', e.message); }
+          pensando = false;
+          return;
+        }
         pensando = true;
         try {
           const f = ultimaFallaJugador.get(p.username); if (f) ultimaFallaJugador.delete(p.username);
@@ -1074,7 +1099,7 @@ async function crearBot() {
         pensando = false;
       };
       const programar = () => {
-        const t = setTimeout(async () => { await ciclo(); if (bot._voluntadActiva) programar(); }, BASE * (0.6 + Math.random() * 0.8));
+        const t = setTimeout(async () => { await ciclo(); if (bot._voluntadActiva) programar(); }, (autonomo() ? PLAN_MS : BASE) * (0.6 + Math.random() * 0.8));
         bot.once('end', () => { clearTimeout(t); bot._voluntadActiva = false; });
       };
       programar();

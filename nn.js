@@ -2,7 +2,8 @@ const fs = require('fs');
 const diag = require('./diag');
 
 const ACC = ['atacar', 'retroceder', 'curar', 'bloquear', 'esquivar', 'otra'];
-const NI = 43, NH = 64, NO = ACC.length, GAMMA = 0.8, LR = 0.01, VENT = 6;
+const NI = 43, NH = 64, NO = ACC.length, GAMMA = 0.85, LR = 0.01, VENT = 8;
+const TICK_MS = Number(process.env.IA_NN_MS) || 400;
 
 function rnn(w) {
   const r = (n, s) => Array.from({ length: n }, () => (Math.random() - 0.5) * 2 * s);
@@ -55,15 +56,15 @@ function rnn(w) {
     const { o } = step(x, cero());
     grad([x], [o.map((v, k) => clip(v - q[k]))], null, lr);
   };
-  const tdVentana = (ep, ini, lr) => {
+  const tdVentana = (ep, ini, lr, tgt) => {
     const w = ep.slice(ini, ini + VENT), n = w.length;
     if (n < 2 && !ep[ini + n - 1].fin) return 0;
-    const xs = w.map((p) => p.s), { os } = seq(xs, null), dOs = w.map(() => new Array(NO).fill(0));
+    const xs = w.map((p) => p.s), { os } = seq(xs, null), ot = tgt ? tgt.seq(xs, null).os : os, dOs = w.map(() => new Array(NO).fill(0));
     let err = 0, cnt = 0;
     for (let t = 0; t < n; t++) {
       let obj;
       if (w[t].fin) obj = w[t].r;
-      else if (t + 1 < n) obj = w[t].r + GAMMA * Math.max(...os[t + 1]);
+      else if (t + 1 < n) { const sig = os[t + 1], am = sig.indexOf(Math.max(...sig)); obj = w[t].r + GAMMA * ot[t + 1][am]; }
       else continue;
       obj = Math.max(-3, Math.min(3, obj));
       const e = clip(os[t][w[t].a] - obj);
@@ -72,7 +73,8 @@ function rnn(w) {
     if (cnt) grad(xs, dOs, null, lr);
     return cnt ? err / cnt : 0;
   };
-  return { m, step, seq, grad, pre, tdVentana, cero };
+  const copiar = (o) => { for (const k of ['w1', 'u', 'b1', 'w2', 'b2']) m[k] = o.m[k].slice(); };
+  return { m, step, seq, grad, pre, tdVentana, cero, copiar };
 }
 
 function migrar(m) {
@@ -95,6 +97,8 @@ function crearNN(bot, ruta, rutaDatos) {
   try { const d = JSON.parse(fs.readFileSync(rutaDatos, 'utf8')); if (Array.isArray(d)) eps = d.filter((e) => Array.isArray(e) && e.length && e[0].s && e[0].s.length <= NI); for (const e of eps) for (const p of e) while (p.s.length < NI) p.s.push(0); } catch (e) { /* vacio */ }
   const MODO = process.env.IA_NN || 'auto';
   h = red.cero();
+  const objetivo = rnn(JSON.parse(JSON.stringify(red.m)));
+  let sinc = 0, ultLibre = Date.now();
 
   function precalentar(n = 6000, epocas = 12) {
     const casos = require('./nn_casos').generar(n);
@@ -188,13 +192,6 @@ function crearNN(bot, ruta, rutaDatos) {
 
   const mejor = (q) => q.indexOf(Math.max(...q));
   const activo = () => MODO !== '0' && MODO !== 'sombra' && st.na >= 40 && st.nd >= 40 && (st.ra / st.na) - (st.rd / st.nd) > 0.02;
-  const sesgos = (sug) => {
-    if (!activo()) return {};
-    if (sug === 1 || sug === 2) return { cautela: 0.15, agresion: -0.1 };
-    if (sug === 0) return { agresion: 0.15 };
-    return {};
-  };
-
   function cerrarMuestra(m, extra, fin) {
     const dh = (m.hp2 - m.hp) / 20, dr = m.rhp !== null && m.rhp2 !== null ? (m.rhp - m.rhp2) / 20 : 0;
     const pn = bot._premio ? 0.5 * Math.tanh((bot._premio.neto() - (m.n0 || 0)) / 4) : 0;
@@ -204,31 +201,69 @@ function crearNN(bot, ruta, rutaDatos) {
     sucio = true;
   }
 
+  const pri = (e) => 0.2 + e.reduce((a, p) => a + Math.abs(p.r), 0) / e.length;
+  function elegirEp() {
+    let tot = 0; const ps = eps.map((e, i) => { const v = pri(e) * (1 + 0.5 * i / eps.length); tot += v; return v; });
+    let r = Math.random() * tot;
+    for (let i = 0; i < eps.length; i++) { r -= ps[i]; if (r <= 0) return eps[i]; }
+    return eps[eps.length - 1];
+  }
   function entrenar(n) {
     const total = eps.reduce((a, e) => a + e.length, 0);
     if (total < 30) return;
     let err = 0;
     for (let k = 0; k < n; k++) {
-      let ep = eps[Math.floor(Math.random() * eps.length)];
-      if (Math.random() < 0.4) { const y = eps[Math.floor(Math.random() * eps.length)]; if (y.reduce((a, p) => a + Math.abs(p.r), 0) > ep.reduce((a, p) => a + Math.abs(p.r), 0)) ep = y; }
+      const ep = elegirEp();
       const ini = Math.max(0, Math.floor(Math.random() * Math.max(1, ep.length - 1)) - 1);
-      err += red.tdVentana(ep, ini, LR);
+      err += red.tdVentana(ep, ini, LR, objetivo);
     }
+    if (++sinc >= 4) { objetivo.copiar(red); sinc = 0; }
     st.ent += n; st.err = err / n; sucio = true;
   }
 
-  const it = setInterval(() => {
-    if (!bot.entity) return;
+  const softmax = (q, T) => { const mx = Math.max(...q), e = q.map((v) => Math.exp((v - mx) / T)), s = e.reduce((a, b) => a + b, 0); return e.map((v) => v / s); };
+  function elegirAccion(q) {
+    const e0 = Math.max(0.04, 0.3 * Math.exp(-st.ent / 1500));
+    if (Math.random() >= e0) return mejor(q);
+    const p = softmax(q, 0.5); let r = Math.random();
+    for (let i = 0; i < p.length; i++) { r -= p[i]; if (r <= 0) return i; }
+    return mejor(q);
+  }
+  const confianza = (q) => { const o = q.slice().sort((a, b) => b - a); return Math.tanh(2 * (o[0] - o[1])); };
+  const sesgos = (sug, q) => {
+    if (!activo()) return {};
+    const k = 0.4 + 0.6 * confianza(q);
+    const e = (o) => { const r = {}; for (const [n, v] of Object.entries(o)) r[n] = v * k; return r; };
+    if (sug === 0) return e({ agresion: 0.2 });
+    if (sug === 1) return e({ cautela: 0.2, agresion: -0.12 });
+    if (sug === 2) return e({ cautela: 0.2, agresion: -0.15 });
+    if (sug === 3) return e({ cautela: 0.12, paciencia: 0.15 });
+    if (sug === 4) return e({ astucia: 0.15, cautela: 0.05 });
+    return {};
+  };
+
+  let ocupado = false, ultTick = 0;
+  function decidir() {
+    if (!bot.entity || ocupado) return;
     const ahora = Date.now(), t = bot.pvp && bot.pvp.target;
     if (!t || t.type !== 'player' || !t.position) { if (bot._bandits) bot._bandits.nnExtra = {}; return; }
-    let s; try { s = estado(t); } catch (e) { return; }
-    const r = red.step(s, h); h = r.h;
-    const sug = mejor(r.o); ultSug = sug;
-    if (bot._bandits) bot._bandits.nnExtra = sesgos(sug);
-    pend.push({ s, a: accion(t), sug, hp: bot.health, rhp: vidaRival(t), t: ahora, n0: bot._premio ? bot._premio.neto() : 0 });
-    while (pend.length && ahora - pend[0].t >= 4000) { const m = pend.shift(); m.hp2 = bot.health; m.rhp2 = vidaRival(t); cerrarMuestra(m, 0, false); }
-    diag.estado.nn = `eps ${eps.length} ent ${st.ent} err ${st.err.toFixed(3)} sug ${ACC[ultSug]} ${activo() ? 'ACTIVA' : 'sombra'} acuerdo ${st.na}/${st.nd} r ${(st.na ? st.ra / st.na : 0).toFixed(2)}/${(st.nd ? st.rd / st.nd : 0).toFixed(2)} sim ${Math.round(st.simWin * 100)}%/${Math.round(st.base * 100)}%`;
-  }, 1000);
+    ocupado = true; ultTick = ahora;
+    try {
+      let s; try { s = estado(t); } catch (e) { return; }
+      const r = red.step(s, h); h = r.h;
+      const sug = elegirAccion(r.o); ultSug = sug;
+      if (bot._bandits) bot._bandits.nnExtra = sesgos(sug, r.o);
+      pend.push({ s, a: accion(t), sug, hp: bot.health, rhp: vidaRival(t), t: ahora, n0: bot._premio ? bot._premio.neto() : 0 });
+      while (pend.length && ahora - pend[0].t >= 3000) { const m = pend.shift(); m.hp2 = bot.health; m.rhp2 = vidaRival(t); cerrarMuestra(m, 0, false); }
+      diag.estado.nn = `eps ${eps.length} ent ${st.ent} err ${st.err.toFixed(3)} sug ${ACC[ultSug]} ${activo() ? 'ACTIVA' : 'sombra'} acuerdo ${st.na}/${st.nd} r ${(st.na ? st.ra / st.na : 0).toFixed(2)}/${(st.nd ? st.rd / st.nd : 0).toFixed(2)} sim ${Math.round(st.simWin * 100)}%/${Math.round(st.base * 100)}%`;
+    } finally { ocupado = false; }
+  }
+  const it = setInterval(() => {
+    decidir();
+    if (!(bot.pvp && bot.pvp.target) && Date.now() - ultLibre > 15000) { ultLibre = Date.now(); entrenar(20); }
+  }, TICK_MS);
+  let hpPrev = null;
+  bot.on('health', () => { const v = bot.health; if (hpPrev !== null && v < hpPrev && Date.now() - ultTick > 120) decidir(); hpPrev = v; });
 
   const guardar = () => {
     if (!sucio) return;
