@@ -56,6 +56,36 @@ class SLM(nn.Module):
         return self.s(self.n(x))
 
 
+def ej_pre(idx, V, FIN, CTX):
+    import glob, re
+    rutas = glob.glob(os.path.join(R, "preentrenar", "*.txt"))
+    if not rutas:
+        return []
+    pref = [idx[c] for c in "otra|libre|0000|v0|ok>" if c in idx]
+    if len(pref) != len("otra|libre|0000|v0|ok>"):
+        print("prefijo de preentrenar no cabe en el vocabulario: lo omito")
+        return []
+    ventana = CTX - len(pref) - 2
+    ventana = min(ventana, 150)
+    out = []
+    for r in rutas:
+        txt = open(r, encoding="utf8", errors="ignore").read()
+        txt = re.sub(r"\s+", " ", txt)
+        i = 0
+        while i < len(txt):
+            w = txt[i : i + ventana]
+            i += ventana
+            malos = sum(1 for c in w if c not in idx)
+            if len(w) < 40 or malos > len(w) * 0.03:
+                continue
+            ids = pref + [idx.get(c, idx[" "]) for c in w]
+            out.append((ids, [0] * len(pref) + [1] * len(w), 1.0))
+    random.seed(2)
+    random.shuffle(out)
+    print("preentrenar:", len(out), "ventanas de", len(rutas), "archivos")
+    return out
+
+
 def main():
     filas = [json.loads(l) for l in open(os.path.join(R, "dataset.jsonl"), encoding="utf8")]
     minimo = int(os.environ.get("SLM_MIN", "200"))
@@ -77,15 +107,12 @@ def main():
     dev = "cuda" if torch.cuda.is_available() else "cpu"
     m = SLM(V).to(dev)
     print("parametros", sum(p.numel() for p in m.parameters()), "vocab", V, "dev", dev)
-    opt = torch.optim.AdamW(m.parameters(), lr=LR, weight_decay=0.1)
     global EPOCAS, BATCH
     if BATCH <= 0:
         BATCH = 16 if len(tr) < 4000 else 64
     if EPOCAS <= 0:
         EPOCAS = max(20, math.ceil(3000 / max(1, math.ceil(len(tr) / BATCH))))
-    print('lote', BATCH, 'epocas', EPOCAS, 'pasos', EPOCAS * math.ceil(len(tr) / BATCH))
-    pasos = EPOCAS * math.ceil(len(tr) / BATCH)
-    sch = torch.optim.lr_scheduler.OneCycleLR(opt, max_lr=LR, total_steps=pasos)
+    PACI = int(os.environ.get("SLM_PACIENCIA", "5"))
 
     def lote(b):
         n = max(len(x[0]) for x in b)
@@ -105,40 +132,54 @@ def main():
         mk = ms[:, 1:]
         return ((l * mk).sum(1) / mk.sum(1).clamp(min=1) * ws).mean()
 
-    t0 = time.time()
-    mejor, mejor_sd, mala = 9e9, None, 0
-    PACI = int(os.environ.get('SLM_PACIENCIA', '5'))
-    try:
-        for ep in range(EPOCAS):
-            m.train()
-            random.shuffle(tr)
-            tot = 0
-            for i in range(0, len(tr), BATCH):
-                opt.zero_grad()
-                l = perdida(tr[i : i + BATCH])
-                l.backward()
-                torch.nn.utils.clip_grad_norm_(m.parameters(), 1.0)
-                opt.step()
-                sch.step()
-                tot += l.item()
-            m.eval()
-            with torch.no_grad():
-                v = sum(perdida(val[i : i + BATCH]).item() for i in range(0, len(val), BATCH)) / max(1, math.ceil(len(val) / BATCH))
-            print(f"epoca {ep + 1}/{EPOCAS} {time.time() - t0:.0f}s train {tot / max(1, math.ceil(len(tr) / BATCH)):.3f} val {v:.3f}")
-            if v < mejor - 0.005:
-                mejor, mala = v, 0
-                mejor_sd = {k: x.detach().cpu().clone() for k, x in m.state_dict().items()}
-            else:
-                mala += 1
-                if mala >= PACI:
-                    print('val dejo de bajar: paro y uso la mejor epoca')
-                    break
-    except KeyboardInterrupt:
-        print('interrumpido: exporto lo entrenado hasta ahora')
+    def ciclo(tr, val, epocas, batch, lr, tag):
+        opt = torch.optim.AdamW(m.parameters(), lr=lr, weight_decay=0.1)
+        nb = math.ceil(len(tr) / batch)
+        sch = torch.optim.lr_scheduler.OneCycleLR(opt, max_lr=lr, total_steps=epocas * nb)
+        print(tag, "lote", batch, "epocas", epocas, "pasos", epocas * nb)
+        t0 = time.time()
+        mejor, sd, mala = 9e9, None, 0
+        try:
+            for ep in range(epocas):
+                m.train()
+                random.shuffle(tr)
+                tot = 0
+                for i in range(0, len(tr), batch):
+                    opt.zero_grad()
+                    l = perdida(tr[i : i + batch])
+                    l.backward()
+                    torch.nn.utils.clip_grad_norm_(m.parameters(), 1.0)
+                    opt.step()
+                    sch.step()
+                    tot += l.item()
+                m.eval()
+                with torch.no_grad():
+                    v = sum(perdida(val[i : i + batch]).item() for i in range(0, len(val), batch)) / max(1, math.ceil(len(val) / batch))
+                print(f"{tag} epoca {ep + 1}/{epocas} {time.time() - t0:.0f}s train {tot / nb:.3f} val {v:.3f}")
+                if v < mejor - 0.005:
+                    mejor, mala = v, 0
+                    sd = {k: x.detach().cpu().clone() for k, x in m.state_dict().items()}
+                else:
+                    mala += 1
+                    if mala >= PACI:
+                        print("val dejo de bajar: paro y uso la mejor epoca")
+                        break
+        except KeyboardInterrupt:
+            print("interrumpido: sigo con lo entrenado hasta ahora")
+        if sd is not None:
+            m.load_state_dict(sd)
+            print(tag, "mejor val", round(mejor, 3))
 
-    if mejor_sd is not None:
-        m.load_state_dict(mejor_sd)
-        print('mejor val', round(mejor, 3))
+    pre = ej_pre(idx, V, FIN, CTX)
+    lr = LR
+    if pre:
+        pv, pt = pre[: max(1, len(pre) // 50)], pre[max(1, len(pre) // 50) :]
+        pb = 32
+        pasos = int(os.environ.get("SLM_PRE_PASOS", "4000"))
+        ciclo(pt, pv, max(1, pasos // max(1, math.ceil(len(pt) / pb))), pb, LR, "pre")
+        lr = LR * 0.5
+    ciclo(tr, val, EPOCAS, BATCH, lr, "ajuste")
+
     m.eval().cpu()
     dummy = torch.zeros(1, 24, dtype=torch.long)
     torch.onnx.export(m, dummy, os.path.join(R, "modelo.onnx"), input_names=["ids"], output_names=["logits"], dynamic_axes={"ids": {1: "t"}, "logits": {1: "t"}}, opset_version=17, dynamo=False)

@@ -24,3 +24,4 @@ slm/datos/
 slm/modelo.onnx
 slm/vocab.json
 slm/__pycache__/
+slm/preentrenar/
