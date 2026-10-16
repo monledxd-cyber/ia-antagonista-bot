@@ -56,10 +56,22 @@ class SLM(nn.Module):
         return self.s(self.n(x))
 
 
-def ej_pre(idx, V, FIN, CTX):
+NORM = {"\u2014": "-", "\u2013": "-", "\u00ab": '"', "\u00bb": '"', "\u201c": '"', "\u201d": '"', "\u2018": "'", "\u2019": "'", "\u2026": "...", "\ufeff": "", "\u00a0": " "}
+
+
+def leer_pre():
     import glob, re
-    rutas = glob.glob(os.path.join(R, "preentrenar", "*.txt"))
-    if not rutas:
+    out = []
+    for r in glob.glob(os.path.join(R, "preentrenar", "*.txt")):
+        txt = open(r, encoding="utf8", errors="ignore").read()
+        for a, b in NORM.items():
+            txt = txt.replace(a, b)
+        out.append(re.sub(r"\s+", " ", txt))
+    return out
+
+
+def ej_pre(idx, V, FIN, CTX, textos):
+    if not textos:
         return []
     pref = [idx[c] for c in "otra|libre|0000|v0|ok>" if c in idx]
     if len(pref) != len("otra|libre|0000|v0|ok>"):
@@ -68,9 +80,7 @@ def ej_pre(idx, V, FIN, CTX):
     ventana = CTX - len(pref) - 2
     ventana = min(ventana, 150)
     out = []
-    for r in rutas:
-        txt = open(r, encoding="utf8", errors="ignore").read()
-        txt = re.sub(r"\s+", " ", txt)
+    for txt in textos:
         i = 0
         while i < len(txt):
             w = txt[i : i + ventana]
@@ -82,7 +92,7 @@ def ej_pre(idx, V, FIN, CTX):
             out.append((ids, [0] * len(pref) + [1] * len(w), 1.0))
     random.seed(2)
     random.shuffle(out)
-    print("preentrenar:", len(out), "ventanas de", len(rutas), "archivos")
+    print("preentrenar:", len(out), "ventanas de", len(textos), "archivos")
     return out
 
 
@@ -91,7 +101,12 @@ def main():
     minimo = int(os.environ.get("SLM_MIN", "200"))
     if len(filas) < minimo:
         sys.exit(f"dataset muy pequeno (<{minimo}). Corre preparar.py con mas datos o usa SLM_MIN=100 para probar")
-    chars = sorted({c for x in filas for c in x["p"] + x["t"]} | {FIN, PAD})
+    textos = leer_pre()
+    frec = {}
+    for t in textos:
+        for c in t:
+            frec[c] = frec.get(c, 0) + 1
+    chars = sorted({c for x in filas for c in x["p"] + x["t"]} | {FIN, PAD} | {c for c, n in frec.items() if n >= 300 and c.isprintable()})
     idx = {c: i for i, c in enumerate(chars)}
     V = len(chars)
     ej = []
@@ -170,7 +185,7 @@ def main():
             m.load_state_dict(sd)
             print(tag, "mejor val", round(mejor, 3))
 
-    pre = ej_pre(idx, V, FIN, CTX)
+    pre = ej_pre(idx, V, FIN, CTX, textos)
     lr = LR
     if pre:
         pv, pt = pre[: max(1, len(pre) // 50)], pre[max(1, len(pre) // 50) :]
