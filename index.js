@@ -982,8 +982,8 @@ async function crearBot() {
     movimientos.allowSprinting = true;
     movimientos.allowParkour = process.env.IA_PARKOUR === '1';
     movimientos.allow1by1towers = false;
-    bot.pathfinder.thinkTimeout = Number(process.env.IA_PATH_THINK) || 1500;
-    bot.pathfinder.tickTimeout = 30;
+    bot.pathfinder.thinkTimeout = Number(process.env.IA_PATH_THINK) || 5000;
+    bot.pathfinder.tickTimeout = Number(process.env.IA_PATH_TICK) || 20;
     for (const n of ['stone_pressure_plate', 'oak_pressure_plate', 'light_weighted_pressure_plate', 'heavy_weighted_pressure_plate', 'tripwire']) {
       const def = bot.registry.blocksByName[n];
       if (def) movimientos.blocksToAvoid.add(def.id); // no pisar sus propias minas
