@@ -7,7 +7,7 @@ const prefijo = (acc, est, rs, vb, vida) => `${acc}|${est}|${(rs || [0, 0, 0, 0]
 
 function crearSLM(dir) {
   const rm = path.join(dir, 'modelo.onnx'), rv = path.join(dir, 'vocab.json');
-  let ort = null, sesion = null, vocab = null, idx = null, cargando = null, fallos = 0;
+  let esp = [], ort = null, sesion = null, vocab = null, idx = null, cargando = null, fallos = 0;
   let filas = null;
   const usadas = [];
   function corpus() {
@@ -51,9 +51,10 @@ function crearSLM(dir) {
       try {
         ort = ort || require('onnxruntime-node');
         vocab = JSON.parse(fs.readFileSync(rv, 'utf8'));
-        idx = new Map(vocab.chars.map((c, i) => [c, i]));
+        idx = new Map((vocab.tokens || vocab.chars).map((c, i) => [c, i]));
+        esp = vocab.tokens ? vocab.tokens.map((t, i) => (/^<[A-Za-z0-9]+(:[^>]*)?>$/.test(t) && t !== vocab.fin ? i : -1)).filter((i) => i >= 0) : [];
         sesion = await ort.InferenceSession.create(rm);
-        diag.log('info', 'slm', `modelo cargado (${vocab.chars.length} simbolos, ctx ${vocab.ctx})`);
+        diag.log('info', 'slm', `modelo cargado (${(vocab.tokens || vocab.chars).length} simbolos, ctx ${vocab.ctx})`);
       } catch (e) { fallos++; diag.log('warn', 'slm', 'no se pudo cargar: ' + String(e.message).slice(0, 120)); }
       cargando = null;
     })();
@@ -80,21 +81,24 @@ function crearSLM(dir) {
   async function generarModelo(info, opc) {
     const acc = vocab.acc && !vocab.acc.includes(info.acc) ? (vocab.acc.includes('otra') ? 'otra' : vocab.acc[0]) : info.acc;
     const est = vocab.est && !vocab.est.includes(info.estilo) ? (vocab.est.includes('libre') ? 'libre' : vocab.est[0]) : info.estilo;
-    const p = prefijo(acc, est, est === 'libre' ? [0, 0, 0, 0] : info.rs, info.vb, info.vida);
-    const ids = [...p].map((c) => idx.get(c));
+    const rs4 = (est === 'libre' ? [0, 0, 0, 0] : info.rs || [0, 0, 0, 0]).slice(0, 4).map(q);
+    const tm = !!vocab.tokens;
+    const g = (k, d) => (idx.has(k) ? idx.get(k) : idx.get(d));
+    const p = tm ? '' : prefijo(acc, est, est === 'libre' ? [0, 0, 0, 0] : info.rs, info.vb, info.vida);
+    const ids = tm ? [g(`<A:${acc}>`, '<A:otra>'), g(`<E:${est}>`, '<E:libre>'), ...rs4.map((d, i) => idx.get(`<R${i}:${d}>`)), g(`<V:${info.vb}>`, '<V:v0>'), g(`<L:${info.vida}>`, '<L:ok>'), idx.get('<s>')] : [...p].map((c) => idx.get(c));
     if (ids.some((x) => x === undefined)) return rechazo('prefijo con simbolos fuera del vocabulario ' + p);
-    const fin = idx.get(vocab.fin), pad = idx.get('\x00'), max = Math.min(opc.max || 110, vocab.ctx - ids.length - 1);
-    const prohibidos = new Set([pad]);
+    const fin = idx.get(vocab.fin), pad = idx.get(vocab.pad || '\x00'), max = Math.min(opc.max || (tm ? 70 : 110), vocab.ctx - ids.length - 1);
+    const prohibidos = new Set([pad, ...esp]);
     const salida = [];
     const t0 = Date.now(), limite = opc.limite || 20000;
     try {
       for (let i = 0; i < max; i++) {
         const t = new ort.Tensor('int64', BigInt64Array.from(ids.map((x) => BigInt(x))), [1, ids.length]);
         const out = await sesion.run({ ids: t });
-        const lg = out.logits.data, V = vocab.chars.length, off = (ids.length - 1) * V;
-        const nx = muestra(lg.subarray(off, off + V), opc.temp || Number(process.env.SLM_TEMP) || 0.8, opc.k || Number(process.env.SLM_K) || 12, i < 8 ? new Set([...prohibidos, fin]) : prohibidos);
+        const lg = out.logits.data, V = (vocab.tokens || vocab.chars).length, off = (ids.length - 1) * V;
+        const nx = muestra(lg.subarray(off, off + V), opc.temp || Number(process.env.SLM_TEMP) || 0.8, opc.k || Number(process.env.SLM_K) || 12, i < (tm ? 3 : 8) ? new Set([...prohibidos, fin]) : prohibidos);
         if (nx === fin) break;
-        ids.push(nx); salida.push(vocab.chars[nx]);
+        ids.push(nx); salida.push((vocab.tokens || vocab.chars)[nx]);
         if (Date.now() - t0 > limite) return rechazo(`tardo mas de ${limite} ms (${i + 1} letras)`, salida.join(''));
       }
     } catch (e) { fallos++; diag.log('warn', 'slm', 'generacion: ' + String(e.message).slice(0, 100)); return rechazo('error ' + String(e.message).slice(0, 80)); }
