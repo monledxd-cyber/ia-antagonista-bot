@@ -106,7 +106,7 @@ function crearSLM(dir) {
   function validar(f, evitar, sinVocab) {
     f = f.replace(/\s+/g, ' ').trim();
     if (f.length < 12) return { motivo: 'muy corta' };
-    if (f.length > 140) return { motivo: 'muy larga' };
+    if (f.length > (sinVocab ? 170 : 140)) return { motivo: 'muy larga' };
     if (/https?:|\[|\]/.test(f)) return { motivo: 'trae enlaces o corchetes' };
     const w = f.toLowerCase().split(' ');
     if (new Set(w).size < Math.min(4, w.length)) return { motivo: 'palabras repetidas' };

@@ -3,7 +3,7 @@ import json, os, sys, random, re, glob
 R = os.path.dirname(os.path.abspath(__file__))
 RAIZ = os.path.dirname(R)
 MIN_R = float(os.environ.get("SLM_MIN_R", "0.0"))
-MAXLEN = 140
+MAXLEN = 170
 ESTILO_ARCH = [("sarcasmo", "burla_fallo"), ("gana", "burla_fallo"), ("muerte", "burla_fallo"), ("respawn", "burla_fallo"), ("provoc", "pregunta"), ("hablan", "pregunta"), ("amenaza", "frio"), ("rencor", "frio"), ("sadismo", "susurro"), ("odio", "escala"), ("atacan", "escala"), ("desprecio", "escala")]
 
 
