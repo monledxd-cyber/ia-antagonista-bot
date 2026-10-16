@@ -980,6 +980,10 @@ async function crearBot() {
     if (!bot.autoCrystal) bot.loadPlugin(autoCrystal);
     const movimientos = new Movements(bot);
     movimientos.allowSprinting = true;
+    movimientos.allowParkour = process.env.IA_PARKOUR === '1';
+    movimientos.allow1by1towers = false;
+    bot.pathfinder.thinkTimeout = Number(process.env.IA_PATH_THINK) || 1500;
+    bot.pathfinder.tickTimeout = 30;
     for (const n of ['stone_pressure_plate', 'oak_pressure_plate', 'light_weighted_pressure_plate', 'heavy_weighted_pressure_plate', 'tripwire']) {
       const def = bot.registry.blocksByName[n];
       if (def) movimientos.blocksToAvoid.add(def.id); // no pisar sus propias minas
@@ -1555,8 +1559,8 @@ async function manejarRespuesta(bot, ctx, respuestaCruda) {
   if (mCmd) texto = texto.replace(mCmd[0], '').trim();
 
   texto = texto.replace(/\[[A-Z_]+:[^\]]*$/, '').replace(/\[[A-Z_]+:[^\]]*\]/g, '').trim();
-  { const m = texto.match(/^[\s\S]*?[.!?…]+(?=\s|$)/); if (m && m[0].length >= 12) texto = m[0].trim(); }
-  if (texto.length > 150) texto = texto.slice(0, 150).replace(/\s+\S*$/, '') + '…';
+  if (texto.length > 170) { const m = texto.match(/^[\s\S]*?[.!?…]+(?=\s|$)/); if (m && m[0].length >= 12) texto = m[0].trim(); }
+  if (texto.length > 170) texto = texto.slice(0, 170).replace(/\s+\S*$/, '') + '…';
   if (texto.length > 240) {
     const corte = texto.slice(0, 240);
     const i = Math.max(corte.lastIndexOf('. '), corte.lastIndexOf('! '), corte.lastIndexOf('? '));
