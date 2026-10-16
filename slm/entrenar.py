@@ -77,7 +77,7 @@ def main():
     dev = "cuda" if torch.cuda.is_available() else "cpu"
     m = SLM(V).to(dev)
     print("parametros", sum(p.numel() for p in m.parameters()), "vocab", V, "dev", dev)
-    opt = torch.optim.AdamW(m.parameters(), lr=LR, weight_decay=0.01)
+    opt = torch.optim.AdamW(m.parameters(), lr=LR, weight_decay=0.1)
     global EPOCAS, BATCH
     if BATCH <= 0:
         BATCH = 16 if len(tr) < 4000 else 64
@@ -106,6 +106,8 @@ def main():
         return ((l * mk).sum(1) / mk.sum(1).clamp(min=1) * ws).mean()
 
     t0 = time.time()
+    mejor, mejor_sd, mala = 9e9, None, 0
+    PACI = int(os.environ.get('SLM_PACIENCIA', '5'))
     try:
         for ep in range(EPOCAS):
             m.train()
@@ -123,9 +125,20 @@ def main():
             with torch.no_grad():
                 v = sum(perdida(val[i : i + BATCH]).item() for i in range(0, len(val), BATCH)) / max(1, math.ceil(len(val) / BATCH))
             print(f"epoca {ep + 1}/{EPOCAS} {time.time() - t0:.0f}s train {tot / max(1, math.ceil(len(tr) / BATCH)):.3f} val {v:.3f}")
+            if v < mejor - 0.005:
+                mejor, mala = v, 0
+                mejor_sd = {k: x.detach().cpu().clone() for k, x in m.state_dict().items()}
+            else:
+                mala += 1
+                if mala >= PACI:
+                    print('val dejo de bajar: paro y uso la mejor epoca')
+                    break
     except KeyboardInterrupt:
         print('interrumpido: exporto lo entrenado hasta ahora')
 
+    if mejor_sd is not None:
+        m.load_state_dict(mejor_sd)
+        print('mejor val', round(mejor, 3))
     m.eval().cpu()
     dummy = torch.zeros(1, 24, dtype=torch.long)
     torch.onnx.export(m, dummy, os.path.join(R, "modelo.onnx"), input_names=["ids"], output_names=["logits"], dynamic_axes={"ids": {1: "t"}, "logits": {1: "t"}}, opset_version=17, dynamo=False)
