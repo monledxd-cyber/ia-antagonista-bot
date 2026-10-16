@@ -44,7 +44,7 @@ function crearSLM(dir) {
   }
   const listo = () => !!sesion || corpus().length > 0;
   async function cargar() {
-    if (sesion || fallos >= 3 || process.env.IA_SLM === '0') return;
+    if (sesion || fallos >= 3 || process.env.IA_SLM === '0' || process.env.SLM_MODELO === '0') return;
     if (!fs.existsSync(rm) || !fs.existsSync(rv)) return;
     if (cargando) return cargando;
     cargando = (async () => {
