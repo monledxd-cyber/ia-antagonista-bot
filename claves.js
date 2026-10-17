@@ -10,7 +10,7 @@ function crearClaves(bot) {
   let mapa = new Map(), sucio = false;
   try { for (const c of JSON.parse(fs.readFileSync(ARCH, 'utf8'))) mapa.set(c.x + ',' + c.y + ',' + c.z, c); } catch (e) { mapa = new Map(); }
   const escanear = () => {
-    if (!bot.entity || (bot.pvp && bot.pvp.target) || bot._lag > 250) return;
+    if (!bot.entity || (bot.pvp && bot.pvp.target) || bot._atraso > 250) return;
     let pos;
     try { pos = bot.findBlocks({ matching: ids(), maxDistance: 24, count: 60 }); } catch (e) { return; }
     for (const p of pos) {

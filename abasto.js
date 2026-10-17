@@ -28,8 +28,9 @@ function crearAbasto(bot, o) {
   }
   const idsRe = new Map(), cacheB = new Map();
   const bloqueN = (re, d = 24) => {
+    d = Math.min(d, 32);
     const k = re.source + '|' + d, c = cacheB.get(k), ahora = Date.now();
-    if (c && ahora - c.t < 2500 && (!c.r || bot.blockAt(c.r.position) === c.r)) return c.r;
+    if (c && (ahora - c.t < (c.r ? 4000 : 12000) || bot._atraso > 250) && (!c.r || bot.blockAt(c.r.position) === c.r)) return c.r;
     let ids = idsRe.get(re.source);
     if (!ids) { ids = Object.values(bot.registry.blocksByName).filter((b) => re.test(b.name)).map((b) => b.id); idsRe.set(re.source, ids); }
     const r = ids.length ? bot.findBlock({ maxDistance: d, matching: ids }) : null;
