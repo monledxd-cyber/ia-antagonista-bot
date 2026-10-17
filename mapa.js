@@ -60,10 +60,10 @@ function crearMapa(bot, ruta) {
 
   let rot = 0;
   const esc = setInterval(() => {
-    if (!bot.entity || (bot.pvp && bot.pvp.target)) return;
+    if (!bot.entity || (bot.pvp && bot.pvp.target) || bot._lag > 250) return;
     const ks = Object.keys(FAM);
-    try { for (let i = 0; i < 2; i++) { const t = ks[rot++ % ks.length]; for (const p of bot.findBlocks({ matching: idsDe(t), maxDistance: 24, count: 12 })) anotar(t, p); } } catch (e) { /* ignorar */ }
-  }, 6_000);
+    try { const t = ks[rot++ % ks.length]; for (const p of bot.findBlocks({ matching: idsDe(t), maxDistance: 20, count: 8 })) anotar(t, p); } catch (e) { /* ignorar */ }
+  }, 3_000);
 
   let ultLava = 0, vyPrev = 0, hpPrev = null, ultPos = null;
   const med = setInterval(() => {

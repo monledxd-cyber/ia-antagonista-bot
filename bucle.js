@@ -4,7 +4,7 @@ function crearBucle(bot) {
   let ult = Date.now(), max = 0, n = 0, suma = 0;
   const it = setInterval(() => {
     const ahora = Date.now(), lag = Math.max(0, ahora - ult - 200);
-    ult = ahora; n++; suma += lag; if (lag > max) max = lag;
+    ult = ahora; bot._lag = lag; n++; suma += lag; if (lag > max) max = lag;
     if (lag > 500) { const p = bot._abasto && bot._abasto.paso ? bot._abasto.paso() : ''; diag.log('warn', 'bucle', `bloqueado ${lag} ms (paso ${p || '-'})`); console.log(`[bucle] bloqueado ${lag} ms paso=${p || '-'}`); }
   }, 200);
   bot.on('path_update', (r) => {

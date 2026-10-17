@@ -26,7 +26,16 @@ function crearAbasto(bot, o) {
   function jugadorCerca(r) {
     return Object.values(bot.entities).some((e) => e.type === 'player' && e.username !== bot.username && !ignorado(bot, e) && e.position.distanceTo(bot.entity.position) < r);
   }
-  const bloqueN = (re, d = 24) => bot.findBlock({ maxDistance: d, matching: (b) => b && re.test(b.name) });
+  const idsRe = new Map(), cacheB = new Map();
+  const bloqueN = (re, d = 24) => {
+    const k = re.source + '|' + d, c = cacheB.get(k), ahora = Date.now();
+    if (c && ahora - c.t < 2500 && (!c.r || bot.blockAt(c.r.position) === c.r)) return c.r;
+    let ids = idsRe.get(re.source);
+    if (!ids) { ids = Object.values(bot.registry.blocksByName).filter((b) => re.test(b.name)).map((b) => b.id); idsRe.set(re.source, ids); }
+    const r = ids.length ? bot.findBlock({ maxDistance: d, matching: ids }) : null;
+    cacheB.set(k, { t: ahora, r });
+    return r;
+  };
 
   async function colocar(nombre) {
     const it = items().find((i) => i.name === nombre);
