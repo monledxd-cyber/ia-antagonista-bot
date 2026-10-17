@@ -112,7 +112,9 @@ function crearSLM(dir) {
     if (f.length < 12) return { motivo: 'muy corta' };
     if (f.length > (sinVocab ? 170 : 140)) return { motivo: 'muy larga' };
     if (/https?:|\[|\]/.test(f)) return { motivo: 'trae enlaces o corchetes' };
+    if (/\.{4,}/.test(f) || (f.match(/"/g) || []).length % 2) return { motivo: 'puntuacion rota' };
     const w = f.toLowerCase().split(' ');
+    if (w.length < 4) return { motivo: 'muy pocas palabras' };
     if (new Set(w).size < Math.min(4, w.length)) return { motivo: 'palabras repetidas' };
     const ap = w.slice(0, 3).join(' ').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9 ]/g, '');
     if (evitar.includes(ap)) return { motivo: 'apertura prohibida' };
