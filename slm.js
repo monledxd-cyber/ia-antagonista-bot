@@ -120,7 +120,7 @@ function crearSLM(dir) {
       if (!conocidas) conocidas = new Set(vocab.palabras);
       const ws = f.toLowerCase().match(/[^\W\d_]+/g) || [];
       const ok = ws.filter((x) => conocidas.has(x)).length;
-      if (!ws.length || ok / ws.length < 0.7) return { motivo: `texto sin sentido (${ok}/${ws.length} palabras conocidas)` };
+      if (!ws.length || ok / ws.length < (Number(process.env.SLM_CONOCIDAS) || 0.7)) return { motivo: `texto sin sentido (${ok}/${ws.length} palabras conocidas)` };
     }
     return { f };
   }
