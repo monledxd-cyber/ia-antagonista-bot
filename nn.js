@@ -2,7 +2,7 @@ const fs = require('fs');
 const diag = require('./diag');
 
 const ACC = ['atacar', 'retroceder', 'curar', 'bloquear', 'esquivar', 'otra'];
-const NI = 52, NP = 3, AUX = 0.5, NH = 64, NO = ACC.length, GAMMA = 0.85, LR = 0.01, VENT = 8;
+const NI = 55, NP = 3, AUX = 0.5, NH = 64, NO = ACC.length, GAMMA = 0.85, LR = 0.01, VENT = 8;
 const NE = Math.max(1, Number(process.env.IA_NN_N) || 3);
 const TICK_MS = Number(process.env.IA_NN_MS) || 400;
 
@@ -177,10 +177,11 @@ function crearNN(bot, ruta, rutaDatos) {
   };
   function cinem(t, yo, nd, ux, uz, cierre) {
     const P = bot._pred;
-    if (!P) return new Array(9).fill(0);
+    if (!P) return new Array(12).fill(0);
+    const R = P.resumen ? P.resumen() : { proy: null, pase: 99, expl: null };
     const f = P.futura(t, 8), d8 = Math.hypot(f.x - yo.x, f.z - yo.z), L = P.aterrizaje(t), v = P.vel(t);
     const tc = nd > 3 && cierre > 0.2 ? c((nd - 3) / cierre / 3, 0, 1) : 1;
-    return [c(d8 / 10, 0, 2), c((d8 - nd) / 4, -1, 1), c((f.y - yo.y) / 5, -1, 1), L ? 1 : 0, L ? c(L.n / 40, 0, 1) : 1, L ? c(Math.hypot(L.x - yo.x, L.z - yo.z) / 6, 0, 1) : 1, L ? c(L.alto / 10, 0, 1) : 0, tc, c((v.x * -uz + v.z * ux) * 20 / 6, -1, 1)];
+    return [c(d8 / 10, 0, 2), c((d8 - nd) / 4, -1, 1), c((f.y - yo.y) / 5, -1, 1), L ? 1 : 0, L ? c(L.n / 40, 0, 1) : 1, L ? c(Math.hypot(L.x - yo.x, L.z - yo.z) / 6, 0, 1) : 1, L ? c(L.alto / 10, 0, 1) : 0, tc, c((v.x * -uz + v.z * ux) * 20 / 6, -1, 1), R.proy === null ? 1 : c(R.proy / 25, 0, 1), c(R.pase / 3, 0, 1), R.expl === null ? 1 : c(R.expl / 12, 0, 1)];
   }
 
   function estado(t) {

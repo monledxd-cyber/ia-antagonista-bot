@@ -105,7 +105,7 @@ function crearEstratega(bot, o) {
 
     // 3) cristales: alejarse si un rival con cristales anda cerca y hay uno a < 5
     const cr = Object.values(bot.entities).find((e) => e.name === 'end_crystal' && e.position.distanceTo(yo()) < 5);
-    if (cr && js.some((e) => e.position.distanceTo(yo()) < 14 && /end_crystal|respawn_anchor/.test(mano(e))) && ahora - esquiva > 900) {
+    if (!bot._pred && cr && js.some((e) => e.position.distanceTo(yo()) < 14 && /end_crystal|respawn_anchor/.test(mano(e))) && ahora - esquiva > 900) {
       esquiva = ahora; diag.log('info', 'estratega', 'se aleja de cristal');
       huirDe(cr.position, 700);
     }

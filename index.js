@@ -613,7 +613,7 @@ function iniciarHuida(bot) {
       e.position.distanceTo(bot.entity.position) < 6 &&
       e.position.plus(e.velocity).distanceTo(bot.entity.position) < e.position.distanceTo(bot.entity.position)
     );
-    if (!flecha) return;
+    if (!flecha || bot._pred) return;
     ultimoStrafeTs = Date.now();
     try {
       const lado = Math.random() < 0.5 ? 'left' : 'right';
