@@ -43,6 +43,11 @@ function crearAutopsia(bot, ruta) {
     if (repetidas > 0 && bot._premio) bot._premio.evento('muerte_repetida', { v: -3 * Math.min(4, repetidas), k: c, motivo: c + ' x' + (repetidas + 1) });
     diag.estado.autopsia = `${c}${rec.rival ? ' por ' + rec.rival : ''} en ${rec.x},${rec.y},${rec.z} (${rec.dim}) repetidas ${repetidas}`;
     diag.log('warn', 'autopsia', diag.estado.autopsia);
+    const hp = buf.slice(-6).map((b) => b.hp === undefined ? '?' : Math.round(b.hp)).join('>');
+    const cerca = Object.values(bot.entities).filter((e) => e !== bot.entity && e.position && bot.entity && e.position.distanceTo(bot.entity.position) < 12 && (e.type === 'hostile' || e.type === 'player')).map((e) => e.username || e.name).slice(0, 4).join(',');
+    let paso = ''; try { paso = bot._abasto && bot._abasto.paso ? bot._abasto.paso() : ''; } catch (e) { /* ignorar */ }
+    let ac = ''; try { ac = bot._nn && bot._nn.sugerir ? bot._nn.sugerir() : ''; } catch (e) { /* ignorar */ }
+    console.log(`[muerte] causa=${c} rival=${rec.rival || '-'} arma=${rec.arma || '-'} vida=${hp} cerca=${cerca || '-'} paso=${paso || '-'} nn=${ac || '-'} pos=${rec.x},${rec.y},${rec.z} ${rec.noche ? 'noche' : 'dia'}`);
   });
 
   const guardar = () => { if (!sucio) return; try { fs.writeFileSync(ruta, JSON.stringify(lista)); sucio = false; } catch (e) { /* ignorar */ } };
