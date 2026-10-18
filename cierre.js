@@ -4,7 +4,7 @@ let actual = null, extraF = null, hecho = false, armado = false;
 
 function guardarTodo() {
   const bot = actual;
-  const lista = bot ? [['nn', () => bot._nn && bot._nn.guardar()], ['leng', () => bot._leng && bot._leng.guardar()], ['premio', () => bot._premio && bot._premio.guardar()], ['mapa', () => bot._mapa && bot._mapa.guardar()], ['claves', () => bot._claves && bot._claves.guardar && bot._claves.guardar()], ['autopsia', () => bot._autopsia && bot._autopsia.guardar()]] : [];
+  const lista = bot ? [['nn', () => bot._nn && bot._nn.guardar()], ['leng', () => bot._leng && bot._leng.guardar()], ['premio', () => bot._premio && bot._premio.guardar()], ['mapa', () => bot._mapa && bot._mapa.guardar()], ['claves', () => bot._claves && bot._claves.guardar && bot._claves.guardar()], ['autopsia', () => bot._autopsia && bot._autopsia.guardar()], ['nnab', () => bot._nnAb && bot._nnAb.guardar()]] : [];
   lista.push(['extra', extraF]);
   for (const [n, f] of lista) { try { if (f) f(); } catch (e) { diag.log('warn', 'cierre', n + ': ' + String(e && e.message).slice(0, 80)); } }
 }

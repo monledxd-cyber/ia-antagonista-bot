@@ -952,13 +952,14 @@ function crearAbasto(bot, o) {
     const env = {};
     for (const kv of (process.env.IA_PESOS || '').split(',')) { const [k, v] = kv.split('='); if (k && +v > 0) env[k.trim()] = +v; }
     const urg = { horno: hornoPend ? 4 : 0.1, esquejes: 0.3, replantar: 0.4, madera: cuenta(/_log$|_planks$/) < 6 ? 2.5 : 1, comida: (tiene(CRUDO) && hornoPosible()) ? 0.2 : cuenta(COMIDA) < 3 ? 3 : cuenta(COMIDA) < 6 ? 1.3 : 0.7, basura: items().length >= 32 ? 3 : 0.5, nether: nether.listo() ? (bot._lag && bot._lag.malo() ? 0.6 : 3) : 0.4, cobre: 0.6, oro: 0.8, redstone: 0.7, lapis: (tiene(/^enchanting_table$/) || bloqueN(/^enchanting_table$/, 48)) ? 2 : 0.4, diamante: cuenta(/^diamond$/) < 3 ? 2.5 : 1, hierro: cuenta(/^(raw_iron|iron_ingot)$/) < 6 ? 2 : 1, carbon: cuenta(/^(coal|charcoal)$/) < 3 ? 2 : 1, end: finEnd.quiere() ? (bot._lag && bot._lag.malo() ? 0.6 : 4) : 0.2, encantar: ((bot.experience && bot.experience.level) || 0) >= 5 ? 2 : 0.6, asalto: (bot._sadismo ? bot._sadismo() : 1) * (bot._lag && bot._lag.malo() ? 0.4 : 1), xp: ((bot.experience && bot.experience.level) || 0) < 5 ? 1.8 : 1 };
+    if (bot._nnAb) bot._nnAb.preparar(necesidades.map((x) => x[0]));
     const pesos = necesidades.map((x, i) => {
       const n = x[0], r = rank(n);
       const base = env[n] || Math.max(6, 60 - i * 0.9);
       const boost = r < 100 ? 60 - r * 1.5 : 0;
       const exito = 0.6 + 0.8 * (hab.tasa ? hab.tasa(n) : 0.5);
       const atasco = hab.atascado(n) ? 0.6 : 1;
-      return { x, n, w: (base * (urg[n] || 1) + boost) * exito * atasco * (det ? 1 : require('./pesos').peso(1, { paciencia: n === 'asalto' || n === 'encantar' || n === 'pociones' ? 0.5 : 0 })) };
+      return { x, n, w: (base * (urg[n] || 1) + boost) * exito * atasco * (bot._nnAb ? bot._nnAb.mult(n) : 1) * (det ? 1 : require('./pesos').peso(1, { paciencia: n === 'asalto' || n === 'encantar' || n === 'pociones' ? 0.5 : 0 })) };
     }).sort((p, q) => q.w - p.w);
     // jerarquia logica: un paso con prerequisito sin cumplir cede su peso al prerequisito (recursivo)
     const porNombre = new Map(pesos.map((p) => [p.n, p]));
@@ -1039,6 +1040,7 @@ function crearAbasto(bot, o) {
         let r, motivo = 'no pudo completarlo (falta algo o no hay objetivo cerca)';
         const antes = hab.snap(), t0 = Date.now();
         pasoActual = nombre;
+        const nnM = bot._nnAb ? bot._nnAb.inicio(nombre) : null;
         try { r = await paso(); } catch (e) { r = false; motivo = 'error: ' + e.message; diag.log('error', 'abasto', nombre + ': ' + e.message); }
         pasoActual = null;
         if (r === 'nada') continue;
@@ -1047,6 +1049,7 @@ function crearAbasto(bot, o) {
         const veredicto = hab.registrar(nombre, r, antes, Date.now() - t0);
         diag.estado.habilidades = hab.resumen();
         if (veredicto === 'dudoso') { diag.log('warn', 'abasto', nombre + ' sin cambio verificable'); if (hab.atascado(nombre)) { r = false; motivo = 'sin cambio verificable 3 veces seguidas'; } }
+        if (bot._nnAb) bot._nnAb.fin(nnM, !!r);
         if (!r) { if (bot._premio) bot._premio.evento('paso_fallo', { k: nombre }); marcarFallo(nombre, hab.espera(nombre)); const p = diag.estado.fallosPaso[nombre] || { n: 0 }; diag.estado.fallosPaso[nombre] = { n: p.n + 1, t: Date.now(), motivo }; diag.log('warn', 'abasto', nombre + ' fallo: ' + motivo); }
         else { ultimoOk = true; if (bot._premio) bot._premio.evento('paso_ok', { k: nombre }); delete diag.estado.fallosPaso[nombre]; diag.log('info', 'abasto', 'paso ' + nombre); console.log('[abasto] paso:', nombre); }
         break; // un paso por ciclo

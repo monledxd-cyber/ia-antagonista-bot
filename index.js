@@ -366,6 +366,7 @@ function iniciarHuida(bot) {
   if (process.env.IA_LAG !== '0') require('./lag').crearLag(bot);
   require('./bucle').crearBucle(bot);
   if (process.env.IA_PRED !== '0') require('./prediccion').crearPrediccion(bot);
+  require('./nn_abasto').crearNNAbasto(bot, require('path').join(__dirname, process.env.IA_NNAB_ARCH || 'nn_abasto_am.json'));
   require('./cierre').crearCierre(bot, () => { memoria.guardar(); diario.guardar(); statsAM.guardar(); bandits.guardar(); });
   if (process.env.IA_LENGUAJE !== '0') lengActual = require('./lenguaje').crearLenguaje(bot, require('path').join(__dirname, process.env.IA_LENGUAJE_ARCH || 'lenguaje_am.json'), require('path').join(__dirname, process.env.IA_CORPUS_ARCH || 'corpus_am.json'));
   if (process.env.IA_NN !== '0') require('./nn').crearNN(bot, require('path').join(__dirname, process.env.IA_NN_PESOS || 'nn_am.json'), require('path').join(__dirname, process.env.IA_NN_DATOS || 'datos_nn.json'));
