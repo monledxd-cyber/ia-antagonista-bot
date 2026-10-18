@@ -95,7 +95,7 @@ function crearEstratega(bot, o) {
     if (cambiar && cont) cambiar = null;
 
     // 2) caida encima (smash): esquivar en horizontal justo antes del impacto
-    for (const e of js) {
+    if (!bot._pred) for (const e of js) {
       const p = prev.get(e.id), dx = e.position.x - yo().x, dz = e.position.z - yo().z, h = Math.hypot(dx, dz), dy = e.position.y - yo().y;
       if (p && p.vy < -4 && dy > 0.5 && dy < 9 && h < 3.5 && ahora - esquiva > 700) {
         esquiva = ahora; diag.log('info', 'estratega', 'esquiva caida de ' + e.username);

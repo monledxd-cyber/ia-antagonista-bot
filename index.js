@@ -365,6 +365,7 @@ function iniciarHuida(bot) {
   { const t = setInterval(() => bandits.guardar(), 60_000); if (t.unref) t.unref(); bot.once('end', () => { clearInterval(t); bandits.guardar(); }); }
   if (process.env.IA_LAG !== '0') require('./lag').crearLag(bot);
   require('./bucle').crearBucle(bot);
+  if (process.env.IA_PRED !== '0') require('./prediccion').crearPrediccion(bot);
   require('./cierre').crearCierre(bot, () => { memoria.guardar(); diario.guardar(); statsAM.guardar(); bandits.guardar(); });
   if (process.env.IA_LENGUAJE !== '0') lengActual = require('./lenguaje').crearLenguaje(bot, require('path').join(__dirname, process.env.IA_LENGUAJE_ARCH || 'lenguaje_am.json'), require('path').join(__dirname, process.env.IA_CORPUS_ARCH || 'corpus_am.json'));
   if (process.env.IA_NN !== '0') require('./nn').crearNN(bot, require('path').join(__dirname, process.env.IA_NN_PESOS || 'nn_am.json'), require('path').join(__dirname, process.env.IA_NN_DATOS || 'datos_nn.json'));
@@ -590,7 +591,7 @@ function iniciarHuida(bot) {
       Math.hypot(e.position.x - bot.entity.position.x, e.position.z - bot.entity.position.z) < 4 &&
       e.position.distanceTo(bot.entity.position) < 9
     );
-    if (maceAerea) {
+    if (maceAerea && !bot._pred) {
       ultimoStrafeTs = Date.now();
       try {
         const dx = bot.entity.position.x - maceAerea.position.x;
