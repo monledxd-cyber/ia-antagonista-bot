@@ -1,5 +1,6 @@
 const { Vec3 } = require('vec3');
 const diag = require('./diag');
+const F = require('./fisica');
 const { ignorado } = require('./modo');
 
 const G = 0.08, DRAG_Y = 0.98, DRAG_H = 0.91, SPRINT = 0.28;
@@ -37,7 +38,7 @@ function crearPrediccion(bot) {
     const aire = enAire(e);
     for (let n = 0; n < ticks; n++) {
       if (aire) { vy = (vy - G) * DRAG_Y; y += vy; if (vy < 0) { const s = suelo(x, y + 1, z); if (y <= s) { y = s; vy = 0; } } }
-      x += vx; z += vz; vx *= DRAG_H; vz *= DRAG_H;
+      x += vx; z += vz; const dr = aire ? DRAG_H : 0.98; vx *= dr; vz *= dr;
     }
     return { x, y, z };
   }
@@ -78,12 +79,13 @@ function crearPrediccion(bot) {
     return mejor;
   }
 
-  function ejecutar(d, ms) {
+  function ejecutar(d, ms, saltar) {
     const yaw = Math.atan2(-d[0], -d[1]);
     const t = bot.pvp && bot.pvp.target;
     try { if (bot.pvp && bot.pvp.target) bot.pvp.stop(); if (bot.pathfinder) bot.pathfinder.setGoal(null); } catch (err) { /* ignorar */ }
     bot.look(yaw, 0, true).catch(() => {});
-    for (const k of ['forward', 'sprint', 'jump']) bot.setControlState(k, true);
+    const ks = saltar ? ['forward', 'sprint', 'jump'] : ['forward', 'sprint'];
+    for (const k of ks) bot.setControlState(k, true);
     setTimeout(() => { for (const k of ['forward', 'sprint', 'jump']) bot.setControlState(k, false); }, ms);
     if (t && t.type === 'player') setTimeout(() => { try { if (bot.entities[t.id] && bot.pvp && !bot.pvp.target) bot.pvp.attack(t); } catch (err) { /* ignorar */ } }, ms + 150);
   }
@@ -114,12 +116,12 @@ function crearPrediccion(bot) {
       if (!L || L.alto < 1.5 || Math.abs(L.y - me.y) > 2.2) continue;
       const h = Math.hypot(L.x - me.x, L.z - me.z);
       if (h > 4.6) continue;
-      const need = Math.max(0, margen - h), tNeed = need / SPRINT + 3;
+      const need = Math.max(0, margen - h), d = elegir(L, e, v);
+      const fis = d ? F.ticksPara(F.estadoDe(bot), d, need) : { n: need / SPRINT, saltar: false }, tNeed = fis.n + 3;
       if (L.n > tNeed + 5) continue;
-      const d = elegir(L, e, v);
       esq = ahora;
       ult = { hp: bot.health, eval: ahora + L.n * 50 + 500 };
-      if (d) ejecutar(d, Math.min(900, Math.max(350, (need / SPRINT + 4) * 50)));
+      if (d) ejecutar(d, Math.min(900, Math.max(300, (fis.n + 2) * 50)), fis.saltar);
       escudo((L.n - 2) * 50, 600);
       if (ahora - (revisar.log || 0) > 1000) { revisar.log = ahora; console.log(`[pred] ${e.username} cae en ${L.n} ticks a ${h.toFixed(1)} bloques (alto ${L.alto.toFixed(1)}); ${d ? 'esquiva' : 'sin salida libre'}`); }
       return;
