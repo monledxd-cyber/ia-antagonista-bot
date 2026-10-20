@@ -180,6 +180,15 @@ function crearPrediccion(bot) {
     if (t && t.type === 'player') setTimeout(() => { try { if (bot.entities[t.id] && bot.pvp && !bot.pvp.target) bot.pvp.attack(t); } catch (err) { /* ignorar */ } }, ms + 150);
   }
 
+  function huir(pos, dd) {
+    const me = bot.entity.position, d0 = Math.hypot(me.x - pos.x, me.z - pos.z);
+    const dir = elegir({ x: pos.x, z: pos.z }, null, { x: 0, z: 0 });
+    if (!dir) return false;
+    const fis = F.ticksPara(F.estadoDe(bot), dir, Math.max(0.5, dd - d0));
+    ejecutar(dir, Math.min(1200, Math.max(300, (fis.n + 2) * 50)), fis.saltar);
+    return true;
+  }
+
   function escudo(ms, dur) {
     const of = bot.inventory && bot.inventory.slots && bot.inventory.slots[45];
     if (!of || of.name !== 'shield') return;
@@ -224,7 +233,7 @@ function crearPrediccion(bot) {
   const onTick = () => { reg(); if (++c % 2 === 0) { try { revisar(); } catch (err) { diag.log('warn', 'prediccion', String(err && err.message).slice(0, 80)); } } };
   bot.on('physicsTick', onTick);
   bot.once('end', () => bot.removeListener('physicsTick', onTick));
-  const api = { vel, futura, aterrizaje, impacto, resumen: () => sum, margen: () => margen };
+  const api = { vel, futura, aterrizaje, impacto, huir, resumen: () => sum, margen: () => margen };
   bot._pred = api;
   return api;
 }
