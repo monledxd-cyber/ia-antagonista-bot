@@ -367,6 +367,7 @@ function iniciarHuida(bot) {
   if (process.env.IA_LAG !== '0') require('./lag').crearLag(bot);
   require('./bucle').crearBucle(bot);
   if (process.env.IA_PRED !== '0') require('./prediccion').crearPrediccion(bot);
+  if (process.env.IA_PERC !== '0') require('./percepcion').crearPercepcion(bot);
   require('./nn_abasto').crearNNAbasto(bot, require('path').join(__dirname, process.env.IA_NNAB_ARCH || 'nn_abasto_am.json'));
   require('./metas').crearMetas(bot, require('path').join(__dirname, process.env.IA_METAS_ARCH || 'metas_am.json'));
   require('./cierre').crearCierre(bot, () => { memoria.guardar(); diario.guardar(); statsAM.guardar(); bandits.guardar(); });
@@ -527,6 +528,7 @@ function iniciarHuida(bot) {
       objetivo = candidatos.sort((a, b) => puntaje(a) - puntaje(b))[0];
     }
 
+    if (!objetivo && bot._perc) { const at = bot._perc.atacante(8000); if (at && at.position.distanceTo(bot.entity.position) < 32 && !ignorado(bot, at)) objetivo = at; }
     if (bot._tactica) { if (bot._tactica.retirada()) return; const f = bot._tactica.foco(); if (f && bot.entities[f.id]) objetivo = f; }
     // Retirada calculada: con vida baja y un enemigo real cerca, se retira a
     // vez de seguir peleando -- control frio de la situacion, no panico.
