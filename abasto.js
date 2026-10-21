@@ -959,7 +959,7 @@ function crearAbasto(bot, o) {
       const boost = r < 100 ? 60 - r * 1.5 : 0;
       const exito = 0.6 + 0.8 * (hab.tasa ? hab.tasa(n) : 0.5);
       const atasco = hab.atascado(n) ? 0.6 : 1;
-      return { x, n, w: (base * (urg[n] || 1) + boost) * exito * atasco * (bot._nnAb ? bot._nnAb.mult(n) : 1) * (det ? 1 : require('./pesos').peso(1, { paciencia: n === 'asalto' || n === 'encantar' || n === 'pociones' ? 0.5 : 0 })) };
+      return { x, n, w: (base * (urg[n] || 1) + boost) * exito * atasco * (bot._nnAb ? bot._nnAb.mult(n) : 1) * (bot._metas ? bot._metas.mult(n) : 1) * (det ? 1 : require('./pesos').peso(1, { paciencia: n === 'asalto' || n === 'encantar' || n === 'pociones' ? 0.5 : 0 })) };
     }).sort((p, q) => q.w - p.w);
     // jerarquia logica: un paso con prerequisito sin cumplir cede su peso al prerequisito (recursivo)
     const porNombre = new Map(pesos.map((p) => [p.n, p]));

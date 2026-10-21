@@ -26,3 +26,4 @@ slm/vocab.json
 slm/__pycache__/
 slm/preentrenar/
 nn_abasto_am.json
+metas_am.json
