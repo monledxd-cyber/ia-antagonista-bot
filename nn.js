@@ -1,8 +1,9 @@
 const fs = require('fs');
+const REL = require('./relevancia');
 const diag = require('./diag');
 
 const ACC = ['atacar', 'retroceder', 'curar', 'bloquear', 'esquivar', 'otra'];
-const NI = 62, NP = 3, AUX = 0.5, NH = 64, NO = ACC.length, GAMMA = 0.85, LR = 0.01, VENT = 8;
+const NI = 62 + REL.NC, NP = 3, AUX = 0.5, NH = 64, NO = ACC.length, GAMMA = 0.85, LR = 0.01, VENT = 8;
 const NE = Math.max(1, Number(process.env.IA_NN_N) || 3);
 const TICK_MS = Number(process.env.IA_NN_MS) || 400;
 
@@ -198,7 +199,7 @@ function crearNN(bot, ruta, rutaDatos) {
     const cnt = (re) => bot.inventory.items().filter((i) => re.test(i.name)).reduce((a, i) => a + i.count, 0);
     const cau = bot._cautela ? bot._cautela(t.username) : 0;
     const noche = bot.time && bot.time.timeOfDay >= 13000 ? 1 : 0;
-    return [
+    const sv = [
       c(bot.health / 20, 0, 1), c(bot.food / 20, 0, 1), hr === null ? 0.5 : c(hr / 20, 0, 1), hr === null ? 1 : 0,
       c(d / 10, 0, 2), c((t.position.y - yo.y) / 5, -1, 1), c(Math.hypot(v.x, v.z) * 20 / 6, 0, 1), c(cierre / 6, -1, 1),
       ...oh, escudoR, /bow|crossbow|trident/.test(arma) ? 1 : 0,
@@ -213,6 +214,7 @@ function crearNN(bot, ruta, rutaDatos) {
       ...(bot._perc ? bot._perc.vector(t) : [0, 1, 0, 0]),
       ...(bot._afecto ? bot._afecto.vector(t) : [0, 0, 0]),
     ];
+    return REL.aplicar(bot, sv, t);
   }
 
   function accion(t) {
