@@ -997,6 +997,7 @@ async function crearBot() {
       `dale OP al usuario tecnico "${BOT_USERNAME}" desde la consola de Aternos: /op ${BOT_USERNAME}`);
     if (!bot.pathfinder) bot.loadPlugin(pathfinder);
     if (!bot.pvp) bot.loadPlugin(pvpPlugin);
+    require('./golpe').crearGolpe(bot);
     protegerAutoAtaque(bot);
     if (!bot.autoCrystal) bot.loadPlugin(autoCrystal);
     const movimientos = new Movements(bot);
