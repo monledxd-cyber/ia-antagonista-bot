@@ -1,7 +1,7 @@
 const fs = require('fs');
 const diag = require('./diag');
 
-const NF = 38, NS = 64, NHA = 40, NOA = 5;
+const NF = 40, NS = 64, NHA = 40, NOA = 6;
 const TIER = { leather: 0.5, wooden: 1, chainmail: 1.5, stone: 2, golden: 2, turtle: 2, iron: 3, diamond: 4, netherite: 5 };
 const cl = (v, a, b) => Math.max(a, Math.min(b, v));
 
@@ -11,10 +11,18 @@ function crearNNAbasto(bot, ruta) {
   const rnd = (n, s) => Array.from({ length: n }, () => (Math.random() - 0.5) * 2 * s);
   let d = { pasos: {}, cnt: {}, buf: [], n: 0, W: null };
   try { d = Object.assign(d, JSON.parse(fs.readFileSync(ruta, 'utf8'))); } catch (e) { /* nuevo */ }
-  let W = d.W && d.W.w1 && d.W.w1.length === NF * NHA && d.W.ws && d.W.ws.length === NS * NHA ? d.W : null;
-  if (!W) W = { w1: rnd(NF * NHA, 0.3), ws: rnd(NS * NHA, 0.3), b1: new Array(NHA).fill(0), w2: rnd(NHA * NOA, 0.2), b2: [0, 0, 0, 0.4, -2] };
+  let W = d.W && d.W.w1 && d.W.ws && d.W.ws.length === NS * NHA && d.W.w2 && d.W.b2 ? d.W : null;
+  if (W && (W.w1.length !== NF * NHA || W.w2.length !== NHA * NOA)) {
+    const nf0 = Math.round(W.w1.length / NHA), no0 = W.b2.length, w1 = rnd(NF * NHA, 0.1), w2 = rnd(NHA * NOA, 0.1), b2 = [0, 0, 0, 0.4, -2, -2];
+    for (let i = 0; i < Math.min(nf0, NF); i++) for (let j = 0; j < NHA; j++) w1[i * NHA + j] = W.w1[i * NHA + j];
+    for (let j = 0; j < NHA; j++) for (let k = 0; k < Math.min(no0, NOA); k++) w2[j * NOA + k] = W.w2[j * no0 + k];
+    for (let k = 0; k < Math.min(no0, NOA); k++) b2[k] = W.b2[k];
+    W = { w1, ws: W.ws, b1: W.b1, w2, b2 };
+  }
+  if (!W) W = { w1: rnd(NF * NHA, 0.3), ws: rnd(NS * NHA, 0.3), b1: new Array(NHA).fill(0), w2: rnd(NHA * NOA, 0.2), b2: [0, 0, 0, 0.4, -2, -2] };
   d.W = W;
-  let sucio = false, pend = [], cache = null, mults = {}, info = {};
+  d.buf = (d.buf || []).filter((b) => b && Array.isArray(b.x)).map((b) => { while (b.x.length < NF) b.x.push(0); return b; });
+  let sucio = false, pend = [], cache = null, mults = {}, info = {}, actual = null;
 
   const sig = (v) => 1 / (1 + Math.exp(-v));
   function fwd(x, si) {
@@ -26,11 +34,12 @@ function crearNNAbasto(bot, ruta) {
     }
     const z = new Array(NOA);
     for (let k = 0; k < NOA; k++) { let s = W.b2[k]; for (let j = 0; j < NHA; j++) s += h[j] * W.w2[j * NOA + k]; z[k] = s; }
-    return { h, o: [Math.tanh(z[0]), Math.tanh(z[1]), sig(z[2]), sig(z[3]), sig(z[4])] };
+    return { h, o: [Math.tanh(z[0]), Math.tanh(z[1]), sig(z[2]), sig(z[3]), sig(z[4]), sig(z[5])] };
   }
   function entrenar(x, si, y, lr) {
     const { h, o } = fwd(x, si);
-    const e = [(o[0] - y[0]) * (1 - o[0] * o[0]), (o[1] - y[1]) * (1 - o[1] * o[1]), o[2] - y[2], o[3] - y[3], o[4] - y[4]];
+    const y5 = y[5] === undefined ? 0 : y[5];
+    const e = [(o[0] - y[0]) * (1 - o[0] * o[0]), (o[1] - y[1]) * (1 - o[1] * o[1]), o[2] - y[2], o[3] - y[3], o[4] - y[4], o[5] - y5];
     const dh = new Array(NHA).fill(0);
     for (let k = 0; k < NOA; k++) {
       const g = cl(e[k], -1, 1);
@@ -69,6 +78,7 @@ function crearNNAbasto(bot, ruta) {
       sat(food, 5), tier(/_pickaxe$/), tier(/_sword$/), tier(/_axe$/), ...arm,
       (of && of.name === 'shield') || cnt(/^shield$/) ? 1 : 0, cnt(/^(bow|crossbow)$/) ? 1 : 0, sat(cnt(/^arrow$/), 16), cnt(/^bucket$/) ? 1 : 0, cnt(/^water_bucket$/) ? 1 : 0, cnt(/_bed$/) ? 1 : 0, cnt(/^totem_of_undying$/) ? 1 : 0, cnt(/^(golden_apple|enchanted_golden_apple)$/) ? 1 : 0, sat(cnt(/^ender_pearl$/), 4), sat(cnt(/^tnt$/), 4),
       cl(it.length / 36, 0, 1), sat(hos, 2), sat(jug, 1),
+      cl((bot._atascos ? bot._atascos.reciente(600_000) : 0) / 3, 0, 1), cl((bot._mapa ? bot._mapa.peligro(yo) : 0) / 3, 0, 1),
     ];
   }
   const idx = (n) => { if (d.pasos[n] !== undefined) return d.pasos[n]; const k = Object.keys(d.pasos).length; if (k >= NS) return -1; d.pasos[n] = k; sucio = true; return k; };
@@ -83,7 +93,7 @@ function crearNNAbasto(bot, ruta) {
       const si = idx(n);
       if (si < 0) continue;
       const { o } = fwd(x, si), D = Math.max(10, Math.exp(o[2] * Math.log(601)) - 1);
-      const u = ((0.6 * o[0] * 5 + 0.4 * o[1] * 10) * (0.5 + 0.5 * o[3]) - 2 * o[4]) / D;
+      const u = ((0.6 * o[0] * 5 + 0.4 * o[1] * 10) * (0.5 + 0.5 * o[3]) - 2 * o[4] - 1.5 * o[5]) / D;
       ps.push({ n, u, o, D, c: Math.min(1, d.n / 80) * Math.min(1, (d.cnt[n] || 0) / 4) });
       if (d.cnt[n]) us.push(u);
     }
@@ -104,17 +114,20 @@ function crearNNAbasto(bot, ruta) {
     let x; try { x = estado(); } catch (e) { return null; }
     const si = idx(nombre);
     if (si < 0) return null;
-    return { nombre, x, si, t0: Date.now(), n0: bot._premio ? bot._premio.neto() : 0 };
+    const m = { nombre, x, si, t0: Date.now(), n0: bot._premio ? bot._premio.neto() : 0, atasco: 0 };
+    actual = m;
+    return m;
   }
   function fin(m, ok) {
     if (!m) return;
+    if (actual === m) actual = null;
     m.dur = (Date.now() - m.t0) / 1000; m.ok = ok ? 1 : 0; m.nEnd = bot._premio ? bot._premio.neto() : 0; m.muerte = 0;
     pend.push(m);
   }
   bot.on('death', () => { for (const m of pend) if (Date.now() - m.t0 < 90_000) m.muerte = 1; });
 
   function cerrar(m) {
-    const y = [cl((m.nEnd - m.n0) / 5, -1, 1), cl((m.nFin - m.n0) / 10, -1, 1), cl(Math.log1p(m.dur) / Math.log(601), 0, 1), m.ok, m.muerte];
+    const y = [cl((m.nEnd - m.n0) / 5, -1, 1), cl((m.nFin - m.n0) / 10, -1, 1), cl(Math.log1p(m.dur) / Math.log(601), 0, 1), m.ok, m.muerte, m.atasco ? 1 : 0];
     entrenar(m.x, m.si, y, 0.03);
     d.buf.push({ x: m.x.map((v) => Math.round(v * 1000) / 1000), si: m.si, y }); if (d.buf.length > 600) d.buf.shift();
     for (let i = 0; i < 6 && d.buf.length > 5; i++) { const b = d.buf[Math.floor(Math.random() * d.buf.length)]; entrenar(b.x, b.si, b.y, 0.02); }
@@ -133,7 +146,7 @@ function crearNNAbasto(bot, ruta) {
   const t3 = setInterval(guardar, 60_000);
   [t1, t2, t3].forEach((t) => t.unref && t.unref());
   bot.once('end', () => { clearInterval(t1); clearInterval(t2); clearInterval(t3); guardar(); });
-  const api = { preparar, mult, inicio, fin, guardar, estado: () => ({ n: d.n, cnt: d.cnt }), _cerrar: (m) => { m.nFin = m.nEnd; cerrar(m); }, _fwd: fwd };
+  const api = { preparar, mult, inicio, fin, guardar, atasco: () => { if (actual) actual.atasco = 1; }, estado: () => ({ n: d.n, cnt: d.cnt }), _cerrar: (m) => { m.nFin = m.nEnd; cerrar(m); }, _fwd: fwd };
   bot._nnAb = api;
   return api;
 }

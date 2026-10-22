@@ -3,7 +3,7 @@ const REL = require('./relevancia');
 const diag = require('./diag');
 
 const ACC = ['atacar', 'retroceder', 'curar', 'bloquear', 'esquivar', 'otra'];
-const NI = 62 + REL.NC, NP = 3, AUX = 0.5, NH = 64, NO = ACC.length, GAMMA = 0.85, LR = 0.01, VENT = 8;
+const NI = 65 + REL.NC, NP = 5, AUX = 0.5, NH = 64, NO = ACC.length, GAMMA = 0.85, LR = 0.01, VENT = 8;
 const NE = Math.max(1, Number(process.env.IA_NN_N) || 3);
 const TICK_MS = Number(process.env.IA_NN_MS) || 400;
 
@@ -91,7 +91,7 @@ function rnn(w) {
     const w = ep.slice(ini, ini + VENT), n = w.length;
     if (n < 2 && !ep[ini + n - 1].fin) return 0;
     const xs = w.map((p) => p.s), { os, ps } = seq(xs, null), ot = tgt ? tgt.seq(xs, null).os : os, dOs = w.map(() => new Array(NO).fill(0));
-    const dPs = w.map((x, t) => (x.p ? ps[t].map((v, k) => AUX * clip((v - x.p[k]) * (1 - v * v))) : null));
+    const dPs = w.map((x, t) => (x.p ? ps[t].map((v, k) => (x.p[k] === undefined ? 0 : AUX * clip((v - x.p[k]) * (1 - v * v)))) : null));
     const aux = dPs.some((x) => x);
     let err = 0, cnt = 0;
     for (let t = 0; t < n; t++) {
@@ -123,7 +123,7 @@ function migrar(m) {
 
 function crearNN(bot, ruta, rutaDatos) {
   let red = null, eps = [], act = [], pend = [], sucio = false, hs = [], ultSug = null, inc = 0, extras = [];
-  let st = { na: 0, ra: 0, nd: 0, rd: 0, ent: 0, err: 0, pre: 0, sim: 0, simWin: 0, base: 0, pe: 0, pb: 0, pn: 0 };
+  let st = { pv: 0, na: 0, ra: 0, nd: 0, rd: 0, ent: 0, err: 0, pre: 0, sim: 0, simWin: 0, base: 0, pe: 0, pb: 0, pn: 0 };
   let ultRel = null, ultPend = null, ultPred = null;
   try { const d = JSON.parse(fs.readFileSync(ruta, 'utf8'));
     if (d && d.m && d.m.u && d.m.w1 && d.m.b1) { d.m = migrar(d.m); red = rnn(d.m); st = Object.assign(st, d.st || {}); if (Array.isArray(d.ms)) extras = d.ms.filter((x) => x && x.w1 && x.u && x.b1).map((x) => rnn(migrar(x))); } } catch (e) { /* nueva */ }
@@ -131,6 +131,7 @@ function crearNN(bot, ruta, rutaDatos) {
   try { const d = JSON.parse(fs.readFileSync(rutaDatos, 'utf8')); if (Array.isArray(d)) eps = d.filter((e) => Array.isArray(e) && e.length && e[0].s && e[0].s.length <= NI); for (const e of eps) for (const p of e) while (p.s.length < NI) p.s.push(0); } catch (e) { /* vacio */ }
   const MODO = process.env.IA_NN || 'auto';
   let sinc = 0, ultLibre = Date.now();
+  if (st.pv !== 2) { st.pe = 0; st.pb = 0; st.pn = 0; st.pv = 2; }
   const clon = (r, ruido) => { const m = JSON.parse(JSON.stringify(r.m)); if (ruido) for (const k of ['w1', 'u', 'w2', 'w3']) for (let i = 0; i < m[k].length; i++) m[k][i] += (Math.random() - 0.5) * ruido; return rnn(m); };
   let redes = [red], objetivos = [];
 
@@ -230,6 +231,7 @@ function crearNN(bot, ruta, rutaDatos) {
       ...cinem(t, yo, nd, dir.x / nd, dir.z / nd, cierre),
       ...(bot._perc ? bot._perc.vector(t) : [0, 1, 0, 0]),
       ...(bot._afecto ? bot._afecto.vector(t) : [0, 0, 0]),
+      ...(bot._tec ? bot._tec.vector(t) : [1, 1, 0]),
     ];
     return REL.aplicar(bot, sv, t);
   }
@@ -310,7 +312,7 @@ function crearNN(bot, ruta, rutaDatos) {
       let s; try { s = estado(t); } catch (e) { return; }
       const r1 = rel(t), rapido = !!(ultRel && ultRel.id === t.id && r1.t - ultRel.t < 250);
       if (!rapido && ultRel && ultRel.id === t.id && r1.t - ultRel.t < 1200) {
-        const tg = objetivoP(ultRel, r1);
+        const tg = objetivoP(ultRel, r1).concat(bot._tec ? bot._tec.etiquetas(ultRel.t, r1.t, t) : [-0.8, -0.8]);
         if (ultPend) ultPend.p = tg;
         if (ultPred) {
           const me = tg.reduce((a, v, k) => a + (v - ultPred[k]) * (v - ultPred[k]), 0) / NP, mb = tg.reduce((a, v) => a + v * v, 0) / NP, al = st.pn < 30 ? 1 / (st.pn + 1) : 0.03;
@@ -323,7 +325,7 @@ function crearNN(bot, ruta, rutaDatos) {
       hs = rs.map((x) => x.h);
       const q = new Array(NO).fill(0).map((_, k) => rs.reduce((a, x) => a + x.o[k], 0) / rs.length);
       inc = rs.length > 1 ? q.reduce((a, m, k) => a + Math.sqrt(rs.reduce((b, x) => b + (x.o[k] - m) * (x.o[k] - m), 0) / rs.length), 0) / NO : 0;
-      if (!rapido) ultPred = [0, 1, 2].map((k) => rs.reduce((a, x) => a + x.p[k], 0) / rs.length);
+      if (!rapido) ultPred = Array.from({ length: NP }, (_, k) => k).map((k) => rs.reduce((a, x) => a + x.p[k], 0) / rs.length);
       const sug = elegirAccion(q); ultSug = sug;
       if (bot._bandits) bot._bandits.nnExtra = sesgos(sug, q);
       pend.push({ s, a: accion(t), sug, hp: bot.health, rhp: vidaRival(t), t: ahora, n0: bot._premio ? bot._premio.neto() : 0 });
@@ -357,7 +359,7 @@ function crearNN(bot, ruta, rutaDatos) {
       if (bot._bandits) bot._bandits.nnExtra = {};
       guardar();
     },
-    precalentar, simular, sugerir: () => (ultSug === null ? null : ACC[ultSug]), predRival: () => (ultPred ? { cierre: -ultPred[0] * 3, lateral: ultPred[1] * 3, altura: ultPred[2] * 2 } : null), estado: () => st, activo, guardar, ACC, entrenar, _estadoDe: estado,
+    precalentar, simular, sugerir: () => (ultSug === null ? null : ACC[ultSug]), predAtaque: () => (ultPred && ultPred.length >= 5 ? { swing: c((ultPred[3] + 0.8) / 1.6, 0, 1), hurt: c((ultPred[4] + 0.8) / 1.6, 0, 1), fiable: st.pv === 2 && st.pn > 150 && st.pe < st.pb } : null), predRival: () => (ultPred ? { cierre: -ultPred[0] * 3, lateral: ultPred[1] * 3, altura: ultPred[2] * 2 } : null), estado: () => st, activo, guardar, ACC, entrenar, _estadoDe: estado,
   };
   bot._nn = api;
   return api;
