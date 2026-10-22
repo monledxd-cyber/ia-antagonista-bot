@@ -19,7 +19,7 @@ function crearPremio(bot, stats, memoria, ruta) {
   for (const kv of (process.env.IA_PREMIOS || '').split(',')) { const [k, v] = kv.split('='); if (k && !Number.isNaN(Number(v))) over[k.trim()] = Number(v); }
   const rec = [], uso = new Map();
 
-  function valorDe(regla, k, v) {
+  function valorDe(regla, k, v, mot) {
     const r = REGLAS[regla] || { v: 1 };
     let x = v !== undefined ? v : (over[regla] !== undefined ? over[regla] : r.v);
     x *= d.w[regla] || 1;
@@ -28,12 +28,13 @@ function crearPremio(bot, stats, memoria, ruta) {
       const l = (uso.get(clave) || []).filter((t) => ahora - t < 600_000);
       x /= 1 + 0.35 * l.length; l.push(ahora); uso.set(clave, l);
     }
-    if (COMBATE.has(regla) && stats) x *= 1 + 0.15 * Math.log10(1 + stats.v('sadismo'));
+    if (bot._afecto) x = bot._afecto.pesar(regla, x, { k, motivo: mot });
+    else if (COMBATE.has(regla) && stats) x *= 1 + 0.15 * Math.log10(1 + stats.v('sadismo'));
     return x;
   }
   function evento(regla, o) {
     o = o || {};
-    const x = valorDe(regla, o.k, o.v);
+    const x = valorDe(regla, o.k, o.v, o.motivo);
     if (!x) return 0;
     if (x > 0) stats.sumar('sf', x); else stats.sumar('hm', -x);
     neto += x;

@@ -381,6 +381,7 @@ function iniciarHuida(bot) {
   require('./peleas').crearPeleas(bot, memoria);
   bot._sumarVec = (n, c, x) => memoria.sumarVec(n, c, x);
   require('./stats').conectarStats(bot, statsAM, diag);
+  if (process.env.IA_AFECTO !== '0') require('./afecto').crearAfecto(bot, memoria, require('path').join(__dirname, process.env.IA_AFECTO_ARCH || 'afecto_am.json'));
   require('./premio').crearPremio(bot, statsAM, memoria, require('path').join(__dirname, process.env.IA_PREMIO || 'premio_am.json'));
   require('./pesos').iniciar(bot, diag);
   bot._tactica = (k) => { try { const t = bot.pvp && bot.pvp.target; if (t && t.type === 'player') memoria.tactica(t.username, k); } catch (e) { /* ignorar */ } };

@@ -2,7 +2,7 @@ const fs = require('fs');
 const diag = require('./diag');
 
 const ACC = ['atacar', 'retroceder', 'curar', 'bloquear', 'esquivar', 'otra'];
-const NI = 59, NP = 3, AUX = 0.5, NH = 64, NO = ACC.length, GAMMA = 0.85, LR = 0.01, VENT = 8;
+const NI = 62, NP = 3, AUX = 0.5, NH = 64, NO = ACC.length, GAMMA = 0.85, LR = 0.01, VENT = 8;
 const NE = Math.max(1, Number(process.env.IA_NN_N) || 3);
 const TICK_MS = Number(process.env.IA_NN_MS) || 400;
 
@@ -211,6 +211,7 @@ function crearNN(bot, ruta, rutaDatos) {
       ...extra(t),
       ...cinem(t, yo, nd, dir.x / nd, dir.z / nd, cierre),
       ...(bot._perc ? bot._perc.vector(t) : [0, 1, 0, 0]),
+      ...(bot._afecto ? bot._afecto.vector(t) : [0, 0, 0]),
     ];
   }
 
