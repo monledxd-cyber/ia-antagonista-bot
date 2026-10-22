@@ -12,10 +12,19 @@ function rnn(w) {
   const ok = w && w.w1 && w.w1.length === NI * NH && w.u && w.u.length === NH * NH;
   const m = ok ? w : { w1: r(NI * NH, 0.3), u: r(NH * NH, 0.12), b1: new Array(NH).fill(0), w2: r(NH * NO, 0.3), b2: new Array(NO).fill(0) };
   if (!m.w3 || m.w3.length !== NH * NP) { m.w3 = r(NH * NP, 0.1); m.b3 = new Array(NP).fill(0); }
+  if (!m.wg || m.wg.length !== NI * NI || !m.bg || m.bg.length !== NI) { m.wg = r(NI * NI, 0.02); m.bg = new Array(NI).fill(2); }
   const pad = (x) => (x.length < NI ? x.concat(new Array(NI - x.length).fill(0)) : x);
   const cero = () => new Array(NH).fill(0);
-  const step = (x, hp) => {
-    x = pad(x);
+  const puertas = (x) => {
+    const g = new Array(NI), xg = new Array(NI);
+    for (let i = 0; i < NI; i++) g[i] = m.bg[i];
+    for (let k = 0; k < NI; k++) { const xk = x[k]; if (!xk) continue; const f = k * NI; for (let i = 0; i < NI; i++) g[i] += xk * m.wg[f + i]; }
+    for (let i = 0; i < NI; i++) { g[i] = 1 / (1 + Math.exp(-g[i])); xg[i] = x[i] * g[i]; }
+    return { g, xg };
+  };
+  const step = (x0, hp) => {
+    x0 = pad(x0);
+    const { g, xg: x } = puertas(x0);
     const h = new Array(NH);
     for (let j = 0; j < NH; j++) {
       let s = m.b1[j];
@@ -27,17 +36,17 @@ function rnn(w) {
     for (let k = 0; k < NO; k++) { let s = m.b2[k]; for (let j = 0; j < NH; j++) s += h[j] * m.w2[j * NO + k]; o[k] = s; }
     const pr = new Array(NP);
     for (let k = 0; k < NP; k++) { let s = m.b3[k]; for (let j = 0; j < NH; j++) s += h[j] * m.w3[j * NP + k]; pr[k] = Math.tanh(s); }
-    return { h, o, p: pr };
+    return { h, o, p: pr, g, xg: x };
   };
   const seq = (xs, h0) => {
-    const hs = [h0 || cero()], os = [], ps = [];
-    for (const x of xs) { const r2 = step(x, hs[hs.length - 1]); hs.push(r2.h); os.push(r2.o); ps.push(r2.p); }
-    return { hs, os, ps };
+    const hs = [h0 || cero()], os = [], ps = [], gs = [], xgs = [];
+    for (const x of xs) { const r2 = step(x, hs[hs.length - 1]); hs.push(r2.h); os.push(r2.o); ps.push(r2.p); gs.push(r2.g); xgs.push(r2.xg); }
+    return { hs, os, ps, gs, xgs };
   };
   const clip = (v) => Math.max(-1, Math.min(1, v));
   const grad = (xs, dOs, h0, lr, dPs) => {
     xs = xs.map(pad);
-    const { hs } = seq(xs, h0);
+    const { hs, gs, xgs } = seq(xs, h0);
     let dhSig = cero();
     for (let t = xs.length - 1; t >= 0; t--) {
       const h = hs[t + 1], hprev = hs[t], dh = dhSig.slice();
@@ -57,9 +66,17 @@ function rnn(w) {
       for (let j = 0; j < NH; j++) dp[j] = clip(dh[j] * (1 - h[j] * h[j]));
       const nuevo = cero();
       for (let i = 0; i < NH; i++) { let s = 0; for (let j = 0; j < NH; j++) s += m.u[i * NH + j] * dp[j]; nuevo[i] = s; }
+      const dxg = new Array(NI).fill(0);
+      for (let j = 0; j < NH; j++) { if (!dp[j]) continue; for (let i = 0; i < NI; i++) dxg[i] += dp[j] * m.w1[i * NH + j]; }
+      for (let i = 0; i < NI; i++) {
+        const dz = clip(dxg[i] * xs[t][i] * gs[t][i] * (1 - gs[t][i]));
+        if (!dz) continue;
+        m.bg[i] -= lr * dz;
+        for (let k = 0; k < NI; k++) { const xk = xs[t][k]; if (xk) m.wg[k * NI + i] -= lr * dz * xk; }
+      }
       for (let j = 0; j < NH; j++) {
         if (!dp[j]) continue;
-        for (let i = 0; i < NI; i++) m.w1[i * NH + j] -= lr * dp[j] * xs[t][i];
+        for (let i = 0; i < NI; i++) m.w1[i * NH + j] -= lr * dp[j] * xgs[t][i];
         for (let i = 0; i < NH; i++) m.u[i * NH + j] -= lr * dp[j] * hprev[i];
         m.b1[j] -= lr * dp[j];
       }
@@ -89,7 +106,7 @@ function rnn(w) {
     if (cnt || aux) grad(xs, dOs, null, lr, dPs);
     return cnt ? err / cnt : 0;
   };
-  const copiar = (o) => { for (const k of ['w1', 'u', 'b1', 'w2', 'b2', 'w3', 'b3']) m[k] = o.m[k].slice(); };
+  const copiar = (o) => { for (const k of ['w1', 'u', 'b1', 'w2', 'b2', 'w3', 'b3', 'wg', 'bg']) m[k] = o.m[k].slice(); };
   return { m, step, seq, grad, pre, tdVentana, cero, copiar };
 }
 
