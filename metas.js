@@ -22,7 +22,7 @@ const METAS = [
   { id: 'diamante', v: 10, cl: 0.4, t: 1500, pre: ['hierro'], pasos: { diamante: 1, mina: 0.8, equipo: 1, hierro: 0.4 },
     req: [has('pico de diamante', ...tool('pickaxe', 3)), has('espada de diamante', ...tool('sword', 3)), has('casco', ...arm('helmet', 1)), has('peto', ...arm('chestplate', 1)), has('pantalon', ...arm('leggings', 1)), has('botas', ...arm('boots', 1))] },
   { id: 'curacion', v: 7, cl: 0.6, t: 600, pre: ['hierro'], pasos: { oro: 0.8, pociones: 0.6, cosecha: 0.3, nether: 0.3 }, req: [todo('2 manzanas doradas o totem', (I) => I.c(/^(golden_apple|enchanted_golden_apple)$/) >= 2 || I.has('totem_of_undying'))] },
-  { id: 'encantar', v: 8, cl: 0.2, t: 1200, pre: ['diamante'], pasos: { lapis: 1, obsidiana: 0.8, diamante: 0.6, encantar: 1, xp: 0.8 }, req: [todo('equipo encantado', (I) => I.encantado())] },
+  { id: 'encantar', v: 8, cl: 0.2, t: 1200, pre: ['diamante'], pasos: { lapis: 1, obsidiana: 0.8, diamante: 0.6, encantar: 1, xp: 0.8, estanterias: 0.6, azucar: 0.4, cuero: 0.4, libros: 0.6, unir: 0.5 }, req: [todo('equipo encantado', (I) => I.encantado())] },
   { id: 'nether', v: 8, cl: 0.1, t: 1500, pre: ['diamante', 'cubo'], pasos: { obsidiana: 1, nether: 1, lava: 0.6, pedernal: 0.6, agua: 0.4 }, req: [todo('visitar el nether', (I) => I.flag('nether'))] },
   { id: 'netherite', v: 10, cl: 0.2, t: 2400, pre: ['nether'], pasos: { nether: 1, mina: 0.7, asalto: 0.3 }, req: [todo('pieza de netherite', (I) => I.c(/^netherite_(ingot|sword|pickaxe|helmet|chestplate|leggings|boots)$/) > 0)] },
 ];
@@ -44,7 +44,7 @@ function crearMetas(bot, ruta) {
       c: (re) => it.filter((i) => re.test(i.name)).reduce((a, i) => a + i.count, 0),
       comida: () => comidaN,
       flag: (k) => !!d.flags[k],
-      encantado: () => it.some((i) => Array.isArray(i.enchants) && i.enchants.length > 0) || [5, 6, 7, 8].some((s) => { const x = bot.inventory.slots[s]; return x && Array.isArray(x.enchants) && x.enchants.length > 0; }),
+      encantado: () => { const L = require('./encantos').leer; return it.some((x) => Object.keys(L(bot, x)).length > 0) || [5, 6, 7, 8].some((s) => { const x = bot.inventory.slots[s]; return x && Object.keys(L(bot, x)).length > 0; }); },
     };
   }
 

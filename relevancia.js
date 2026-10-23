@@ -1,9 +1,10 @@
 const NC = 16;
 const c = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 
-function nivelEnc(it, re) {
-  if (!it || !Array.isArray(it.enchants)) return 0;
-  return it.enchants.filter((e) => re.test(String(e.name))).reduce((a, e) => Math.max(a, Number(e.lvl) || 0), 0);
+const ENC = require('./encantos');
+function nivelEnc(bot, it, re) {
+  const m = ENC.leer(bot, it);
+  return Object.entries(m).filter(([n]) => re.test(n)).reduce((a, [, l]) => Math.max(a, l), 0);
 }
 
 function aplicar(bot, x, t) {
@@ -12,15 +13,15 @@ function aplicar(bot, x, t) {
   const todos = it.concat([5, 6, 7, 8, 45].map((s) => S[s]).filter((i) => i));
   const dim = String((bot.game && bot.game.dimension) || '');
   const mano = bot.heldItem;
-  const prot = [5, 6, 7, 8].reduce((a, s) => a + nivelEnc(S[s], /protection|blast|projectile|fire/), 0);
+  const prot = [5, 6, 7, 8].reduce((a, s) => a + nivelEnc(bot, S[s], /protection|blast|projectile|fire/), 0);
   const fuego = yo.metadata && typeof yo.metadata[0] === 'number' && (yo.metadata[0] & 1) ? 1 : 0;
   const cr = [
     bot.isRaining ? 1 : 0,
     bot.thunderState > 0.2 ? 1 : 0,
     /nether/.test(dim) ? 1 : 0,
     /end/.test(dim) ? 1 : 0,
-    todos.some((i) => nivelEnc(i, /riptide|loyalty|channeling/) > 0) ? 1 : 0,
-    c(nivelEnc(mano, /sharpness|density|breach|power|smite|bane|fire_aspect|knockback|wind_burst/) / 5, 0, 1),
+    todos.some((i) => nivelEnc(bot, i, /riptide|loyalty|channeling/) > 0) ? 1 : 0,
+    c(nivelEnc(bot, mano, /sharpness|density|breach|power|smite|bane|fire_aspect|knockback|wind_burst/) / 5, 0, 1),
     c(prot / 16, 0, 1),
     fuego,
     c((yo.position.y - 64) / 100, -1, 1),

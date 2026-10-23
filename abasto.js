@@ -469,6 +469,7 @@ function crearAbasto(bot, o) {
     { item: 'sugar', cuando: () => tiene(/^sugar_cane$/) && cuenta(/^sugar$/) < 2 },
     { item: 'anvil', cuando: () => !tiene(/^anvil$/) && !bloqueN(/anvil$/, 24) && items().some((i) => i.durabilityUsed > 0), despues: () => colocar('anvil') },
   ];
+  const enc = require('./encantador').crearEncantador({ bot, diag, o, items, cuenta, tiene, bloqueN, colocar, craftear, libre, dormir, cazar });
   const ex = require('./extras').crearExtras({ bot, goals, diag, o, items, cuenta, tiene, bloqueN, colocar, craftear, cocinar, libre, dormir, memoria: o.memoria, VALIOSO, buscarVar, get base() { return base; } });
   const nether = require('./nether').crearNether({ bot, goals, diag, items, cuenta, tiene, libre, dormir });
   bot._nether = nether;
@@ -661,6 +662,7 @@ function crearAbasto(bot, o) {
         const tiene2 = (n) => cuenta(new RegExp('^' + n + '$'));
         const quiere = (n) => {
           if (/^(diamond_(helmet|chestplate|leggings|boots|sword|axe|pickaxe)|iron_(helmet|chestplate|leggings|boots|sword|pickaxe)|shield|bow|crossbow)$/.test(n)) return tiene2(n) ? 0 : 1;
+          if (n === 'enchanted_book') return 0;
           const tope = { arrow: 64, bread: 16, cooked_beef: 16, golden_apple: 3, ender_pearl: 4, experience_bottle: 8 }[n];
           return tope ? Math.max(0, tope - tiene2(n)) : 0;
         };
@@ -678,7 +680,7 @@ function crearAbasto(bot, o) {
             veces = Math.min(veces, Math.floor((tiene2(a1.name) - vende[a1.name]) / a1.count));
           } else {
             if (a1.name !== 'emerald' && !(a2 && a2.name === 'emerald') && !/^(emerald|diamond|iron_ingot)$/.test(a1.name)) continue;
-            veces = Math.min(veces, Math.floor(quiere(t.output.name) / t.output.count));
+            veces = Math.min(veces, t.output.name === 'enchanted_book' ? (bot._enc && bot._enc.quiereLibro(t.output) ? 1 : 0) : Math.floor(quiere(t.output.name) / t.output.count));
           }
           if (veces < 1) continue;
           try { await bot.trade(v, i, veces); hecho = true; diag.log('info', 'comercio', 'trato ' + t.output.name + ' x' + veces); } catch (e) { diag.log('warn', 'comercio', 'trato fallo: ' + e.message); }
@@ -815,7 +817,12 @@ function crearAbasto(bot, o) {
     }],
     ['nether', nether.expedicion],
     ['end', finEnd.expedicion],
-    ['encantar', ex.encantar],
+    ['encantar', enc.encantar],
+    ['estanterias', enc.estanterias],
+    ['azucar', enc.azucar],
+    ['cuero', enc.cuero],
+    ['libros', enc.libros],
+    ['unir', enc.unir],
     ['pociones', ex.pociones],
     ['asalto', ex.asalto],
     ['sondeo', async () => {
@@ -951,7 +958,7 @@ function crearAbasto(bot, o) {
     const rank = (n) => { const i = frente.indexOf(n); return i < 0 ? 100 : i; };
     const env = {};
     for (const kv of (process.env.IA_PESOS || '').split(',')) { const [k, v] = kv.split('='); if (k && +v > 0) env[k.trim()] = +v; }
-    const urg = { horno: hornoPend ? 4 : 0.1, esquejes: 0.3, replantar: 0.4, madera: cuenta(/_log$|_planks$/) < 6 ? 2.5 : 1, comida: (tiene(CRUDO) && hornoPosible()) ? 0.2 : cuenta(COMIDA) < 3 ? 3 : cuenta(COMIDA) < 6 ? 1.3 : 0.7, basura: items().length >= 32 ? 3 : 0.5, nether: nether.listo() ? (bot._lag && bot._lag.malo() ? 0.6 : 3) : 0.4, cobre: 0.6, oro: 0.8, redstone: 0.7, lapis: (tiene(/^enchanting_table$/) || bloqueN(/^enchanting_table$/, 48)) ? 2 : 0.4, diamante: cuenta(/^diamond$/) < 3 ? 2.5 : 1, hierro: cuenta(/^(raw_iron|iron_ingot)$/) < 6 ? 2 : 1, carbon: cuenta(/^(coal|charcoal)$/) < 3 ? 2 : 1, end: finEnd.quiere() ? (bot._lag && bot._lag.malo() ? 0.6 : 4) : 0.2, encantar: ((bot.experience && bot.experience.level) || 0) >= 5 ? 2 : 0.6, asalto: (bot._sadismo ? bot._sadismo() : 1) * (bot._lag && bot._lag.malo() ? 0.4 : 1), xp: ((bot.experience && bot.experience.level) || 0) < 5 ? 1.8 : 1 };
+    const urg = { horno: hornoPend ? 4 : 0.1, esquejes: 0.3, replantar: 0.4, madera: cuenta(/_log$|_planks$/) < 6 ? 2.5 : 1, comida: (tiene(CRUDO) && hornoPosible()) ? 0.2 : cuenta(COMIDA) < 3 ? 3 : cuenta(COMIDA) < 6 ? 1.3 : 0.7, basura: items().length >= 32 ? 3 : 0.5, nether: nether.listo() ? (bot._lag && bot._lag.malo() ? 0.6 : 3) : 0.4, cobre: 0.6, oro: 0.8, redstone: 0.7, lapis: (tiene(/^enchanting_table$/) || bloqueN(/^enchanting_table$/, 48)) ? 2 : 0.4, diamante: cuenta(/^diamond$/) < 3 ? 2.5 : 1, hierro: cuenta(/^(raw_iron|iron_ingot)$/) < 6 ? 2 : 1, carbon: cuenta(/^(coal|charcoal)$/) < 3 ? 2 : 1, end: finEnd.quiere() ? (bot._lag && bot._lag.malo() ? 0.6 : 4) : 0.2, encantar: ((bot.experience && bot.experience.level) || 0) >= 5 ? 0.8 : 0.3, estanterias: 0.25, azucar: 0.2, cuero: 0.2, libros: 0.3, unir: 0.3, asalto: (bot._sadismo ? bot._sadismo() : 1) * (bot._lag && bot._lag.malo() ? 0.4 : 1), xp: ((bot.experience && bot.experience.level) || 0) < 5 ? 1.8 : 1 };
     if (bot._nnAb) bot._nnAb.preparar(necesidades.map((x) => x[0]));
     const pesos = necesidades.map((x, i) => {
       const n = x[0], r = rank(n);

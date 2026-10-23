@@ -7,7 +7,7 @@ function crearExtras(h) {
 
   const textoItem = (i) => { try { return ((i.components ? JSON.stringify(i.components) : '') + (i.nbt ? JSON.stringify(i.nbt) : '') + ' ' + (i.displayName || '')).toLowerCase(); } catch (e) { return ''; } };
   const tienePoc = (re) => items().filter((i) => i.name === 'potion' && re.test(textoItem(i)));
-  const enchantada = (i) => { try { return ya.has(i.name) || (i.enchants && i.enchants.length > 0) || /enchantments/.test(textoItem(i)) && !/"enchantments":\{\}|"levels":\{\}/.test(textoItem(i)); } catch (e) { return false; } };
+  const enchantada = (i) => { try { return ya.has(i.name) || Object.keys(require('./encantos').leer(bot, i)).length > 0; } catch (e) { return false; } };
   const PRIO = [/_sword$/, /_chestplate$/, /_helmet$/, /_leggings$/, /_boots$/, /_pickaxe$/, /^bow$|^crossbow$/, /_axe$/, /^trident$/];
   const TIER = (n) => ['netherite', 'diamond', 'iron', 'golden', 'stone', 'leather', 'wooden', 'chainmail'].findIndex((t) => n.startsWith(t + '_')) + 1 || 9;
   const DEST = { 5: 'head', 6: 'torso', 7: 'legs', 8: 'feet' };
