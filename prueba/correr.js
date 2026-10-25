@@ -18,6 +18,9 @@ for (const f of fs.readdirSync(raiz)) if (/\.js$|^package(-lock)?\.json$/.test(f
 fs.mkdirSync(path.join(tmp, 'test'), { recursive: true });
 fs.symlinkSync(path.join(raiz, 'node_modules'), path.join(tmp, 'node_modules'), 'junction');
 
+const cache = path.join(__dirname, 'cache');
+fs.mkdirSync(cache, { recursive: true });
+for (const f of ['nn_am.json', 'nn_abasto_am.json']) if (fs.existsSync(path.join(cache, f))) fs.copyFileSync(path.join(cache, f), path.join(tmp, f));
 const hijos = [];
 const lineasBot = [];
 const matar = () => { for (const h of hijos) { try { h.kill('SIGTERM'); } catch (e) { /* ignorar */ } } };
@@ -38,7 +41,7 @@ function esperar(h, marca, ms) {
   await esperar(srv, 'LISTO', 60000);
 
   const env = Object.assign({}, process.env, { MC_HOST: '127.0.0.1', MC_PORT: String(puerto), OPENROUTER_API_KEY: 'prueba', MC_BOT_USERNAME: 'am_prueba' });
-  const bot = spawn(process.execPath, ['index.js'], { cwd: tmp, env });
+  const bot = spawn(process.execPath, (process.env.PRUEBA_PROF ? ['--cpu-prof', '--cpu-prof-dir=' + process.env.PRUEBA_PROF] : []).concat(['index.js']), { cwd: tmp, env });
   hijos.push(bot);
   const recoger = (d) => { for (const l of String(d).split('\n')) if (l.trim()) lineasBot.push(l); };
   bot.stdout.on('data', recoger);
@@ -47,6 +50,7 @@ function esperar(h, marca, ms) {
   await new Promise((r) => setTimeout(r, segundos * 1000));
   matar();
   await new Promise((r) => setTimeout(r, 1500));
+  for (const f of ['nn_am.json', 'nn_abasto_am.json']) if (fs.existsSync(path.join(tmp, f))) fs.copyFileSync(path.join(tmp, f), path.join(cache, f));
 
   const malas = /TypeError|ReferenceError|RangeError|SyntaxError|is not a function|Cannot read|fatal evitado|UnhandledPromise|undefined is not|NaN/;
   const grupos = new Map();
