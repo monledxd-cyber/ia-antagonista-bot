@@ -78,7 +78,7 @@ function crearNether(h) {
   function endurecer() {
     try {
       const m = bot.pathfinder.movements;
-      for (const n of ['magma_block', 'soul_fire', 'campfire', 'soul_campfire', 'sweet_berry_bush', 'wither_rose', 'cactus']) if (bot.registry.blocksByName[n]) m.blocksToAvoid.add(bot.registry.blocksByName[n].id);
+      for (const n of ['magma_block', 'soul_fire', 'campfire', 'soul_campfire', 'sweet_berry_bush', 'wither_rose', 'cactus', 'lava']) if (bot.registry.blocksByName[n]) m.blocksToAvoid.add(bot.registry.blocksByName[n].id);
     } catch (e) { /* ignorar */ }
   }
 
@@ -99,7 +99,7 @@ function crearNether(h) {
 
   async function recogerBlaze() {
     for (let k = 0; k < 6; k++) {
-      const it = Object.values(bot.entities).find((e) => e.name === 'item' && e.position.distanceTo(bot.entity.position) < 20 && (() => { try { const d = e.getDroppedItem && e.getDroppedItem(); return d && /blaze_rod|nether_wart/.test(d.name); } catch (x) { return false; } })());
+      const it = Object.values(bot.entities).find((e) => e.name === 'item' && e.position.distanceTo(bot.entity.position) < 20 && (() => { try { const d = e.getDroppedItem && e.getDroppedItem(); return d && /blaze_rod|nether_wart|ancient_debris|soul_sand|netherite|gold_ingot|smithing_template/.test(d.name); } catch (x) { return false; } })());
       if (!it) return;
       await ir(it.position.x, it.position.y, it.position.z, 0.6, 8000);
     }
@@ -117,20 +117,68 @@ function crearNether(h) {
     }
     await recogerBlaze();
   }
+
+  const LAVA = (p) => { for (let dx = -2; dx <= 2; dx++) for (let dy = -2; dy <= 2; dy++) for (let dz = -2; dz <= 2; dz++) { const b = bot.blockAt(p.offset(dx, dy, dz)); if (b && b.name === 'lava') return true; } return false; };
+  const faltaDebris = () => (tiene(/^(diamond|netherite)_pickaxe$/) ? Math.max(0, 8 - (cuenta(/^(ancient_debris|netherite_scrap)$/) + 4 * cuenta(/^netherite_ingot$/))) : 0);
+  const ignorados = new Set();
+  async function escombros() {
+    for (let k = 0; k < 6 && activo && seguro() && faltaDebris() > 0; k++) {
+      const d = bot.findBlocks({ matching: bot.registry.blocksByName.ancient_debris.id, maxDistance: 64, count: 8 }).find((p) => !ignorados.has(p.toString()));
+      if (!d) return;
+      if (LAVA(d)) { ignorados.add(d.toString()); continue; }
+      await ir(d.x, d.y, d.z, 2, 40_000);
+      const b = bot.blockAt(d);
+      if (b && b.name === 'ancient_debris' && b.position.distanceTo(bot.entity.position) < 5) {
+        try { const pk = items().find((i) => /^(diamond|netherite)_pickaxe$/.test(i.name)); if (pk) await bot.equip(pk, 'hand'); await bot.dig(b); estado('escombro minado'); } catch (e) { ignorados.add(d.toString()); }
+      } else ignorados.add(d.toString());
+      await recogerBlaze();
+    }
+  }
+  const BOTIN = /^(netherite_|ancient_debris|gold_ingot|gold_block|diamond|ender_pearl|golden_apple|enchanted_golden_apple|obsidian|crying_obsidian|golden_|saddle|crossbow|arrow|iron_ingot|[a-z_]*smithing_template|nether_wart|blaze_rod|magma_cream|ghast_tear|glowstone|redstone|spider_eye|fire_charge|flint)/;
+  const abiertos = new Set();
+  async function saquear() {
+    const id = bot.registry.blocksByName.chest.id;
+    const cofres = bot.findBlocks({ matching: id, maxDistance: 48, count: 10 }).filter((p) => !abiertos.has(p.toString()));
+    for (const p of cofres.slice(0, 3)) {
+      if (!activo || !seguro() || bot.health < 14) return;
+      abiertos.add(p.toString());
+      await ir(p.x, p.y, p.z, 2, 30_000);
+      const b = bot.blockAt(p);
+      if (!b || b.name !== 'chest' || b.position.distanceTo(bot.entity.position) > 5) continue;
+      try {
+        const w = await bot.openContainer(b);
+        try { for (const it of w.containerItems().filter((i) => BOTIN.test(i.name)).slice(0, 12)) { try { await w.withdraw(it.type, null, it.count); } catch (e) { break; } } }
+        finally { try { w.close(); } catch (e) { /* ignorar */ } }
+        estado('cofre saqueado');
+      } catch (e) { /* siguiente */ }
+    }
+  }
+  async function arena() {
+    for (let k = 0; k < 6 && cuenta(/^soul_sand$/) < 8; k++) {
+      const s = bot.findBlock({ matching: bot.registry.blocksByName.soul_sand.id, maxDistance: 40 });
+      if (!s) return;
+      await ir(s.position.x, s.position.y, s.position.z, 2, 15_000);
+      try { await bot.dig(bot.blockAt(s.position)); } catch (e) { /* ignorar */ }
+      await recogerBlaze();
+    }
+  }
   async function wart() {
     for (let k = 0; k < 4 && cuenta(/^nether_wart$/) < 6; k++) {
       const w = bot.findBlock({ matching: (b) => b && b.name === 'nether_wart', maxDistance: 40 });
-      if (!w) return;
+      if (!w) break;
       await ir(w.position.x, w.position.y, w.position.z, 2, 15_000);
       try { await bot.dig(bot.blockAt(w.position)); } catch (e) { /* ignorar */ }
       await recogerBlaze();
     }
+    await arena();
   }
 
   async function explorar() {
     estado('buscando fortaleza');
     let rumbo = Math.random() * Math.PI * 2;
-    while (activo && seguro() && !(cuenta(/^blaze_rod$/) >= 4 && cuenta(/^nether_wart$/) >= 3)) {
+    while (activo && seguro() && !(cuenta(/^blaze_rod$/) >= 4 && cuenta(/^nether_wart$/) >= 3 && ((cuenta(/^soul_sand$/) >= 4 && faltaDebris() === 0) || Date.now() - t0 > 11 * 60_000))) {
+      await escombros();
+      await saquear();
       const f = bot.findBlock({ matching: (b) => b && /^(nether_bricks|nether_brick_fence|nether_brick_stairs)$/.test(b.name), maxDistance: 100 });
       if (f) {
         estado('en la fortaleza');

@@ -8,9 +8,10 @@ const REGLAS = {
   item_nuevo: { v: 1 }, ganar_valioso: { v: 0.25, hab: 1 }, mineral: { v: 0.4, hab: 1 },
   mineral_perdido: { v: -0.8, hab: 1 }, paso_ok: { v: 0.1, hab: 1 }, paso_fallo: { v: -0.1, hab: 1 }, sin_nada: { v: -0.2, hab: 1 },
   atasco: { v: -0.5, hab: 1 }, muerte_repetida: { v: -3 }, hambre: { v: -0.05 }, aire: { v: -0.2 }, libre: { v: 1 }, frase_efectiva: { v: 0.5 }, frase_fallida: { v: -0.3 }, golpe_pleno: { v: 0.1 }, golpe_critico: { v: 0.25 }, golpe_flojo: { v: -0.15 },
+  netherite: { v: 3, hab: 1 }, pocion_ok: { v: 0.4, hab: 1 }, pocion_golpe: { v: 0.6 }, pocion_fallo: { v: -0.15 }, cosecha_wart: { v: 0.3, hab: 1 },
 };
 const COMBATE = new Set(['golpe', 'gana', 'muere_jugador', 'huye', 'kill_con_nuevo']);
-const SIN_CREDITO = new Set(['golpe', 'gana', 'dano', 'muerte', 'pierde', 'hambre', 'aire', 'libre', 'perder_valioso', 'perder_equipo', 'frase_efectiva', 'frase_fallida', 'golpe_pleno', 'golpe_critico', 'golpe_flojo']);
+const SIN_CREDITO = new Set(['golpe', 'gana', 'dano', 'muerte', 'pierde', 'hambre', 'aire', 'libre', 'perder_valioso', 'perder_equipo', 'frase_efectiva', 'frase_fallida', 'golpe_pleno', 'golpe_critico', 'golpe_flojo', 'pocion_golpe', 'pocion_fallo']);
 
 function crearPremio(bot, stats, memoria, ruta) {
   let d = { w: {}, vistos: {}, killsCon: {} }, sucio = false, neto = 0, ultGolpe = 0, hpPrev = null, hist = [], huyoMarca = 0;

@@ -2,7 +2,7 @@ const fs = require('fs');
 const V = require('vec3');
 const diag = require('./diag');
 
-const ESPERA = /^(horno|fundir|carne|dormir|pesca|encantar|pociones|nether|end)$/;
+const ESPERA = /^(horno|fundir|carne|dormir|pesca|encantar|pociones|forja|granjawart|nether|end)$/;
 const CONSTRUIR = /^(cobblestone|cobbled_deepslate|dirt|netherrack|stone|andesite|diorite|granite|tuff|blackstone|[a-z_]+_planks)$/;
 const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
 

@@ -21,6 +21,7 @@ const MAPA = {
   frase_efectiva: { dominio: 0.6, sadismo: 0.4 }, frase_fallida: { dominio: 1 },
   libre: { logro: 1 },
   golpe_pleno: { dominio: 1 }, golpe_critico: { dominio: 0.7, sadismo: 0.3 }, golpe_flojo: { dominio: 1 },
+  netherite: { logro: 1 }, pocion_ok: { logro: 1 }, cosecha_wart: { logro: 1 }, pocion_golpe: { dominio: 0.7, sadismo: 0.3 }, pocion_fallo: { dominio: 1 },
 };
 const CAP = { sadismo: 10, schadenfreude: 8, dominio: 40, resentimiento: 12, logro: 60, curiosidad: 15 };
 const MEDIA_VIDA = { sadismo: 480, masoquismo: 600, schadenfreude: 300 };

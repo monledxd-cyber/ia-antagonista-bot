@@ -90,46 +90,63 @@ function crearExtras(h) {
     }
   }
 
+  const RECETAS = [
+    { n: 'healing', pasos: ['nether_wart', 'glistering_melon_slice'], mod: ['glowstone_dust'], of: false },
+    { n: 'strength', pasos: ['nether_wart', 'blaze_powder'], mod: ['glowstone_dust', 'redstone'], of: false },
+    { n: 'swiftness', pasos: ['nether_wart', 'sugar'], mod: ['glowstone_dust', 'redstone'], of: false },
+    { n: 'fire_resistance', pasos: ['nether_wart', 'magma_cream'], mod: ['redstone'], of: false },
+    { n: 'regeneration', pasos: ['nether_wart', 'ghast_tear'], mod: ['glowstone_dust', 'redstone'], of: false },
+    { n: 'poison', pasos: ['nether_wart', 'spider_eye'], mod: ['glowstone_dust', 'redstone'], of: true },
+    { n: 'harming', pasos: ['nether_wart', 'spider_eye', 'fermented_spider_eye'], mod: ['glowstone_dust'], of: true },
+    { n: 'slowness', pasos: ['nether_wart', 'sugar', 'fermented_spider_eye'], mod: ['redstone'], of: true },
+    { n: 'weakness', pasos: ['fermented_spider_eye'], mod: ['redstone'], of: true },
+  ];
+  const tengo = (n) => cuenta(new RegExp('^' + n + '$'));
+  const puedeIng = (n) => tengo(n) > 0 || (n === 'fermented_spider_eye' && tengo('spider_eye') > 0 && tengo('brown_mushroom') > 0 && tengo('sugar') > 0);
+  const viable = (r) => r.pasos.every(puedeIng) && (!r.of || tengo('gunpowder') > 0);
+  const elegir = (dec, arms) => { const B = bot._bandits; return B && B.elegir ? B.elegir(dec, '*', arms) : arms[Math.floor(Math.random() * arms.length)]; };
+  const nPoc = () => cuenta(/^(potion|splash_potion)$/);
+
   async function pociones() {
     let stand = bloqueN(/^brewing_stand$/, 24);
     const tengoStand = tiene(/^brewing_stand$/);
     if (!stand && !tengoStand) return 'nada';
-    const wart = cuenta(/^nether_wart$/), polvo = cuenta(/^blaze_powder$/);
-    const opciones = [
-      ['healing', () => tiene(/^glistering_melon_slice$/), 'glistering_melon_slice'],
-      ['strength', () => polvo >= 2, 'blaze_powder'],
-      ['swiftness', () => tiene(/^sugar$/), 'sugar'],
-      ['fire_resistance', () => tiene(/^magma_cream$/), 'magma_cream'],
-    ].filter((x) => x[1]() && cuenta(/^potion$/) < 12);
-    if (stand) {
-      // puede haber pociones olvidadas dentro
-      if (stand.position.distanceTo(bot.entity.position) > 3.5 && !(await o.irCerca(bot, stand.position))) return false;
-    }
-    if (!opciones.length || wart < 1 || polvo < 1) return 'nada';
+    if (tengo('blaze_powder') < 1 || nPoc() >= 12) return 'nada';
+    const arms = RECETAS.filter(viable).map((r) => ({ k: r.n, r }));
+    if (!arms.length) return 'nada';
+    if (stand && stand.position.distanceTo(bot.entity.position) > 3.5 && !(await o.irCerca(bot, stand.position))) return false;
+    const rec = elegir('pocion', arms).r;
+    const mod = elegir('pocion_mod', [{ k: 'ninguno' }].concat(rec.mod.filter((m) => tengo(m) > 0).map((m) => ({ k: m })))).k;
+    const splash = rec.of || (tengo('gunpowder') > 0 && elegir('pocion_splash', [{ k: 'b' }, { k: 's' }]).k === 's');
+    const seq = rec.pasos.concat(mod !== 'ninguno' ? [mod] : [], splash ? ['gunpowder'] : []);
+    for (const ing of seq) if (tengo(ing) < 1 && !(await craftear(ing, 1))) return false;
     if (!(await botellas())) return false;
     if (!stand) { stand = await colocar('brewing_stand'); if (!stand) return false; }
     if (stand.position.distanceTo(bot.entity.position) > 3.5 && !(await o.irCerca(bot, stand.position))) return false;
-    const [nombre, , ing] = opciones[Math.floor(Math.random() * opciones.length)];
     const w = await bot.openContainer(stand);
     try {
       await sacar(w);
-      const botes = [];
-      for (let k = 0; k < 3; k++) { const s = slotInv(w, (x) => x.name === 'potion' && /water/.test(textoItem(x)) && !/awkward/.test(textoItem(x))); if (s < 0) break; await mover(w, s, k); botes.push(k); }
-      if (botes.length < 3) { await sacar(w); return false; }
+      for (let k = 0; k < 3; k++) { const s = slotInv(w, (x) => x.name === 'potion' && /water/.test(textoItem(x)) && !/awkward/.test(textoItem(x))); if (s < 0) { await sacar(w); return false; } await mover(w, s, k); }
       if (!w.slots[4]) { const s = slotInv(w, (x) => x.name === 'blaze_powder'); if (s >= 0) await mover(w, s, 4); }
-      let s = slotInv(w, (x) => x.name === 'nether_wart');
-      if (s < 0) { await sacar(w); return false; }
-      await mover(w, s, 3);
-      if (!(await esperar(w, 26_000))) return false;
-      s = slotInv(w, (x) => x.name === ing);
-      if (s < 0) { await sacar(w); return false; }
-      await mover(w, s, 3);
-      if (!(await esperar(w, 26_000))) return false;
+      for (const ing of seq) {
+        const s = slotInv(w, (x) => x.name === ing);
+        if (s < 0) { await sacar(w); return false; }
+        await mover(w, s, 3);
+        if (!(await esperar(w, 26_000))) return false;
+      }
       await sacar(w);
     } finally { try { w.close(); } catch (e) { /* ignorar */ } }
-    diag.log('info', 'abasto', 'preparo pociones de ' + nombre);
+    diag.log('info', 'abasto', `preparo pociones de ${rec.n}${mod !== 'ninguno' ? ' +' + mod : ''}${splash ? ' splash' : ''}`);
+    if (bot._premio) bot._premio.evento('pocion_ok', { k: rec.n });
     return true;
   }
+
+  function pocionUso(info, r) {
+    const B = bot._bandits;
+    if (!B || !B.premiar || !info || !info.n) return;
+    try { B.premiar('pocion', '*', info.n, r); B.premiar('pocion_mod', '*', info.mod || 'ninguno', r); B.premiar('pocion_splash', '*', info.splash ? 's' : 'b', r); } catch (e) { /* ignorar */ }
+  }
+  bot._pocionUso = pocionUso;
 
   // ---- Asalto a la base de un jugador ausente ----
   const esAlmacen = (b) => b && /^(chest|barrel|trapped_chest)$/.test(b.name);

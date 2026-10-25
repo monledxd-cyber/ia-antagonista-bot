@@ -24,10 +24,38 @@ function crearCuracion(bot, o) {
     if (/swiftness|speed/.test(s)) return 'velocidad';
     if (/fire_resistance|fire resistance/.test(s)) return 'fuego';
     if (/regeneration/.test(s)) return 'regen';
+    if (/harming/.test(s)) return 'dano';
+    if (/poison/.test(s)) return 'veneno';
+    if (/slowness/.test(s)) return 'lentitud';
+    if (/weakness/.test(s)) return 'debil';
     return null;
   };
   const pociones = (splash) => items().filter((i) => i.name === (splash ? 'splash_potion' : 'potion')).map((i) => ({ i, t: tipoDe(i) })).filter((x) => x.t);
 
+  const OFENSIVAS = ['dano', 'veneno', 'lentitud', 'debil'];
+  const EFECTO = { dano: 'harming', veneno: 'poison', lentitud: 'slowness', debil: 'weakness' };
+  const infoDe = (i, t) => { const s = textoPocion(i); return { n: EFECTO[t] || t, mod: /strong_/.test(s) ? 'glowstone_dust' : /long_/.test(s) ? 'redstone' : 'ninguno', splash: i.name === 'splash_potion' }; };
+  const nEfectos = (t) => Object.keys((t && t.effects) || {}).length;
+  async function lanzarA(it, t) {
+    const antes = nEfectos(t), vida = t.metadata && t.metadata[9];
+    let golpeado = false;
+    const f = (e) => { if (e === t) golpeado = true; };
+    bot.on('entityHurt', f);
+    await bot.equip(it, 'hand');
+    const d = dist(t), v = t.velocity || { x: 0, y: 0, z: 0 };
+    const k = Math.min(10, d * 0.5);
+    await bot.lookAt(t.position.offset(v.x * k, 0.9 + d * 0.11, v.z * k), true);
+    bot.activateItem();
+    await dormir(250);
+    try { bot.deactivateItem(); } catch (e) { /* ignorar */ }
+    await dormir(1800);
+    bot.removeListener('entityHurt', f);
+    const ok = golpeado || nEfectos(t) > antes || (t.metadata && vida !== undefined && t.metadata[9] < vida);
+    if (bot._premio) bot._premio.evento(ok ? 'pocion_golpe' : 'pocion_fallo', { k: EFECTO[it._t] || 'pocion' });
+    if (bot._pocionUso) bot._pocionUso(it._info, ok ? 1 : -0.2);
+    const B = bot._bandits;
+    if (B && B.premiar) { try { B.premiar('pocion_ataque', '*', it._t, ok ? 1 : -0.2); } catch (e) { /* ignorar */ } }
+  }
   const rival = () => {
     const t = bot.pvp && bot.pvp.target;
     return t && t.isValid !== false && t.position ? t : null;
@@ -77,6 +105,20 @@ function crearCuracion(bot, o) {
     const dorada = items().find((i) => i.name === 'enchanted_golden_apple') || items().find((i) => i.name === 'golden_apple');
     const absorcion = bot.entity.effects && Object.values(bot.entity.effects).some((e) => e && e.id === 22);
     if (dorada && hp <= umbral.v && !absorcion && (d >= 3.5 || critico) && listo('gap', 3500)) { ult.gap = Date.now(); diag.log('info', 'curacion', 'gapple en pelea'); return void conPausa(() => consumir(dorada, 2200)); }
+
+    if (d > 3.5 && d < 11 && hp > 6 && listo('of', 4000)) {
+      const disp = pociones(true).filter((x) => OFENSIVAS.includes(x.t));
+      if (disp.length) {
+        const tipos = [...new Set(disp.map((x) => x.t))];
+        const B = bot._bandits;
+        const eleg = (B && B.elegir ? B.elegir('pocion_ataque', '*', tipos.map((k) => ({ k }))) : { k: tipos[0] }).k;
+        const x = disp.find((y) => y.t === eleg) || disp[0];
+        x.i._t = x.t; x.i._info = infoDe(x.i, x.t);
+        ult.of = Date.now();
+        diag.log('info', 'curacion', 'splash ' + x.t);
+        return void conPausa(() => lanzarA(x.i, t));
+      }
+    }
 
     // buffs antes de entrar a golpes
     if (d > 4 && d < 28 && hp > 12) {
