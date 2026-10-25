@@ -128,7 +128,7 @@ const lastCall = new Map(); // nombre -> timestamp
 const trampaLastUse = new Map(); // nombre -> timestamp de la ultima trampa activada
 const historialJugador = new Map(); // nombre -> { interacciones, ultimasRespuestas: [], eventos: [] }
 const persist = require('./persist');
-const RUTAS_MEM = [process.env.IA_MEMORIA || 'memoria_jugadores.json', process.env.IA_DIARIO || 'diario_am.json', process.env.IA_BASE || 'base_am.json', process.env.IA_CLAVES || 'claves_am.json', process.env.IA_APRENDIZAJE || 'aprendizaje.json', process.env.IA_HABILIDADES || 'habilidades_am.json', process.env.IA_STATS || 'stats_am.json', process.env.IA_BANDITS || 'bandits_am.json', process.env.IA_ITEMS || 'items_am.json', process.env.IA_NN_PESOS || 'nn_am.json', process.env.IA_NN_DATOS || 'datos_nn.json', process.env.IA_PREMIO || 'premio_am.json', process.env.IA_MAPA_ARCH || 'mapa_am.json', process.env.IA_AUTOPSIA_ARCH || 'autopsias_am.json', process.env.IA_LENGUAJE_ARCH || 'lenguaje_am.json', process.env.IA_CORPUS_ARCH || 'corpus_am.json', 'atascos_am.json', 'afecto_am.json', 'metas_am.json', 'nn_abasto_am.json']
+const RUTAS_MEM = [process.env.IA_MEMORIA || 'memoria_jugadores.json', process.env.IA_DIARIO || 'diario_am.json', process.env.IA_BASE || 'base_am.json', process.env.IA_CLAVES || 'claves_am.json', process.env.IA_APRENDIZAJE || 'aprendizaje.json', process.env.IA_HABILIDADES || 'habilidades_am.json', process.env.IA_STATS || 'stats_am.json', process.env.IA_BANDITS || 'bandits_am.json', process.env.IA_ITEMS || 'items_am.json', process.env.IA_NN_PESOS || 'nn_am.json', process.env.IA_NN_DATOS || 'datos_nn.json', process.env.IA_PREMIO || 'premio_am.json', process.env.IA_MAPA_ARCH || 'mapa_am.json', process.env.IA_AUTOPSIA_ARCH || 'autopsias_am.json', process.env.IA_LENGUAJE_ARCH || 'lenguaje_am.json', process.env.IA_CORPUS_ARCH || 'corpus_am.json', 'atascos_am.json', 'afecto_am.json', 'metas_am.json', 'nn_abasto_am.json', 'sesiones_am.json']
   .map((r) => (require('path').isAbsolute(r) ? r : require('path').join(__dirname, r)));
 persist.restaurar(RUTAS_MEM); // Render: disco efimero -> recupera la memoria del gist si esta configurado
 const memoria = crearMemoria();
@@ -381,6 +381,7 @@ function iniciarHuida(bot) {
   require('./peleas').crearPeleas(bot, memoria);
   bot._sumarVec = (n, c, x) => memoria.sumarVec(n, c, x);
   require('./stats').conectarStats(bot, statsAM, diag);
+  require('./sesion').crearSesion(bot, require('path').join(__dirname, process.env.IA_SESION_ARCH || 'sesiones_am.json'), require('./package.json').version);
   if (process.env.IA_AFECTO !== '0') require('./afecto').crearAfecto(bot, memoria, require('path').join(__dirname, process.env.IA_AFECTO_ARCH || 'afecto_am.json'));
   require('./premio').crearPremio(bot, statsAM, memoria, require('path').join(__dirname, process.env.IA_PREMIO || 'premio_am.json'));
   require('./pesos').iniciar(bot, diag);
@@ -530,7 +531,7 @@ function iniciarHuida(bot) {
     }
 
     if (!objetivo && bot._perc) { const at = bot._perc.atacante(8000); if (at && at.position.distanceTo(bot.entity.position) < 32 && !ignorado(bot, at)) objetivo = at; }
-    if (bot._tactica) { if (bot._tactica.retirada()) return; const f = bot._tactica.foco(); if (f && bot.entities[f.id]) objetivo = f; }
+    if (bot._tact) { if (bot._tact.retirada()) return; const f = bot._tact.foco(); if (f && bot.entities[f.id]) objetivo = f; }
     // Retirada calculada: con vida baja y un enemigo real cerca, se retira a
     // vez de seguir peleando -- control frio de la situacion, no panico.
     if (bot.health !== undefined && bot.health <= 20 * (bot._panico || (bot._panico = 0.2 + Math.random() * 0.15)) && objetivo) {

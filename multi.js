@@ -48,7 +48,7 @@ function crearMulti(bot, o) {
     const cerca = rs.filter((e) => dist(e) < 6);
 
     // demasiados encima: separarse con la mejor fuga
-    if (!bot._tactica && cerca.length >= 3 && bot.health < 14 && bot._mejorFuga && ahora - ultPasillo > 3000) {
+    if (!bot._tact && cerca.length >= 3 && bot.health < 14 && bot._mejorFuga && ahora - ultPasillo > 3000) {
       ultPasillo = ahora; modo = 'fuga';
       diag.log('info', 'multi', cerca.length + ' rivales encima: fuga');
       try { const fg = bot._mejorFuga(cerca[0]); if (bot.pvp) bot.pvp.stop(); if (fg) bot.pathfinder.setGoal(new goals.GoalXZ(Math.round(bot.entity.position.x + fg.dx * 14), Math.round(bot.entity.position.z + fg.dz * 14))); } catch (e) { /* ignorar */ }
@@ -58,7 +58,7 @@ function crearMulti(bot, o) {
     // foco: el mas debil al alcance, con histeresis
     const alcance = rs.filter((e) => dist(e) < 7).sort((a, b) => puntaje(a) - puntaje(b));
     const actual = bot.pvp && bot.pvp.target;
-    if (!bot._tactica && alcance.length && bot.pvp && ahora - ultCambio > 4000) {
+    if (!bot._tact && alcance.length && bot.pvp && ahora - ultCambio > 4000) {
       const mejor = alcance[0];
       if (!actual || actual.id !== mejor.id) {
         const pa = actual && actual.position ? puntaje(actual) : 1e9;

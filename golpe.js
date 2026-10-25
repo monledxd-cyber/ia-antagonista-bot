@@ -55,7 +55,7 @@ function crearGolpe(bot) {
     return lookAt0(pos, force);
   };
 
-  bot.on('physicTick', () => {
+  bot.on('physicsTick', () => {
     tick++;
     const a = arma();
     if (a !== mano) { mano = a; ultimo = tick; }

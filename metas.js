@@ -101,7 +101,7 @@ function crearMetas(bot, ruta) {
   const gt = setInterval(guardar, 60_000);
   if (gt.unref) gt.unref();
   bot.once('end', () => { clearInterval(gt); guardar(); });
-  const api = { mult, estado, guardar, actual: () => actual, METAS };
+  const api = { mult, estado, guardar, actual: () => actual, hechas: () => d.hechas, METAS };
   bot._metas = api;
   return api;
 }

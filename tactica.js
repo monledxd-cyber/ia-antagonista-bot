@@ -108,7 +108,7 @@ function crearTactica(bot, o) {
   const it = setInterval(() => { try { ciclo(); } catch (e) { diag.log('warn', 'tactica', String(e && e.message).slice(0, 80)); } }, 250);
   bot.once('end', () => clearInterval(it));
   const api = { foco: () => foco, retirada: () => Date.now() < retHasta };
-  bot._tactica = api;
+  bot._tact = api;
   return api;
 }
 module.exports = { crearTactica, MOB };

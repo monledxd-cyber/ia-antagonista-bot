@@ -24,7 +24,7 @@ function crearTecnica(bot) {
   const ping = () => (bot._lag && bot._lag.ping ? bot._lag.ping() : 0);
   const tps = () => cl(bot._lag && bot._lag.tps ? bot._lag.tps() : 20, 10, 20);
 
-  bot.on('physicTick', () => { tick++; });
+  bot.on('physicsTick', () => { tick++; });
   bot.on('entitySwingArm', (e) => { if (e && e !== bot.entity) { swings.set(e.id, { tick, t: ahora() }); ev.push({ t: ahora(), tipo: 'swing', id: e.id }); if (ev.length > 300) ev.shift(); } });
   let hpPrev = null;
   bot.on('health', () => { if (hpPrev !== null && bot.health < hpPrev) { ev.push({ t: ahora(), tipo: 'hurt', v: hpPrev - bot.health }); if (ev.length > 300) ev.shift(); } hpPrev = bot.health; });

@@ -1,0 +1,8 @@
+{
+  "name": "prueba-am",
+  "private": true,
+  "version": "1.0.0",
+  "dependencies": {
+    "flying-squid": "^1.12.0"
+  }
+}
