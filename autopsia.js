@@ -41,6 +41,7 @@ function crearAutopsia(bot, ruta) {
     const peso = { lava: 3, caida: 2, ahogo: 2, fuego: 2, explosion: 1.5, asfixia: 1.5, vacio: 3 }[c];
     if (peso && bot._mapa && rec.x !== undefined) bot._mapa.marcarPeligro({ x: rec.x, y: rec.y, z: rec.z }, peso, 'muerte por ' + c);
     if (repetidas > 0 && bot._premio) bot._premio.evento('muerte_repetida', { v: -3 * Math.min(4, repetidas), k: c, motivo: c + ' x' + (repetidas + 1) });
+    if (/^(jugador|mob_u_otro|explosion|fuego|desconocida)$/.test(c) && bot._nn && bot._nn.autopsia) { try { bot._nn.autopsia(c); } catch (e) { /* ignorar */ } }
     diag.estado.autopsia = `${c}${rec.rival ? ' por ' + rec.rival : ''} en ${rec.x},${rec.y},${rec.z} (${rec.dim}) repetidas ${repetidas}`;
     diag.log('warn', 'autopsia', diag.estado.autopsia);
     const hp = buf.slice(-6).map((b) => b.hp === undefined ? '?' : Math.round(b.hp)).join('>');

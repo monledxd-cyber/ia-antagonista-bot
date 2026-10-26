@@ -457,6 +457,7 @@ function crearAbasto(bot, o) {
     { item: 'bow', cuando: () => !tiene(/^(bow|crossbow)$/) },
     { item: 'crossbow', cuando: () => tiene(/^bow$/) && !tiene(/^crossbow$/) },
     { item: 'golden_apple', cuando: () => cuenta(/^golden_apple$/) < 2 },
+    { item: 'golden_helmet', cuando: () => cuenta(/^gold_ingot$/) >= 9 && !tiene(/^golden_helmet$/) && !(bot.inventory.slots[5] && bot.inventory.slots[5].name === 'golden_helmet') && !!(bot._metas && bot._metas.hechas().nether) },
     { item: 'flint_and_steel', cuando: () => !tiene(/^flint_and_steel$/) },
     { item: 'fishing_rod', cuando: () => !tiene(/^fishing_rod$/) },
     { item: 'piston', n: 4, cuando: () => cuenta(/^piston$/) < 4 },

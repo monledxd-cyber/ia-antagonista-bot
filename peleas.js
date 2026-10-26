@@ -14,6 +14,7 @@ function crearPeleas(bot, memoria) {
     }
     if (dur >= 4 && bot._premio) { if (res === 'gane') bot._premio.gana(bot.heldItem && bot.heldItem.name, f.n, f.adv); else if (res === 'perdi') bot._premio.pierde(f.n, f.adv); }
     if (bot._nn && dur >= 4) bot._nn.fin(res);
+    if (bot._armaFin && dur >= 4) bot._armaFin(res);
     f = null;
   };
   bot.on('health', () => { const h = bot.health; if (f && hpPrev !== null && h < hpPrev) f.dano += hpPrev - h; hpPrev = h; });

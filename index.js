@@ -286,7 +286,7 @@ function iniciarHuida(bot) {
 
     const conEscudo = objetivo.type === 'player' && Array.isArray(objetivo.equipment) &&
       objetivo.equipment.some(it => it && it.name === 'shield');
-    if (conEscudo !== preferirHacha) { preferirHacha = conEscudo; equiparArma(bot); }
+    { const h = decidirHacha(bot, conEscudo); if (h !== preferirHacha) { preferirHacha = h; equiparArma(bot); } }
 
     // mineflayer-pvp maneja persecucion, timing de golpe y reintentos solo;
     // llamar attack() de nuevo contra el mismo objetivo no reinicia nada.
@@ -315,7 +315,7 @@ function iniciarHuida(bot) {
     reanudar: (t) => { try { bot.pvp.attack(t); } catch (e) { /* ignorar */ } },
     huir: (t) => { objetivoActual = null; if (!bot._retirada || bot._retirada < Date.now()) { bot._retirada = Date.now() + 25_000 + Math.random() * 20_000; bot._reanuda = 0.55 + Math.random() * 0.3; bot._panico = 0; diario.huida(); diag.log('info', 'estrategia', 'retirada estrategica para curarse'); } try { bot.pvp.stop(); bot.pathfinder.setGoal(new goals.GoalInvert(new goals.GoalFollow(t, 14)), true); } catch (e) { /* ignorar */ } },
     equiparArma: () => equiparArma(bot),
-    fijarHacha: (v) => { if (preferirHacha !== v) { preferirHacha = v; equiparArma(bot); } },
+    fijarHacha: (v) => { const h = decidirHacha(bot, !!v); if (preferirHacha !== h) { preferirHacha = h; equiparArma(bot); } },
     tierDe,
     irA: (pos) => { try { bot.pathfinder.setGoal(new goals.GoalNear(pos.x, pos.y, pos.z, 1)); } catch (e) { /* ignorar */ } },
     smashAttack: () => smashAttack(bot),
@@ -1403,7 +1403,23 @@ async function equiparMejorHerramienta(bot, bloque) {
 // Arma cuerpo a cuerpo: espada por defecto; hacha contra jugadores con escudo
 // (un golpe de hacha lo inutiliza 5 s, segun la wiki de Minecraft). Si no tiene
 // ninguna, usa pico/pala/hacha en vez del puño. Nunca cambia a media mineria/comida.
-let preferirHacha = false;
+let preferirHacha = false, armaSel = null;
+function decidirHacha(bot, escudo) {
+  const it = bot.inventory.items();
+  if (!it.some((i) => /_sword$/.test(i.name)) || !it.some((i) => /_axe$/.test(i.name))) return escudo;
+  const ctx = escudo ? 'escudo' : 'libre';
+  if (!armaSel || armaSel.ctx !== ctx || Date.now() - armaSel.t > 90_000) {
+    const B = bot._bandits;
+    const e = B && B.elegir ? B.elegir('arma', ctx, [{ k: 'espada' }, { k: 'hacha' }]) : { k: escudo ? 'hacha' : 'espada' };
+    armaSel = { ctx, k: e.k, t: Date.now() };
+  }
+  bot._armaFin = (res) => {
+    const B = bot._bandits;
+    if (armaSel && B && B.premiar) { try { B.premiar('arma', armaSel.ctx, armaSel.k, res === 'gane' ? 1 : res === 'perdi' ? -1 : 0); } catch (e) { /* ignorar */ } }
+    armaSel = null;
+  };
+  return armaSel.k === 'hacha';
+}
 let manoOcupada = false;
 function equiparArma(bot) {
   if (manoOcupada || comiendo) return;

@@ -5,6 +5,7 @@ const diag = require('./diag');
 const ACC = ['atacar', 'retroceder', 'curar', 'bloquear', 'esquivar', 'otra'];
 const NI = 65 + REL.NC, NP = 5, AUX = 0.5, NH = 64, NO = ACC.length, GAMMA = 0.85, LR = 0.01, VENT = 8;
 const NE = Math.max(1, Number(process.env.IA_NN_N) || 3);
+const ADAM = process.env.IA_NN_ADAM === '1';
 const TICK_MS = Number(process.env.IA_NN_MS) || 400;
 
 function rnn(w) {
@@ -44,8 +45,28 @@ function rnn(w) {
     return { hs, os, ps, gs, xgs };
   };
   const clip = (v) => Math.max(-1, Math.min(1, v));
-  const grad = (xs, dOs, h0, lr, dPs) => {
+  const NOMS = ['w1', 'u', 'b1', 'w2', 'b2', 'w3', 'b3', 'wg', 'bg'];
+  let G = null, M1 = null, M2 = null, T = 0, ad = false, lrAct = 0;
+  const iniAdam = () => { G = {}; M1 = {}; M2 = {}; for (const k of NOMS) { G[k] = new Float64Array(m[k].length); M1[k] = new Float64Array(m[k].length); M2[k] = new Float64Array(m[k].length); } };
+  const U = (k, i, v) => { if (ad) G[k][i] += v; else m[k][i] -= lrAct * v; };
+  const aplicarAdam = (lr) => {
+    T++;
+    const c1 = 1 - Math.pow(0.9, T), c2 = 1 - Math.pow(0.999, T);
+    for (const k of NOMS) {
+      const g = G[k], a = M1[k], v = M2[k], w = m[k];
+      for (let i = 0; i < g.length; i++) {
+        const gi = g[i];
+        if (gi === 0 && a[i] === 0 && v[i] === 0) continue;
+        a[i] = 0.9 * a[i] + 0.1 * gi; v[i] = 0.999 * v[i] + 0.001 * gi * gi;
+        w[i] -= lr * (a[i] / c1) / (Math.sqrt(v[i] / c2) + 1e-8);
+        g[i] = 0;
+      }
+    }
+  };
+  const grad = (xs, dOs, h0, lr, dPs, adam) => {
     xs = xs.map(pad);
+    ad = !!adam; lrAct = lr;
+    if (ad && !G) iniAdam();
     const { hs, gs, xgs } = seq(xs, h0);
     let dhSig = cero();
     for (let t = xs.length - 1; t >= 0; t--) {
@@ -53,14 +74,14 @@ function rnn(w) {
       for (let k = 0; k < NO; k++) {
         const e = dOs[t][k];
         if (!e) continue;
-        for (let j = 0; j < NH; j++) { dh[j] += e * m.w2[j * NO + k]; m.w2[j * NO + k] -= lr * e * h[j]; }
-        m.b2[k] -= lr * e;
+        for (let j = 0; j < NH; j++) { dh[j] += e * m.w2[j * NO + k]; U('w2', j * NO + k, e * h[j]); }
+        U('b2', k, e);
       }
       if (dPs && dPs[t]) for (let k = 0; k < NP; k++) {
         const e = dPs[t][k];
         if (!e) continue;
-        for (let j = 0; j < NH; j++) { dh[j] += e * m.w3[j * NP + k]; m.w3[j * NP + k] -= lr * e * h[j]; }
-        m.b3[k] -= lr * e;
+        for (let j = 0; j < NH; j++) { dh[j] += e * m.w3[j * NP + k]; U('w3', j * NP + k, e * h[j]); }
+        U('b3', k, e);
       }
       const dp = new Array(NH);
       for (let j = 0; j < NH; j++) dp[j] = clip(dh[j] * (1 - h[j] * h[j]));
@@ -71,17 +92,18 @@ function rnn(w) {
       for (let i = 0; i < NI; i++) {
         const dz = clip(dxg[i] * xs[t][i] * gs[t][i] * (1 - gs[t][i]));
         if (!dz) continue;
-        m.bg[i] -= lr * dz;
-        for (let k = 0; k < NI; k++) { const xk = xs[t][k]; if (xk) m.wg[k * NI + i] -= lr * dz * xk; }
+        U('bg', i, dz);
+        for (let k = 0; k < NI; k++) { const xk = xs[t][k]; if (xk) U('wg', k * NI + i, dz * xk); }
       }
       for (let j = 0; j < NH; j++) {
         if (!dp[j]) continue;
-        for (let i = 0; i < NI; i++) m.w1[i * NH + j] -= lr * dp[j] * xgs[t][i];
-        for (let i = 0; i < NH; i++) m.u[i * NH + j] -= lr * dp[j] * hprev[i];
-        m.b1[j] -= lr * dp[j];
+        for (let i = 0; i < NI; i++) U('w1', i * NH + j, dp[j] * xgs[t][i]);
+        for (let i = 0; i < NH; i++) U('u', i * NH + j, dp[j] * hprev[i]);
+        U('b1', j, dp[j]);
       }
       dhSig = nuevo;
     }
+    if (ad) aplicarAdam(lr * 0.15);
   };
   const pre = (x, q, lr) => {
     const { o } = step(x, cero());
@@ -103,7 +125,7 @@ function rnn(w) {
       const e = clip(os[t][w[t].a] - obj);
       dOs[t][w[t].a] = e; err += e * e; cnt++;
     }
-    if (cnt || aux) grad(xs, dOs, null, lr, dPs);
+    if (cnt || aux) grad(xs, dOs, null, lr, dPs, ADAM);
     return cnt ? err / cnt : 0;
   };
   const copiar = (o) => { for (const k of ['w1', 'u', 'b1', 'w2', 'b2', 'w3', 'b3', 'wg', 'bg']) m[k] = o.m[k].slice(); };
@@ -358,6 +380,12 @@ function crearNN(bot, ruta, rutaDatos) {
       entrenar(150);
       if (bot._bandits) bot._bandits.nnExtra = {};
       guardar();
+    },
+    autopsia: () => {
+      const ep = act.length ? act : eps[eps.length - 1];
+      if (!ep || ep.length < 2) return;
+      for (let k = 0; k < Math.min(8, ep.length); k++) { const q = ep[ep.length - 1 - k]; q.r = Math.max(-3, q.r - 0.7 * Math.pow(0.7, k)); }
+      if (!act.length) { for (let k = 0; k < 30; k++) { const i = k % redes.length; redes[i].tdVentana(ep, Math.max(0, ep.length - VENT), LR, objetivos[i]); } sucio = true; }
     },
     precalentar, simular, sugerir: () => (ultSug === null ? null : ACC[ultSug]), predAtaque: () => (ultPred && ultPred.length >= 5 ? { swing: c((ultPred[3] + 0.8) / 1.6, 0, 1), hurt: c((ultPred[4] + 0.8) / 1.6, 0, 1), fiable: st.pv === 2 && st.pn > 150 && st.pe < st.pb } : null), predRival: () => (ultPred ? { cierre: -ultPred[0] * 3, lateral: ultPred[1] * 3, altura: ultPred[2] * 2 } : null), estado: () => st, activo, guardar, ACC, entrenar, _estadoDe: estado,
   };

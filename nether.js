@@ -99,7 +99,7 @@ function crearNether(h) {
 
   async function recogerBlaze() {
     for (let k = 0; k < 6; k++) {
-      const it = Object.values(bot.entities).find((e) => e.name === 'item' && e.position.distanceTo(bot.entity.position) < 20 && (() => { try { const d = e.getDroppedItem && e.getDroppedItem(); return d && /blaze_rod|nether_wart|ancient_debris|soul_sand|netherite|gold_ingot|smithing_template/.test(d.name); } catch (x) { return false; } })());
+      const it = Object.values(bot.entities).find((e) => e.name === 'item' && e.position.distanceTo(bot.entity.position) < 20 && (() => { try { const d = e.getDroppedItem && e.getDroppedItem(); return d && /blaze_rod|nether_wart|ancient_debris|soul_sand|netherite|gold_ingot|smithing_template|ender_pearl|obsidian|potion|iron_nugget|fire_charge|quartz|magma_cream|string|gravel/.test(d.name); } catch (x) { return false; } })());
       if (!it) return;
       await ir(it.position.x, it.position.y, it.position.z, 0.6, 8000);
     }
@@ -162,6 +162,31 @@ function crearNether(h) {
       await recogerBlaze();
     }
   }
+  async function trueque() {
+    if (cuenta(/^gold_ingot$/) < 3) return;
+    const casco = items().find((i) => i.name === 'golden_helmet') || (bot.inventory.slots[5] && bot.inventory.slots[5].name === 'golden_helmet' ? bot.inventory.slots[5] : null);
+    if (!casco || !mob(/^piglin$/, 28)[0]) return;
+    const previo = bot.inventory.slots[5] ? bot.inventory.slots[5].name : null;
+    try {
+      if (previo !== 'golden_helmet') await bot.equip(casco, 'head');
+      for (let k = 0; k < 4 && cuenta(/^gold_ingot$/) >= 1 && activo && seguro(); k++) {
+        const pg = mob(/^piglin$/, 28)[0];
+        if (!pg) break;
+        await ir(pg.position.x, pg.position.y, pg.position.z, 2, 12_000);
+        const ing = items().find((i) => i.name === 'gold_ingot');
+        if (!ing) break;
+        await bot.equip(ing, 'hand');
+        await bot.lookAt(pg.position.offset(0, pg.height * 0.8, 0), true);
+        await bot.activateEntity(pg);
+        estado('trueque con piglin');
+        await dormir(7000);
+        await recogerBlaze();
+      }
+    } catch (e) { /* ignorar */ } finally {
+      const orig = previo && previo !== 'golden_helmet' ? items().find((i) => i.name === previo) : null;
+      if (orig) await bot.equip(orig, 'head').catch(() => {});
+    }
+  }
   async function wart() {
     for (let k = 0; k < 4 && cuenta(/^nether_wart$/) < 6; k++) {
       const w = bot.findBlock({ matching: (b) => b && b.name === 'nether_wart', maxDistance: 40 });
@@ -179,6 +204,7 @@ function crearNether(h) {
     while (activo && seguro() && !(cuenta(/^blaze_rod$/) >= 4 && cuenta(/^nether_wart$/) >= 3 && ((cuenta(/^soul_sand$/) >= 4 && faltaDebris() === 0) || Date.now() - t0 > 11 * 60_000))) {
       await escombros();
       await saquear();
+      await trueque();
       const f = bot.findBlock({ matching: (b) => b && /^(nether_bricks|nether_brick_fence|nether_brick_stairs)$/.test(b.name), maxDistance: 100 });
       if (f) {
         estado('en la fortaleza');
