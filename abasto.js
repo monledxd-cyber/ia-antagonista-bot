@@ -458,6 +458,8 @@ function crearAbasto(bot, o) {
     { item: 'crossbow', cuando: () => tiene(/^bow$/) && !tiene(/^crossbow$/) },
     { item: 'golden_apple', cuando: () => cuenta(/^golden_apple$/) < 2 },
     { item: 'golden_helmet', cuando: () => cuenta(/^gold_ingot$/) >= 9 && !tiene(/^golden_helmet$/) && !(bot.inventory.slots[5] && bot.inventory.slots[5].name === 'golden_helmet') && !!(bot._metas && bot._metas.hechas().nether) },
+    { item: 'paper', n: 3, cuando: () => (tiene(/^elytra$/) || (bot.inventory.slots[6] && bot.inventory.slots[6].name === 'elytra')) && cuenta(/^sugar_cane$/) >= 3 && cuenta(/^paper$/) < 4 },
+    { item: 'firework_rocket', n: 3, cuando: () => (tiene(/^elytra$/) || (bot.inventory.slots[6] && bot.inventory.slots[6].name === 'elytra')) && cuenta(/^paper$/) >= 1 && cuenta(/^gunpowder$/) >= 1 && cuenta(/^firework_rocket$/) < 24 },
     { item: 'flint_and_steel', cuando: () => !tiene(/^flint_and_steel$/) },
     { item: 'fishing_rod', cuando: () => !tiene(/^fishing_rod$/) },
     { item: 'piston', n: 4, cuando: () => cuenta(/^piston$/) < 4 },
@@ -473,6 +475,7 @@ function crearAbasto(bot, o) {
   const enc = require('./encantador').crearEncantador({ bot, diag, o, items, cuenta, tiene, bloqueN, colocar, craftear, libre, dormir, cazar });
   const ex = require('./extras').crearExtras({ bot, goals, diag, o, items, cuenta, tiene, bloqueN, colocar, craftear, cocinar, libre, dormir, memoria: o.memoria, VALIOSO, buscarVar, get base() { return base; } });
   const fj = require('./forja').crearForja({ bot, diag, o, items, cuenta, tiene, bloqueN, colocar, craftear, cocinar, libre, dormir, ruta: require('path').join(__dirname, process.env.IA_FORJA_ARCH || 'forja_am.json') });
+  const al = require('./aldeanos').crearAldeanos({ bot, diag, o, items, cuenta, tiene, colocar, craftear, fabricar, libre, dormir, ruta: require('path').join(__dirname, process.env.IA_ALDEA_ARCH || 'aldeanos_am.json') });
   const nether = require('./nether').crearNether({ bot, goals, diag, items, cuenta, tiene, libre, dormir });
   bot._nether = nether;
   const finEnd = require('./end').crearEnd({ bot, goals, diag, items, cuenta, tiene, libre, dormir, craftear });
@@ -826,6 +829,7 @@ function crearAbasto(bot, o) {
     ['libros', enc.libros],
     ['unir', enc.unir],
     ['pociones', ex.pociones],
+    ['aldeanos', al.aldea],
     ['forja', fj.forja],
     ['granjawart', fj.wart],
     ['asalto', ex.asalto],
@@ -962,7 +966,7 @@ function crearAbasto(bot, o) {
     const rank = (n) => { const i = frente.indexOf(n); return i < 0 ? 100 : i; };
     const env = {};
     for (const kv of (process.env.IA_PESOS || '').split(',')) { const [k, v] = kv.split('='); if (k && +v > 0) env[k.trim()] = +v; }
-    const urg = { horno: hornoPend ? 4 : 0.1, esquejes: 0.3, replantar: 0.4, madera: cuenta(/_log$|_planks$/) < 6 ? 2.5 : 1, comida: (tiene(CRUDO) && hornoPosible()) ? 0.2 : cuenta(COMIDA) < 3 ? 3 : cuenta(COMIDA) < 6 ? 1.3 : 0.7, basura: items().length >= 32 ? 3 : 0.5, nether: nether.listo() ? (bot._lag && bot._lag.malo() ? 0.6 : 3) : 0.4, cobre: 0.6, oro: 0.8, redstone: 0.7, lapis: (tiene(/^enchanting_table$/) || bloqueN(/^enchanting_table$/, 48)) ? 2 : 0.4, diamante: cuenta(/^diamond$/) < 3 ? 2.5 : 1, hierro: cuenta(/^(raw_iron|iron_ingot)$/) < 6 ? 2 : 1, carbon: cuenta(/^(coal|charcoal)$/) < 3 ? 2 : 1, end: finEnd.quiere() ? (bot._lag && bot._lag.malo() ? 0.6 : 4) : 0.2, encantar: ((bot.experience && bot.experience.level) || 0) >= 5 ? 0.8 : 0.3, estanterias: 0.25, azucar: 0.2, cuero: 0.2, libros: 0.3, unir: 0.3, asalto: (bot._sadismo ? bot._sadismo() : 1) * (bot._lag && bot._lag.malo() ? 0.4 : 1), xp: ((bot.experience && bot.experience.level) || 0) < 5 ? 1.8 : 1 , forja: cuenta(/^(ancient_debris|netherite_scrap|netherite_ingot)$/) > 0 || tiene(/^netherite_upgrade_smithing_template$/) ? 2.5 : 0.1, granjawart: fj.granja() ? 0.8 : (tiene(/^soul_sand$/) && tiene(/^nether_wart$/) ? 1.4 : 0.1) };
+    const urg = { horno: hornoPend ? 4 : 0.1, esquejes: 0.3, replantar: 0.4, madera: cuenta(/_log$|_planks$/) < 6 ? 2.5 : 1, comida: (tiene(CRUDO) && hornoPosible()) ? 0.2 : cuenta(COMIDA) < 3 ? 3 : cuenta(COMIDA) < 6 ? 1.3 : 0.7, basura: items().length >= 32 ? 3 : 0.5, nether: nether.listo() ? (bot._lag && bot._lag.malo() ? 0.6 : 3) : 0.4, cobre: 0.6, oro: 0.8, redstone: 0.7, lapis: (tiene(/^enchanting_table$/) || bloqueN(/^enchanting_table$/, 48)) ? 2 : 0.4, diamante: cuenta(/^diamond$/) < 3 ? 2.5 : 1, hierro: cuenta(/^(raw_iron|iron_ingot)$/) < 6 ? 2 : 1, carbon: cuenta(/^(coal|charcoal)$/) < 3 ? 2 : 1, end: finEnd.quiere() ? (bot._lag && bot._lag.malo() ? 0.6 : 4) : 0.2, encantar: ((bot.experience && bot.experience.level) || 0) >= 5 ? 0.8 : 0.3, estanterias: 0.25, azucar: 0.2, cuero: 0.2, libros: 0.3, unir: 0.3, asalto: (bot._sadismo ? bot._sadismo() : 1) * (bot._lag && bot._lag.malo() ? 0.4 : 1), xp: ((bot.experience && bot.experience.level) || 0) < 5 ? 1.8 : 1 , forja: cuenta(/^(ancient_debris|netherite_scrap|netherite_ingot)$/) > 0 || tiene(/^netherite_upgrade_smithing_template$/) ? 2.5 : 0.1, granjawart: fj.granja() ? 0.8 : (tiene(/^soul_sand$/) && tiene(/^nether_wart$/) ? 1.4 : 0.1) , aldeanos: (al.hay() && !al.mending() && cuenta(/^emerald$/) >= 20) ? 1.6 : 0.15 };
     if (bot._nnAb) bot._nnAb.preparar(necesidades.map((x) => x[0]));
     const pesos = necesidades.map((x, i) => {
       const n = x[0], r = rank(n);

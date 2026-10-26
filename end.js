@@ -85,6 +85,75 @@ function crearEnd(h) {
     return dragonMuerto;
   }
 
+
+  const BOTIN = /^(elytra|diamond|iron_ingot|gold_ingot|emerald|ender_pearl|enchanted_|[a-z_]*shulker|saddle|dragon_head|netherite_|[a-z_]*_horse_armor|beetroot|name_tag|golden_apple|diamond_[a-z]+|iron_[a-z]+|gold_[a-z]+)/;
+  async function irGateway() {
+    const g = bot.findBlock({ matching: (b) => b && b.name === 'end_gateway', maxDistance: 140 });
+    if (!g) return false;
+    const origen = bot.entity.position.clone();
+    for (let k = 0; k < 4 && cuenta(/^ender_pearl$/) >= 1 && enEnd(); k++) {
+      const a = Math.random() * Math.PI * 2, r = 9 + k * 2;
+      await ir(g.position.x + Math.cos(a) * r, g.position.y, g.position.z + Math.sin(a) * r, 2, 25_000);
+      const p = bot.entity.position, dist = Math.hypot(g.position.x - p.x, g.position.z - p.z);
+      try {
+        await bot.equip(items().find((i) => i.name === 'ender_pearl'), 'hand');
+        await bot.lookAt(g.position.offset(0.5, 0.5 + dist * 0.08, 0.5), true);
+        bot.activateItem(); await dormir(300); try { bot.deactivateItem(); } catch (x) { /* ignorar */ }
+      } catch (x) { continue; }
+      await dormir(3500);
+      if (bot.entity.position.distanceTo(origen) > 300) return true;
+    }
+    return false;
+  }
+  async function saquearCiudad() {
+    const t0 = Date.now(); let botin = 0;
+    const visitados = new Set();
+    while (enEnd() && Date.now() - t0 < 10 * 60_000 && bot.health >= 10) {
+      const nave = bot.findBlock({ matching: (b) => b && /^dragon_(wall_)?head$/.test(b.name), maxDistance: 100 });
+      const ciudad = nave || bot.findBlock({ matching: (b) => b && /^(purpur_block|purpur_pillar|end_stone_bricks)$/.test(b.name), maxDistance: 128 });
+      if (!ciudad) { const p = bot.entity.position, a = Math.random() * Math.PI * 2; await irXZ(p.x + Math.cos(a) * 60, p.z + Math.sin(a) * 60, 40_000); continue; }
+      await ir(ciudad.position.x, ciudad.position.y + 1, ciudad.position.z, 3, 40_000);
+      if (nave) {
+        for (const f of Object.values(bot.entities).filter((x) => /item_frame/.test(x.name || '') && x.position.distanceTo(bot.entity.position) < 16)) {
+          if (f.position.distanceTo(bot.entity.position) > 3) await ir(f.position.x, f.position.y, f.position.z, 2, 8000);
+          try { await bot.lookAt(f.position, true); bot.attack(f); } catch (x) { /* ignorar */ }
+          await dormir(400);
+        }
+        for (let k = 0; k < 6; k++) {
+          const it = Object.values(bot.entities).find((x) => x.name === 'item' && x.position.distanceTo(bot.entity.position) < 20);
+          if (!it) break;
+          await ir(it.position.x, it.position.y, it.position.z, 0.6, 6000);
+        }
+        if (tiene(/^elytra$/)) { estado('elytra conseguida'); return true; }
+      }
+      for (const p of bot.findBlocks({ matching: bot.registry.blocksByName.chest.id, maxDistance: 48, count: 8 }).filter((q) => !visitados.has(q.toString())).slice(0, 4)) {
+        if (bot.health < 10) break;
+        visitados.add(p.toString());
+        await ir(p.x, p.y, p.z, 2, 20_000);
+        const b = bot.blockAt(p);
+        if (!b || b.name !== 'chest') continue;
+        try {
+          const w = await bot.openContainer(b);
+          try { for (const i of w.containerItems().filter((x) => BOTIN.test(x.name)).slice(0, 12)) { try { await w.withdraw(i.type, null, i.count); botin++; } catch (x) { break; } } }
+          finally { try { w.close(); } catch (x) { /* ignorar */ } }
+        } catch (x) { /* siguiente */ }
+      }
+      if (tiene(/^elytra$/)) return true;
+      if (!nave) { const p = bot.entity.position, a = Math.random() * Math.PI * 2; await irXZ(p.x + Math.cos(a) * 40, p.z + Math.sin(a) * 40, 30_000); }
+    }
+    return botin > 0;
+  }
+  async function ciudadEnd() {
+    if (process.env.IA_END_CIUDAD !== '1' || !dragonMuerto || bot.health < 18 || cuenta(/^ender_pearl$/) < 1) return false;
+    estado('rumbo a las islas exteriores');
+    if (!(await irGateway())) return false;
+    estado('buscando ciudad del End');
+    const ok = await saquearCiudad();
+    const g = bot.findBlock({ matching: (b) => b && b.name === 'end_gateway', maxDistance: 140 });
+    if (g && enEnd()) { try { bot.pathfinder.setGoal(new goals.GoalBlock(g.position.x, g.position.y, g.position.z)); } catch (x) { /* ignorar */ } await dormir(8000); try { bot.pathfinder.setGoal(null); } catch (x) { /* ignorar */ } }
+    return ok;
+  }
+
   bot.on('entityDead', (e) => { if (e && e.name === 'ender_dragon') dragonMuerto = true; });
 
   async function expedicion() {
@@ -104,6 +173,7 @@ function crearEnd(h) {
       await dormir(2000);
       const ok = await pelea();
       estado(ok ? 'dragon derrotado' : 'pelea terminada sin victoria');
+      if (ok) { try { await ciudadEnd(); } catch (x) { diag.log('error', 'end', 'ciudad: ' + x.message); } }
       await irXZ(0, 0, 40_000);
       return true;
     } catch (e) { diag.log('error', 'end', e.message); return false; } finally { activo = false; }
