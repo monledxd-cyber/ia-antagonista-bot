@@ -1,0 +1,23 @@
+const assert = require('assert');
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
+process.env.IA_RESPALDOS = 'respaldos_test';
+const R = require('../respaldo');
+const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'resp-'));
+const f = path.join(tmp, 'nn_test.json');
+fs.rmSync(path.join(__dirname, '..', 'respaldos_test'), { recursive: true, force: true });
+fs.writeFileSync(f, JSON.stringify({ a: 1 }));
+R._cfg([f]);
+assert.strictEqual(R.rotar(), 1);
+assert.strictEqual(R.rotar(), 0);
+fs.writeFileSync(f, '{"a": 1, "roto');
+assert.strictEqual(R.restaurar(), 1);
+assert.deepStrictEqual(JSON.parse(fs.readFileSync(f, 'utf8')), { a: 1 });
+fs.rmSync(f);
+assert.strictEqual(R.restaurar(), 1);
+assert.ok(fs.existsSync(f));
+for (let i = 0; i < 12; i++) { fs.writeFileSync(f, JSON.stringify({ a: i + 2 })); R.rotar(); const d = path.join(__dirname, '..', 'respaldos_test'); for (const x of fs.readdirSync(d)) { const m = x.match(/\.(\d{8}T)(\d{6})\.json$/); if (m) fs.renameSync(path.join(d, x), path.join(d, x.replace(m[0], '.' + m[1] + String(100000 + i * 7).slice(1) + '.json'))); } }
+assert.ok(R.lista(f).length <= 7, 'poda: ' + R.lista(f).length);
+fs.rmSync(path.join(__dirname, '..', 'respaldos_test'), { recursive: true, force: true });
+console.log('OK: respaldo');

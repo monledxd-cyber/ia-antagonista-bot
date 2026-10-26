@@ -19,6 +19,7 @@ function crearSesion(bot, ruta, version) {
     const o = { id, version, min: Math.round((Date.now() - ini) / 60000), muertes, eventos: ev };
     try { if (bot._atascos) o.atascos = bot._atascos.lista().filter((a) => a.t >= ini).length; } catch (e) { /* ignorar */ }
     try { if (bot._golpe) o.golpe = bot._golpe.resumen(); } catch (e) { /* ignorar */ }
+    try { if (bot._refl) o.reflejos = bot._refl.resumen(); } catch (e) { /* ignorar */ }
     try { const pa = bot._nn && bot._nn.predAtaque && bot._nn.predAtaque(); if (pa) o.predAtaque = { swing: +pa.swing.toFixed(2), hurt: +pa.hurt.toFixed(2), fiable: !!pa.fiable }; } catch (e) { /* ignorar */ }
     try { const st = bot._nn && bot._nn.estado && bot._nn.estado(); if (st) o.nn = { pn: st.pn, pv: st.pv }; } catch (e) { /* ignorar */ }
     try { if (bot._metas) o.metas = Object.keys(bot._metas.hechas()).length; } catch (e) { /* ignorar */ }

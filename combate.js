@@ -484,6 +484,7 @@ function iniciarCombate(bot, api) {
     } else if (escudoArriba) bajar();
   }, 100);
   api.intervalos.push(defensa);
+  bot._escudo = { alzar, bajar, arriba: () => escudoArriba };
 
   // ---------- Water-drop (MLG): cubo de agua al caer ----------
   let yMax = -Infinity, cuboListo = false, aguaPuesta = false;

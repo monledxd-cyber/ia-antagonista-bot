@@ -34,3 +34,6 @@ prueba/node_modules
 prueba/ultima_prueba.log
 prueba/cache
 forja_am.json
+respaldos/
+*.corrupto
+*.antes
