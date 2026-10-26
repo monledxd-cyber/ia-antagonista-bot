@@ -50,7 +50,7 @@ function crearAldeanos(h) {
           if (m && !m.t.disabled) {
             const a1 = m.t.firstInput;
             if (a1 && cuenta(new RegExp('^' + a1.name + '$')) >= a1.count) {
-              try { await bot.trade(v, m.i, 1); encontrado = true; log('compro Mending'); if (bot._premio) bot._premio.evento('mending', { k: 'mending', v: 2 }); } catch (e) { diag.log('warn', 'aldeanos', 'trato mending fallo: ' + e.message); }
+              try { await bot.trade(v, m.i, 1); encontrado = true; log('compro Mending'); if (bot._eventos) bot._eventos.registrar('logro', 'compre un libro de Mending'); if (bot._premio) bot._premio.evento('mending', { k: 'mending', v: 2 }); } catch (e) { diag.log('warn', 'aldeanos', 'trato mending fallo: ' + e.message); }
             } else { encontrado = true; log('Mending cuesta mas de lo que tengo'); }
           }
         } finally { try { v.close(); } catch (e) { /* ignorar */ } }

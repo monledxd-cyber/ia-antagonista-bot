@@ -58,7 +58,7 @@ async function preguntarIA(...args) {
   if (L) { try { prep = L.preparar(ctx); args[1] = Object.assign({}, ctx, { lenguaje: prep.texto }); } catch (e) { prep = null; } }
   if (L && prep && slmActual && slmActual.listo() && !ctx.voluntad && Math.random() < L.pSLM(Number(process.env.IA_SLM_P) || 0.3)) {
     const f = await slmActual.generar(L.infoSLM(prep.meta), { evitar: L.evitar() });
-    if (f) { L.emitido(ctx.nombre, f, prep.meta, 'slm'); return f; }
+    if (f) return L.emitido(ctx.nombre, f, prep.meta, 'slm') || f;
   }
   try {
     const r = await preguntarIA_base(...args);
@@ -66,7 +66,7 @@ async function preguntarIA(...args) {
     return r;
   } catch (e) {
     let f = null;
-    if (L && prep && slmActual && slmActual.listo()) { f = await slmActual.generar(L.infoSLM(prep.meta), { evitar: L.evitar() }); if (f) L.emitido(ctx.nombre, f, prep.meta, 'slm'); }
+    if (L && prep && slmActual && slmActual.listo()) { f = await slmActual.generar(L.infoSLM(prep.meta), { evitar: L.evitar() }); if (f) f = L.emitido(ctx.nombre, f, prep.meta, 'slm') || f; }
     if (!f && L) { try { f = L.local(ctx); } catch (e2) { f = null; } }
     if (f) { diag.log('info', 'lenguaje', 'frase local por fallo de IA'); return f; }
     throw e;
@@ -79,7 +79,7 @@ async function fraseLocal(ctx) {
   if (!L) return '';
   try {
     const prep = L.preparar(ctx);
-    if (slmActual && slmActual.listo()) { const f = await slmActual.generar(L.infoSLM(prep.meta), { evitar: L.evitar() }); if (f) { L.emitido(ctx.nombre, f, prep.meta, 'slm'); return f; } }
+    if (slmActual && slmActual.listo()) { const f = await slmActual.generar(L.infoSLM(prep.meta), { evitar: L.evitar() }); if (f) return L.emitido(ctx.nombre, f, prep.meta, 'slm') || f; }
     return L.local(ctx) || '';
   } catch (e) { return ''; }
 }
@@ -128,7 +128,7 @@ const lastCall = new Map(); // nombre -> timestamp
 const trampaLastUse = new Map(); // nombre -> timestamp de la ultima trampa activada
 const historialJugador = new Map(); // nombre -> { interacciones, ultimasRespuestas: [], eventos: [] }
 const persist = require('./persist');
-const RUTAS_MEM = [process.env.IA_MEMORIA || 'memoria_jugadores.json', process.env.IA_DIARIO || 'diario_am.json', process.env.IA_BASE || 'base_am.json', process.env.IA_CLAVES || 'claves_am.json', process.env.IA_APRENDIZAJE || 'aprendizaje.json', process.env.IA_HABILIDADES || 'habilidades_am.json', process.env.IA_STATS || 'stats_am.json', process.env.IA_BANDITS || 'bandits_am.json', process.env.IA_ITEMS || 'items_am.json', process.env.IA_NN_PESOS || 'nn_am.json', process.env.IA_NN_DATOS || 'datos_nn.json', process.env.IA_PREMIO || 'premio_am.json', process.env.IA_MAPA_ARCH || 'mapa_am.json', process.env.IA_AUTOPSIA_ARCH || 'autopsias_am.json', process.env.IA_LENGUAJE_ARCH || 'lenguaje_am.json', process.env.IA_CORPUS_ARCH || 'corpus_am.json', 'atascos_am.json', 'afecto_am.json', 'metas_am.json', 'nn_abasto_am.json', 'sesiones_am.json', 'forja_am.json', 'aldeanos_am.json']
+const RUTAS_MEM = [process.env.IA_MEMORIA || 'memoria_jugadores.json', process.env.IA_DIARIO || 'diario_am.json', process.env.IA_BASE || 'base_am.json', process.env.IA_CLAVES || 'claves_am.json', process.env.IA_APRENDIZAJE || 'aprendizaje.json', process.env.IA_HABILIDADES || 'habilidades_am.json', process.env.IA_STATS || 'stats_am.json', process.env.IA_BANDITS || 'bandits_am.json', process.env.IA_ITEMS || 'items_am.json', process.env.IA_NN_PESOS || 'nn_am.json', process.env.IA_NN_DATOS || 'datos_nn.json', process.env.IA_PREMIO || 'premio_am.json', process.env.IA_MAPA_ARCH || 'mapa_am.json', process.env.IA_AUTOPSIA_ARCH || 'autopsias_am.json', process.env.IA_LENGUAJE_ARCH || 'lenguaje_am.json', process.env.IA_CORPUS_ARCH || 'corpus_am.json', 'atascos_am.json', 'afecto_am.json', 'metas_am.json', 'nn_abasto_am.json', 'sesiones_am.json', 'forja_am.json', 'aldeanos_am.json', 'eventos_am.json', 'estructuras_am.json']
   .map((r) => (require('path').isAbsolute(r) ? r : require('path').join(__dirname, r)));
 persist.restaurar(RUTAS_MEM); // Render: disco efimero -> recupera la memoria del gist si esta configurado
 require('./respaldo').iniciar(RUTAS_MEM);
@@ -379,10 +379,12 @@ function iniciarHuida(bot) {
   if (process.env.IA_ATASCO !== '0') setTimeout(() => require('./atasco').crearAtasco(bot, require('path').join(__dirname, process.env.IA_ATASCO_ARCH || 'atascos_am.json')), 0);
   if (process.env.IA_NADO !== '0') require('./nado').crearNado(bot);
   bot._modelo = (n) => (memoria.modelo ? memoria.modelo(n) : null);
+  bot._memHechos = (n) => (memoria.hechos ? memoria.hechos(n) : null);
   require('./peleas').crearPeleas(bot, memoria);
   bot._sumarVec = (n, c, x) => memoria.sumarVec(n, c, x);
   require('./stats').conectarStats(bot, statsAM, diag);
   require('./sesion').crearSesion(bot, require('path').join(__dirname, process.env.IA_SESION_ARCH || 'sesiones_am.json'), require('./package.json').version);
+  require('./eventos').crearEventos(bot, require('path').join(__dirname, process.env.IA_EVENTOS_ARCH || 'eventos_am.json'));
   if (process.env.IA_REFLEJOS !== '0') require('./reflejos').crearReflejos(bot);
   if (process.env.IA_AFECTO !== '0') require('./afecto').crearAfecto(bot, memoria, require('path').join(__dirname, process.env.IA_AFECTO_ARCH || 'afecto_am.json'));
   require('./premio').crearPremio(bot, statsAM, memoria, require('path').join(__dirname, process.env.IA_PREMIO || 'premio_am.json'));

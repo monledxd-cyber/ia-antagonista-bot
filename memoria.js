@@ -8,6 +8,21 @@ function crearMemoria(ruta) {
   try { datos = JSON.parse(fs.readFileSync(ARCHIVO, 'utf8')) || {}; } catch (e) { datos = {}; }
   let sucio = false;
   const get = (n) => (datos[n] = datos[n] || { visitas: 0, primera: Date.now(), ultima: Date.now(), muertes: 0, mato: 0, trampas: 0, armas: {}, huyo: 0, obs: {}, n: 0, lugares: {} });
+  let gc = null, gt = 0;
+  const global_ = () => {
+    if (gc && Date.now() - gt < 60_000) return gc;
+    const L = Object.values(datos).filter((x) => x && x.n > 20);
+    gt = Date.now();
+    if (L.length < 3) return (gc = null);
+    const tot = L.reduce((a, x) => a + x.n, 0), obs = {};
+    for (const x of L) for (const [k, v] of Object.entries(x.obs || {})) obs[k] = (obs[k] || 0) + v;
+    for (const k of Object.keys(obs)) obs[k] /= tot;
+    const armas = {};
+    for (const x of L) for (const [k, v] of Object.entries(x.armas || {})) armas[k] = (armas[k] || 0) + v;
+    const a0 = Object.entries(armas).sort((a, b) => b[1] - a[1])[0];
+    const lid = L.reduce((a, x) => a + (x.pg || 0) + (x.pp || 0) + (x.huyo || 0), 0), hu = L.reduce((a, x) => a + (x.huyo || 0), 0);
+    return (gc = { obs, clase: a0 ? a0[0] : '', huye: lid >= 6 ? hu / lid : 0, jugadores: L.length });
+  };
   const guardar = () => {
     if (!sucio) return;
     try { fs.writeFileSync(ARCHIVO, JSON.stringify(datos)); sucio = false; } catch (e) { /* disco de solo lectura */ }
@@ -45,13 +60,21 @@ function crearMemoria(ruta) {
     estMarca: (n, k, ok) => { const j = get(n); j.est = j.est || {}; const a = (j.est[k] = j.est[k] || { ok: 0, mal: 0 }); if (ok) a.ok++; else a.mal++; sucio = true; },
     modelo: (n) => {
       const j = datos[n]; if (!j) return null;
+      const G = global_();
       const arma = Object.entries(j.armas || {}).sort((a, b) => b[1] - a[1])[0];
-      const a0 = arma ? arma[0] : '';
+      const a0 = arma ? arma[0] : (G ? G.clase : '');
       const clase = /mace/.test(a0) ? 'mace' : /crystal|anchor/.test(a0) ? 'cristal' : /_sword/.test(a0) ? 'espada' : /_axe/.test(a0) ? 'hacha' : /bow|trident/.test(a0) ? 'rango' : null;
-      const pct = (k) => (j.n > 20 ? Math.round(100 * (j.obs[k] || 0) / j.n) : 0);
+      const K = 20, nn = j.n || 0;
+      const pct = (k) => {
+        const loc = nn ? (j.obs[k] || 0) / nn : 0, g = G ? (G.obs[k] || 0) : 0;
+        if (nn > K) return Math.round(100 * loc);
+        return G ? Math.round(100 * (nn * loc + K * g) / (nn + K)) : 0;
+      };
       const lides = (j.pg || 0) + (j.pp || 0) + (j.huyo || 0);
-      return { clase, escudo: pct('escudo'), arco: pct('arco'), huye: lides >= 3 ? (j.huyo || 0) / lides : 0 };
+      return { clase, escudo: pct('escudo'), arco: pct('arco'), huye: lides >= 3 ? (j.huyo || 0) / lides : (G ? G.huye : 0) };
     },
+    hechos: (n) => { const j = datos[n]; return j ? { mato: j.mato || 0, gane: j.pg || 0, perdi: j.pp || 0, visitas: j.visitas || 0, muertes: j.muertes || 0 } : null; },
+    global: () => global_(),
     estDe: (n) => (datos[n] && datos[n].est) || {},
     pelea: (n, p) => { const j = get(n); j.peleas = j.peleas || []; j.peleas.push(p); if (j.peleas.length > 12) j.peleas.shift(); j.pg = (j.pg || 0) + (p.res === 'gane' ? 1 : 0); j.pp = (j.pp || 0) + (p.res === 'perdi' ? 1 : 0); for (const a of p.armas || []) j.armasPelea = Object.assign(j.armasPelea || {}, { [a]: ((j.armasPelea || {})[a] || 0) + 1 }); sucio = true; },
     cautela: (n) => { const l = ((datos[n] && datos[n].peleas) || []).slice(-5); return l.length ? l.filter((x) => x.res === 'perdi').length / l.length : 0; },

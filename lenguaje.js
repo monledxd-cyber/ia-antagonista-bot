@@ -136,6 +136,13 @@ function crearLenguaje(bot, ruta, rutaCorpus) {
     if (adv) partes.push('ventaja:' + adv.toFixed(2));
     const dom = RASGOS.map((k) => [k, rs[k]]).filter((x) => x[1] > 0.35).sort((a, b) => b[1] - a[1]);
     if (dom.length) partes.push('rasgos_rival:' + dom.map((x) => x[0] + ' ' + x[1].toFixed(2)).join(','));
+    try {
+      const A = bot._afecto, hs = bot._memHechos ? bot._memHechos(nombre) : null;
+      if (A) partes.push(`afecto_hacia_${nombre}: resentimiento ${A.resentimiento(nombre).toFixed(1)}, deshumanizacion ${A.deshum(nombre).toFixed(1)}`);
+      if (hs) partes.push(`historial_con_${nombre}: me mato ${hs.mato} veces, le gane ${hs.gane}, me gano ${hs.perdi}, ${hs.visitas} visitas`);
+      const ev = bot._eventos ? bot._eventos.resumen(nombre, 3) : '';
+      if (ev) partes.push('recuerdos_con_' + nombre + ':' + ev);
+    } catch (e) { /* ignorar */ }
     if (ultimo && Date.now() - ultimo.t < 60_000) partes.push('rival_dijo:"' + ultimo.m.replace(/"/g, "'") + '"');
     const bien = d.buenas.filter((b) => b.a === acc || b.e === estilo).sort((a, b) => b.r - a.r).slice(0, 3).map((b) => '"' + b.f + '"');
     if (bien.length) partes.push('ejemplos_que_funcionaron(imita la forma, no copies):' + bien.join(' / '));
@@ -144,14 +151,38 @@ function crearLenguaje(bot, ruta, rutaCorpus) {
     return { texto: partes.join('\n'), meta };
   }
 
+  function adornar(f, nombre, meta) {
+    const B = bot._bandits, A = bot._afecto;
+    const res = A ? A.resentimiento(nombre) : 0, des = A ? A.deshum(nombre) : 0;
+    const hs = bot._memHechos ? bot._memHechos(nombre) : null;
+    const ctx = res > 6 ? 'r2' : res > 2 ? 'r1' : 'r0';
+    const arms = [{ k: 'ninguno' }];
+    if (!new RegExp('\\b' + nombre.replace(/[^\w]/g, '.') + '\\b', 'i').test(f)) arms.push({ k: 'nombre' });
+    if (hs && (hs.mato > 0 || hs.gane > 0 || hs.perdi > 0)) arms.push({ k: 'recuerdo' });
+    if (des > 1.5) arms.push({ k: 'deshum' });
+    if (arms.length === 1) return f;
+    const e = B && B.elegir ? B.elegir('adorno', ctx, arms) : arms[0];
+    meta.adorno = { k: e.k, ctx };
+    const fin = f.match(/[.!?\u2026]+$/), cuerpo = fin ? f.slice(0, -fin[0].length) : f, pt = fin ? fin[0] : '.';
+    if (e.k === 'nombre') return Math.random() < 0.5 ? `${nombre}. ${f}` : `${cuerpo}, ${nombre}${pt}`;
+    if (e.k === 'recuerdo') {
+      const t = hs.mato > 0 && Math.random() < 0.5 ? `No olvido que me mataste, ${nombre}.` : hs.gane > hs.perdi ? `Ya te gane ${hs.gane} veces, ${nombre}.` : hs.perdi > 0 ? `Me ganaste ${hs.perdi} veces, ${nombre}. Lo recuerdo todo.` : `Te recuerdo, ${nombre}.`;
+      return `${f} ${t}`;
+    }
+    if (e.k === 'deshum') return `${cuerpo}, ${['criatura', 'carne', 'cosa'][Math.floor(Math.random() * 3)]}${pt}`;
+    return f;
+  }
+
   function emitido(nombre, texto, meta, origen) {
-    const f = limpiar(texto);
-    if (!f || !meta) return;
+    let f = limpiar(texto);
+    if (!f || !meta) return f;
+    if ((origen === 'slm' || origen === 'local') && nombre && process.env.IA_ADORNO !== '0') { try { f = limpiar(adornar(f, nombre, meta)) || f; } catch (e) { /* ignorar */ } }
     const e = bot.players[nombre] && bot.players[nombre].entity;
     pend.push({ ...meta, f, origen: origen || 'llm', d0: e && bot.entity ? e.position.distanceTo(bot.entity.position) : null, n0: bot._premio ? bot._premio.neto() : 0, hp0: bot.health, nm: (msgs.get(nombre) || []).length });
     console.log(`[habla ${(origen || 'llm').toUpperCase()} ${meta.estilo}] ${f}`);
     const u = ult.get(nombre) || []; u.push(meta.estilo); while (u.length > 6) u.shift(); ult.set(nombre, u);
     while (pend.length > 12) pend.shift();
+    return f;
   }
 
   function local(ctx) {
@@ -172,8 +203,7 @@ function crearLenguaje(bot, ruta, rutaCorpus) {
     ultLocal = ahora;
     const u = ult.get(nombre + '#l') || []; u.push(mejor); while (u.length > 5) u.shift(); ult.set(nombre + '#l', u);
     const f = mejor.replace(/\{n\}/g, nombre);
-    emitido(nombre, f, { nombre, clave, acc, estilo: 'local', t: ahora, base: mejor }, 'local');
-    return f;
+    return emitido(nombre, f, { nombre, clave, acc, estilo: 'local', t: ahora, base: mejor }, 'local') || f;
   }
 
   function recompensa(p) {
@@ -194,6 +224,7 @@ function crearLenguaje(bot, ruta, rutaCorpus) {
   function cerrar(p, r) {
     for (const k of [p.clave + '#' + p.estilo, '*#' + p.estilo]) { const a = arm(k); a.n++; a.r += r; }
     if (p.base) { const q = d.pl[p.base] || (d.pl[p.base] = { n: 0, r: 0 }); q.n++; q.r += r; }
+    if (p.adorno && bot._bandits && bot._bandits.premiar) { try { bot._bandits.premiar('adorno', p.adorno.ctx, p.adorno.k, Math.max(-1, Math.min(1, r))); } catch (e) { /* ignorar */ } }
     d.n++; sucio = true;
     { const o = d.or[p.origen] || (d.or[p.origen] = { n: 0, r: 0 }); o.n++; o.r += r; }
     if (r > 0.45 && p.f.length > 15) {

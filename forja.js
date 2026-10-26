@@ -84,7 +84,7 @@ function crearForja(h) {
       diag.log('warn', 'forja', 'herreria: ' + String(e && e.message).slice(0, 80));
     } finally { try { if (w) w.close(); } catch (e) { /* ignorar */ } }
     try { o.equipar(); } catch (e) { /* ignorar */ }
-    if (ok) { log('mejoro ' + c.name + ' a netherite'); if (bot._premio) bot._premio.evento('netherite', { k: c.name, v: 1 }); }
+    if (ok) { log('mejoro ' + c.name + ' a netherite'); if (bot._premio) bot._premio.evento('netherite', { k: c.name, v: 1 }); if (bot._eventos) bot._eventos.registrar('logro', 'mejore ' + c.name + ' a netherite'); }
     return ok;
   }
 

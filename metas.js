@@ -19,7 +19,7 @@ const METAS = [
   { id: 'arco', v: 5, cl: 0.4, t: 450, pre: ['madera'], pasos: { cuerda: 0.8, flechas: 1, pedernal: 0.6, esqueletos: 0.5 }, req: [has('arco', 'bow', 'crossbow'), cnt('16 flechas', /^arrow$/, 16)] },
   { id: 'explosivos', v: 6, cl: 0.3, t: 500, pre: ['hierro'], pasos: { polvora: 1, tnt: 1, placa: 0.4, esqueletos: 0.6 }, req: [cnt('4 tnt', /^tnt$/, 4)] },
   { id: 'perlas', v: 5, cl: 0.3, t: 600, pre: ['hierro'], pasos: { perlas: 1, nether: 0.4 }, req: [cnt('4 perlas', /^ender_pearl$/, 4)] },
-  { id: 'diamante', v: 10, cl: 0.4, t: 1500, pre: ['hierro'], pasos: { diamante: 1, mina: 0.8, equipo: 1, hierro: 0.4 },
+  { id: 'diamante', v: 10, cl: 0.4, t: 1500, pre: ['hierro'], pasos: { diamante: 1, mina: 0.8, equipo: 1, hierro: 0.4, estructuras: 0.3 },
     req: [has('pico de diamante', ...tool('pickaxe', 3)), has('espada de diamante', ...tool('sword', 3)), has('casco', ...arm('helmet', 1)), has('peto', ...arm('chestplate', 1)), has('pantalon', ...arm('leggings', 1)), has('botas', ...arm('boots', 1))] },
   { id: 'curacion', v: 7, cl: 0.6, t: 600, pre: ['hierro'], pasos: { oro: 0.8, pociones: 0.8, granjawart: 0.5, cosecha: 0.3, nether: 0.3 }, req: [todo('2 manzanas doradas o totem', (I) => I.c(/^(golden_apple|enchanted_golden_apple)$/) >= 2 || I.has('totem_of_undying'))] },
   { id: 'encantar', v: 8, cl: 0.2, t: 1200, pre: ['diamante'], pasos: { lapis: 1, obsidiana: 0.8, diamante: 0.6, encantar: 1, xp: 0.8, estanterias: 0.6, azucar: 0.4, cuero: 0.4, libros: 0.6, unir: 0.5 }, req: [todo('equipo encantado', (I) => I.encantado())] },

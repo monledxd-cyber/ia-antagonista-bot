@@ -38,3 +38,5 @@ respaldos/
 *.corrupto
 *.antes
 aldeanos_am.json
+eventos_am.json
+estructuras_am.json
