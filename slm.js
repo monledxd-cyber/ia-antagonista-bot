@@ -20,6 +20,21 @@ function crearSLM(dir) {
         filas.push({ t: x.t, acc: a[0], est: a[1], rs: (a[2] || '0000').split('').map(Number), r: x.r || 0 });
       }
     } catch (e) {}
+    try {
+      const VB = { atacar: ['v+', 'v0'], retroceder: ['v-', 'v0'], curar: ['v-', 'v0'], bloquear: ['v0', 'v-'], esquivar: ['v0', 'v-'], carga: ['v+', 'v+'] };
+      const RV = { hostil: 0, amenaza: 1, suplica: 2, burla: 3 }, vistas = new Set(filas.map((x) => x.t));
+      const sd = path.join(dir, 'semilla');
+      for (const a of fs.readdirSync(sd).filter((x) => x.endsWith('.json'))) {
+        const acc = a.slice(0, -5), d = JSON.parse(fs.readFileSync(path.join(sd, a), 'utf8'));
+        for (const [est, fr] of Object.entries(d)) for (const t of fr) {
+          if (vistas.has(t)) continue;
+          vistas.add(t);
+          const rs = [0, 0, 0, 0];
+          if (acc === 'rival') rs[RV[est]] = 3;
+          filas.push({ t, acc: acc === 'rival' ? 'otra' : acc, est: acc === 'rival' ? (est === 'burla' ? 'burla_fallo' : est === 'amenaza' ? 'susurro' : 'frio') : est, rs, r: 0.5 });
+        }
+      }
+    } catch (e) {}
     return filas;
   }
   function recuperar(info, evitar) {
@@ -74,9 +89,21 @@ function crearSLM(dir) {
   async function generar(info, opc) {
     await cargar();
     opc = opc || {};
-    if (!sesion) return recuperar(info, opc.evitar || []) || rechazo('modelo no cargado');
-    const r = await generarModelo(info, opc);
-    return r || recuperar(info, opc.evitar || []);
+    if (!sesion) { const f = recuperar(info, opc.evitar || []); return f ? sustituir(f, info) : rechazo('modelo no cargado'); }
+    const K = opc.puntuar ? Math.max(1, Number(process.env.SLM_K_CAND) || 2) : 1;
+    const cand = [];
+    for (let i = 0; i < K; i++) {
+      const r = await generarModelo(info, opc);
+      if (r && !cand.some((c) => c.f === r)) cand.push({ f: r, s: opc.puntuar ? opc.puntuar(r) + Math.random() * 0.05 : 0 });
+    }
+    cand.sort((a, b) => b.s - a.s);
+    const f = cand.length ? cand[0].f : recuperar(info, opc.evitar || []);
+    return f ? sustituir(f, info) : null;
+  }
+  function sustituir(f, info) {
+    const n = info && info.nombre;
+    f = n ? f.replace(/\{n\}/g, n) : f.replace(/,?\s*\{n\}/g, '').replace(/\s+/g, ' ').trim();
+    return /[{}]/.test(f) ? null : f;
   }
   async function generarModelo(info, opc) {
     const acc = vocab.acc && !vocab.acc.includes(info.acc) ? (vocab.acc.includes('otra') ? 'otra' : vocab.acc[0]) : info.acc;
@@ -109,6 +136,8 @@ function crearSLM(dir) {
   }
   function validar(f, evitar, sinVocab) {
     f = f.replace(/\s+/g, ' ').trim();
+    const orig = f;
+    f = f.replace(/\{n\}/g, 'tu');
     if (f.length < 12) return { motivo: 'muy corta' };
     if (f.length > (sinVocab ? 170 : 140)) return { motivo: 'muy larga' };
     if (/https?:|\[|\]/.test(f)) return { motivo: 'trae enlaces o corchetes' };
@@ -124,7 +153,7 @@ function crearSLM(dir) {
       const ok = ws.filter((x) => conocidas.has(x)).length;
       if (!ws.length || ok / ws.length < (Number(process.env.SLM_CONOCIDAS) || 0.7)) return { motivo: `texto sin sentido (${ok}/${ws.length} palabras conocidas)` };
     }
-    return { f };
+    return { f: orig };
   }
   cargar();
   return { generar, listo, prefijo, motivo: () => motivo };

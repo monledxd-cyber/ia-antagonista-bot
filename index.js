@@ -57,7 +57,7 @@ async function preguntarIA(...args) {
   let prep = null;
   if (L) { try { prep = L.preparar(ctx); args[1] = Object.assign({}, ctx, { lenguaje: prep.texto }); } catch (e) { prep = null; } }
   if (L && prep && slmActual && slmActual.listo() && !ctx.voluntad && Math.random() < L.pSLM(Number(process.env.IA_SLM_P) || 0.3)) {
-    const f = await slmActual.generar(L.infoSLM(prep.meta), { evitar: L.evitar() });
+    const f = await slmActual.generar(L.infoSLM(prep.meta), { evitar: L.evitar(), puntuar: L.puntuar });
     if (f) return L.emitido(ctx.nombre, f, prep.meta, 'slm') || f;
   }
   try {
@@ -66,7 +66,7 @@ async function preguntarIA(...args) {
     return r;
   } catch (e) {
     let f = null;
-    if (L && prep && slmActual && slmActual.listo()) { f = await slmActual.generar(L.infoSLM(prep.meta), { evitar: L.evitar() }); if (f) f = L.emitido(ctx.nombre, f, prep.meta, 'slm') || f; }
+    if (L && prep && slmActual && slmActual.listo()) { f = await slmActual.generar(L.infoSLM(prep.meta), { evitar: L.evitar(), puntuar: L.puntuar }); if (f) f = L.emitido(ctx.nombre, f, prep.meta, 'slm') || f; }
     if (!f && L) { try { f = L.local(ctx); } catch (e2) { f = null; } }
     if (f) { diag.log('info', 'lenguaje', 'frase local por fallo de IA'); return f; }
     throw e;
@@ -79,7 +79,7 @@ async function fraseLocal(ctx) {
   if (!L) return '';
   try {
     const prep = L.preparar(ctx);
-    if (slmActual && slmActual.listo()) { const f = await slmActual.generar(L.infoSLM(prep.meta), { evitar: L.evitar() }); if (f) return L.emitido(ctx.nombre, f, prep.meta, 'slm') || f; }
+    if (slmActual && slmActual.listo()) { const f = await slmActual.generar(L.infoSLM(prep.meta), { evitar: L.evitar(), puntuar: L.puntuar }); if (f) return L.emitido(ctx.nombre, f, prep.meta, 'slm') || f; }
     return L.local(ctx) || '';
   } catch (e) { return ''; }
 }

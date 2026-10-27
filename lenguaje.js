@@ -47,7 +47,7 @@ const limpiar = (t) => String(t || '').replace(/\[[A-Z_]+[^\]]*\]/g, '').replace
 const apertura = (t) => norm(t).replace(/[^a-z0-9 ]/g, '').split(' ').filter(Boolean).slice(0, 3).join(' ');
 
 function crearLenguaje(bot, ruta, rutaCorpus) {
-  let d = { tok: {}, est: {}, buenas: [], evitar: [], pl: {}, n: 0, or: {}, base: 0 };
+  let d = { tok: {}, est: {}, buenas: [], evitar: [], pl: {}, pw: {}, n: 0, or: {}, base: 0 };
   let corpus = [], sucio = false, sucioC = false;
   try { d = Object.assign(d, JSON.parse(fs.readFileSync(ruta, 'utf8'))); } catch (e) { /* nuevo */ }
   try { const c = JSON.parse(fs.readFileSync(rutaCorpus, 'utf8')); if (Array.isArray(c)) corpus = c; } catch (e) { /* vacio */ }
@@ -221,10 +221,15 @@ function crearLenguaje(bot, ruta, rutaCorpus) {
     return Math.max(-1.2, Math.min(1.2, r));
   }
 
+  const palabras = (f) => [...new Set((String(f).toLowerCase().match(/[^\W\d_]{4,}/g) || []))];
+  const puntuar = (f) => { const ws = palabras(f); if (!ws.length) return 0; let s = 0; for (const w of ws) { const x = d.pw[w]; if (x) s += x.r / (x.n + 3); } return s / Math.sqrt(ws.length); };
+
   function cerrar(p, r) {
     for (const k of [p.clave + '#' + p.estilo, '*#' + p.estilo]) { const a = arm(k); a.n++; a.r += r; }
     if (p.base) { const q = d.pl[p.base] || (d.pl[p.base] = { n: 0, r: 0 }); q.n++; q.r += r; }
     if (p.adorno && bot._bandits && bot._bandits.premiar) { try { bot._bandits.premiar('adorno', p.adorno.ctx, p.adorno.k, Math.max(-1, Math.min(1, r))); } catch (e) { /* ignorar */ } }
+    palabras(p.f).forEach((w) => { const x = d.pw[w] || (d.pw[w] = { n: 0, r: 0 }); x.n++; x.r += r; });
+    { const ks = Object.keys(d.pw); if (ks.length > 3000) ks.sort((a, b) => d.pw[a].n - d.pw[b].n).slice(0, 800).forEach((k) => delete d.pw[k]); }
     d.n++; sucio = true;
     { const o = d.or[p.origen] || (d.or[p.origen] = { n: 0, r: 0 }); o.n++; o.r += r; }
     if (r > 0.45 && p.f.length > 15) {
@@ -236,7 +241,7 @@ function crearLenguaje(bot, ruta, rutaCorpus) {
     }
     if (bot._premio && Math.abs(r) >= 0.35) bot._premio.evento(r > 0 ? 'frase_efectiva' : 'frase_fallida', { v: r > 0 ? Math.min(1.5, r * 1.5) : Math.max(-1, r) });
     const rs = bot._nn && bot._nn._estadoDe && bot.pvp && bot.pvp.target && bot.pvp.target.position ? (() => { try { return bot._nn._estadoDe(bot.pvp.target).map((x) => +x.toFixed(2)); } catch (e) { return null; } })() : null;
-    corpus.push({ t: p.t, i: p.clave, e: p.estilo, f: p.f, r: +r.toFixed(2), o: p.origen, s: rs, rs: vector(p.nombre).map((x) => +x.toFixed(2)) });
+    corpus.push({ n: p.nombre, t: p.t, i: p.clave, e: p.estilo, f: p.f, r: +r.toFixed(2), o: p.origen, s: rs, rs: vector(p.nombre).map((x) => +x.toFixed(2)) });
     if (corpus.length > 2500) corpus.splice(0, corpus.length - 2000);
     sucioC = true;
   }
@@ -273,8 +278,8 @@ function crearLenguaje(bot, ruta, rutaCorpus) {
 
   const media = (o) => (d.or[o] && d.or[o].n >= 8 ? d.or[o].r / d.or[o].n : null);
   const pSLM = (base) => { const a = media('slm'), b = media('llm'); if (a === null || b === null) return base; return Math.max(0.05, Math.min(0.9, base + 0.6 * (a - b))); };
-  const infoSLM = (meta) => { const z = meta.clave.split('|'); return { acc: meta.acc, estilo: meta.estilo, rs: vector(meta.nombre), vb: z[1] || 'v0', vida: z[2] || 'ok' }; };
-  const api = { pSLM, infoSLM, evitar: () => d.evitar, ciclo, analizar, vector, preparar, emitido, local, guardar, resumen, rasgos: decay, corpus: () => corpus };
+  const infoSLM = (meta) => { const z = meta.clave.split('|'); return { acc: meta.acc, estilo: meta.estilo, nombre: meta.nombre, rs: vector(meta.nombre), vb: z[1] || 'v0', vida: z[2] || 'ok' }; };
+  const api = { pSLM, infoSLM, puntuar, evitar: () => d.evitar, ciclo, analizar, vector, preparar, emitido, local, guardar, resumen, rasgos: decay, corpus: () => corpus };
   bot._leng = api;
   return api;
 }

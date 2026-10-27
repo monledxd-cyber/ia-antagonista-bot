@@ -39,11 +39,44 @@ def cargar(ruta):
         return []
 
 
+VB = {"atacar": ["v+", "v0"], "retroceder": ["v-", "v0"], "curar": ["v-", "v0"], "bloquear": ["v0", "v-"], "esquivar": ["v0", "v-"], "carga": ["v+", "v+"], "strafe": ["v0", "v0"], "otra": ["v0", "v0"]}
+RIVAL = {"hostil": 0, "amenaza": 1, "suplica": 2, "burla": 3}
+RIVAL_ESTILO = {"hostil": "frio", "amenaza": "susurro", "suplica": "frio", "burla": "burla_fallo"}
+R_SEMILLA = float(os.environ.get("SLM_R_SEMILLA", "0.5"))
+
+
+def semilla():
+    out = []
+    for ruta in sorted(glob.glob(os.path.join(R, "semilla", "*.json"))):
+        acc = os.path.basename(ruta)[:-5]
+        try:
+            with open(ruta, encoding="utf8") as f:
+                d = json.load(f)
+        except Exception:
+            continue
+        for est, frases in d.items():
+            for i, t in enumerate(frases):
+                t = limpio(t)
+                if not 12 <= len(t) <= MAXLEN:
+                    continue
+                if acc == "rival":
+                    rs = [0, 0, 0, 0]
+                    rs[RIVAL[est]] = 0.9
+                    p = prefijo("otra", RIVAL_ESTILO[est], rs, "v0", "ok")
+                else:
+                    vb = VB.get(acc, ["v0"])[i % len(VB.get(acc, ["v0"]))]
+                    p = prefijo(acc, est, [0, 0, 0, 0], vb, "bajo" if acc == "curar" else "ok")
+                out.append({"p": p, "t": t, "r": R_SEMILLA})
+    return out
+
+
 def main():
     filas = []
     for arch, minimo in (("corpus_am.json", MIN_R), ("corpus_lote.json", -9)):
         for e in cargar(os.path.join(RAIZ, arch)):
             f = limpio(e.get("f"))
+            if e.get("n"):
+                f = re.sub(r"\b" + re.escape(e["n"]) + r"\b", "{n}", f)
             if not (12 <= len(f) <= MAXLEN) or e.get("r", 0) < minimo:
                 continue
             partes = (e.get("i") or "otra|v0|ok|-").split("|") + ["v0", "ok"]
@@ -55,6 +88,7 @@ def main():
                 f = limpio(linea)
                 if 12 <= len(f) <= MAXLEN:
                     filas.append({"p": prefijo("otra", est, [0, 0, 0, 0], "v0", "ok"), "t": f, "r": 0.0})
+    filas += semilla()
     vistos, out = set(), []
     for x in filas:
         k = (x["p"], x["t"].lower())
