@@ -3,40 +3,42 @@ const REL = require('./relevancia');
 const diag = require('./diag');
 
 const ACC = ['atacar', 'retroceder', 'curar', 'bloquear', 'esquivar', 'otra'];
-const NI = 65 + REL.NC, NP = 5, AUX = 0.5, NH = 64, NO = ACC.length, GAMMA = 0.85, LR = 0.01, VENT = 8;
+const NI = 65 + REL.NC, NP = 5, AUX = 0.5, NH = 64, NO = ACC.length, GAMMA = Number(process.env.IA_NN_GAMMA) || 0.85, LR = 0.01, VENT = Number(process.env.IA_NN_VENT) || 8;
 const NE = Math.max(1, Number(process.env.IA_NN_N) || 3);
 const ADAM = process.env.IA_NN_ADAM === '1';
+const BURN = process.env.IA_NN_BURN === undefined ? 16 : Math.max(0, Number(process.env.IA_NN_BURN));
+const TAU = process.env.IA_NN_TAU === undefined ? 0.004 : Number(process.env.IA_NN_TAU), ACT_EMA = process.env.IA_NN_EMA !== '0', KAPPA = process.env.IA_NN_KAPPA === undefined ? 0.5 : Number(process.env.IA_NN_KAPPA);
+const NSTEP = Math.max(1, Number(process.env.IA_NN_NSTEP) || 1);
 const TICK_MS = Number(process.env.IA_NN_MS) || 400;
 
 function rnn(w) {
-  const r = (n, s) => Array.from({ length: n }, () => (Math.random() - 0.5) * 2 * s);
+  const F = (x) => Float64Array.from(x);
+  const r = (n, s) => Float64Array.from({ length: n }, () => (Math.random() - 0.5) * 2 * s);
+  const fill = (n, v) => new Float64Array(n).fill(v);
   const ok = w && w.w1 && w.w1.length === NI * NH && w.u && w.u.length === NH * NH;
-  const m = ok ? w : { w1: r(NI * NH, 0.3), u: r(NH * NH, 0.12), b1: new Array(NH).fill(0), w2: r(NH * NO, 0.3), b2: new Array(NO).fill(0) };
-  if (!m.w3 || m.w3.length !== NH * NP) { m.w3 = r(NH * NP, 0.1); m.b3 = new Array(NP).fill(0); }
-  if (!m.wg || m.wg.length !== NI * NI || !m.bg || m.bg.length !== NI) { m.wg = r(NI * NI, 0.02); m.bg = new Array(NI).fill(2); }
+  const m = ok ? { w1: F(w.w1), u: F(w.u), b1: F(w.b1), w2: F(w.w2), b2: F(w.b2) } : { w1: r(NI * NH, 0.3), u: r(NH * NH, 0.12), b1: fill(NH, 0), w2: r(NH * NO, 0.3), b2: fill(NO, 0) };
+  if (ok && w.w3 && w.w3.length === NH * NP && w.b3) { m.w3 = F(w.w3); m.b3 = F(w.b3); } else { m.w3 = r(NH * NP, 0.1); m.b3 = fill(NP, 0); }
+  if (ok && w.wg && w.wg.length === NI * NI && w.bg && w.bg.length === NI) { m.wg = F(w.wg); m.bg = F(w.bg); } else { m.wg = r(NI * NI, 0.02); m.bg = fill(NI, 2); }
   const pad = (x) => (x.length < NI ? x.concat(new Array(NI - x.length).fill(0)) : x);
-  const cero = () => new Array(NH).fill(0);
+  const cero = () => new Float64Array(NH);
   const puertas = (x) => {
-    const g = new Array(NI), xg = new Array(NI);
-    for (let i = 0; i < NI; i++) g[i] = m.bg[i];
-    for (let k = 0; k < NI; k++) { const xk = x[k]; if (!xk) continue; const f = k * NI; for (let i = 0; i < NI; i++) g[i] += xk * m.wg[f + i]; }
+    const g = new Float64Array(m.bg), xg = new Float64Array(NI), wg = m.wg;
+    for (let k = 0; k < NI; k++) { const xk = x[k]; if (!xk) continue; const f = k * NI; for (let i = 0; i < NI; i++) g[i] += xk * wg[f + i]; }
     for (let i = 0; i < NI; i++) { g[i] = 1 / (1 + Math.exp(-g[i])); xg[i] = x[i] * g[i]; }
     return { g, xg };
   };
   const step = (x0, hp) => {
     x0 = pad(x0);
     const { g, xg: x } = puertas(x0);
-    const h = new Array(NH);
-    for (let j = 0; j < NH; j++) {
-      let s = m.b1[j];
-      for (let i = 0; i < NI; i++) s += x[i] * m.w1[i * NH + j];
-      for (let i = 0; i < NH; i++) s += hp[i] * m.u[i * NH + j];
-      h[j] = Math.tanh(s);
-    }
+    const { w1, u, w2, b2, w3, b3 } = m;
+    const h = new Float64Array(m.b1);
+    for (let i = 0; i < NI; i++) { const xi = x[i]; if (xi === 0) continue; const f = i * NH; for (let j = 0; j < NH; j++) h[j] += xi * w1[f + j]; }
+    for (let i = 0; i < NH; i++) { const hi = hp[i]; if (hi === 0) continue; const f = i * NH; for (let j = 0; j < NH; j++) h[j] += hi * u[f + j]; }
+    for (let j = 0; j < NH; j++) h[j] = Math.tanh(h[j]);
     const o = new Array(NO);
-    for (let k = 0; k < NO; k++) { let s = m.b2[k]; for (let j = 0; j < NH; j++) s += h[j] * m.w2[j * NO + k]; o[k] = s; }
+    for (let k = 0; k < NO; k++) { let s = b2[k]; for (let j = 0; j < NH; j++) s += h[j] * w2[j * NO + k]; o[k] = s; }
     const pr = new Array(NP);
-    for (let k = 0; k < NP; k++) { let s = m.b3[k]; for (let j = 0; j < NH; j++) s += h[j] * m.w3[j * NP + k]; pr[k] = Math.tanh(s); }
+    for (let k = 0; k < NP; k++) { let s = b3[k]; for (let j = 0; j < NH; j++) s += h[j] * w3[j * NP + k]; pr[k] = Math.tanh(s); }
     return { h, o, p: pr, g, xg: x };
   };
   const seq = (xs, h0) => {
@@ -46,9 +48,8 @@ function rnn(w) {
   };
   const clip = (v) => Math.max(-1, Math.min(1, v));
   const NOMS = ['w1', 'u', 'b1', 'w2', 'b2', 'w3', 'b3', 'wg', 'bg'];
-  let G = null, M1 = null, M2 = null, T = 0, ad = false, lrAct = 0;
+  let G = null, M1 = null, M2 = null, T = 0;
   const iniAdam = () => { G = {}; M1 = {}; M2 = {}; for (const k of NOMS) { G[k] = new Float64Array(m[k].length); M1[k] = new Float64Array(m[k].length); M2[k] = new Float64Array(m[k].length); } };
-  const U = (k, i, v) => { if (ad) G[k][i] += v; else m[k][i] -= lrAct * v; };
   const aplicarAdam = (lr) => {
     T++;
     const c1 = 1 - Math.pow(0.9, T), c2 = 1 - Math.pow(0.999, T);
@@ -65,42 +66,55 @@ function rnn(w) {
   };
   const grad = (xs, dOs, h0, lr, dPs, adam) => {
     xs = xs.map(pad);
-    ad = !!adam; lrAct = lr;
+    const ad = !!adam;
     if (ad && !G) iniAdam();
+    const D = ad ? G : m, sc = ad ? 1 : -lr;
+    const { w1, u, w2, w3 } = m, Dw1 = D.w1, Du = D.u, Db1 = D.b1, Dw2 = D.w2, Db2 = D.b2, Dw3 = D.w3, Db3 = D.b3, Dwg = D.wg, Dbg = D.bg;
     const { hs, gs, xgs } = seq(xs, h0);
     let dhSig = cero();
+    const dp = new Float64Array(NH), dxg = new Float64Array(NI);
     for (let t = xs.length - 1; t >= 0; t--) {
-      const h = hs[t + 1], hprev = hs[t], dh = dhSig.slice();
+      const h = hs[t + 1], hprev = hs[t], dh = new Float64Array(dhSig), x = xs[t], g = gs[t], xg = xgs[t];
       for (let k = 0; k < NO; k++) {
         const e = dOs[t][k];
         if (!e) continue;
-        for (let j = 0; j < NH; j++) { dh[j] += e * m.w2[j * NO + k]; U('w2', j * NO + k, e * h[j]); }
-        U('b2', k, e);
+        for (let j = 0; j < NH; j++) { dh[j] += e * w2[j * NO + k]; Dw2[j * NO + k] += sc * (e * h[j]); }
+        Db2[k] += sc * e;
       }
       if (dPs && dPs[t]) for (let k = 0; k < NP; k++) {
         const e = dPs[t][k];
         if (!e) continue;
-        for (let j = 0; j < NH; j++) { dh[j] += e * m.w3[j * NP + k]; U('w3', j * NP + k, e * h[j]); }
-        U('b3', k, e);
+        for (let j = 0; j < NH; j++) { dh[j] += e * w3[j * NP + k]; Dw3[j * NP + k] += sc * (e * h[j]); }
+        Db3[k] += sc * e;
       }
-      const dp = new Array(NH);
       for (let j = 0; j < NH; j++) dp[j] = clip(dh[j] * (1 - h[j] * h[j]));
-      const nuevo = cero();
-      for (let i = 0; i < NH; i++) { let s = 0; for (let j = 0; j < NH; j++) s += m.u[i * NH + j] * dp[j]; nuevo[i] = s; }
-      const dxg = new Array(NI).fill(0);
-      for (let j = 0; j < NH; j++) { if (!dp[j]) continue; for (let i = 0; i < NI; i++) dxg[i] += dp[j] * m.w1[i * NH + j]; }
+      const nuevo = new Float64Array(NH);
+      for (let i = 0; i < NH; i++) { let s = 0; const f = i * NH; for (let j = 0; j < NH; j++) s += u[f + j] * dp[j]; nuevo[i] = s; }
       for (let i = 0; i < NI; i++) {
-        const dz = clip(dxg[i] * xs[t][i] * gs[t][i] * (1 - gs[t][i]));
+        if (!x[i]) { dxg[i] = 0; continue; }
+        let s = 0; const f = i * NH;
+        for (let j = 0; j < NH; j++) s += dp[j] * w1[f + j];
+        dxg[i] = s;
+      }
+      for (let i = 0; i < NI; i++) {
+        const dz = clip(dxg[i] * x[i] * g[i] * (1 - g[i]));
         if (!dz) continue;
-        U('bg', i, dz);
-        for (let k = 0; k < NI; k++) { const xk = xs[t][k]; if (xk) U('wg', k * NI + i, dz * xk); }
+        Dbg[i] += sc * dz;
+        for (let k = 0; k < NI; k++) { const xk = x[k]; if (xk) Dwg[k * NI + i] += sc * (dz * xk); }
       }
-      for (let j = 0; j < NH; j++) {
-        if (!dp[j]) continue;
-        for (let i = 0; i < NI; i++) U('w1', i * NH + j, dp[j] * xgs[t][i]);
-        for (let i = 0; i < NH; i++) U('u', i * NH + j, dp[j] * hprev[i]);
-        U('b1', j, dp[j]);
+      for (let i = 0; i < NI; i++) {
+        const xi = xg[i];
+        if (xi === 0) continue;
+        const f = i * NH;
+        for (let j = 0; j < NH; j++) Dw1[f + j] += sc * (dp[j] * xi);
       }
+      for (let i = 0; i < NH; i++) {
+        const hi = hprev[i];
+        if (hi === 0) continue;
+        const f = i * NH;
+        for (let j = 0; j < NH; j++) Du[f + j] += sc * (dp[j] * hi);
+      }
+      for (let j = 0; j < NH; j++) Db1[j] += sc * dp[j];
       dhSig = nuevo;
     }
     if (ad) aplicarAdam(lr * 0.15);
@@ -112,25 +126,34 @@ function rnn(w) {
   const tdVentana = (ep, ini, lr, tgt) => {
     const w = ep.slice(ini, ini + VENT), n = w.length;
     if (n < 2 && !ep[ini + n - 1].fin) return 0;
-    const xs = w.map((p) => p.s), { os, ps } = seq(xs, null), ot = tgt ? tgt.seq(xs, null).os : os, dOs = w.map(() => new Array(NO).fill(0));
+    let h0 = null, h0t = null;
+    if (BURN && ini > 0) { const b = ep.slice(Math.max(0, ini - BURN), ini).map((p) => p.s); h0 = seq(b, null).hs.pop(); h0t = tgt ? tgt.seq(b, null).hs.pop() : h0; }
+    const xs = w.map((p) => p.s), { os, ps } = seq(xs, h0), ot = tgt ? tgt.seq(xs, h0t).os : os, dOs = w.map(() => new Array(NO).fill(0));
     const dPs = w.map((x, t) => (x.p ? ps[t].map((v, k) => (x.p[k] === undefined ? 0 : AUX * clip((v - x.p[k]) * (1 - v * v)))) : null));
     const aux = dPs.some((x) => x);
     let err = 0, cnt = 0;
     for (let t = 0; t < n; t++) {
-      let obj;
-      if (w[t].fin) obj = w[t].r;
-      else if (t + 1 < n) { const sig = os[t + 1], am = sig.indexOf(Math.max(...sig)); obj = w[t].r + GAMMA * ot[t + 1][am]; }
-      else continue;
+      let obj = 0, gk = 1, fin = false, k = 0;
+      for (; k < NSTEP && t + k < n; k++) { obj += gk * w[t + k].r; gk *= GAMMA; if (w[t + k].fin) { fin = true; break; } }
+      if (!fin) {
+        if (k < NSTEP || t + k >= n) continue;
+        const sig = os[t + k], am = sig.indexOf(Math.max(...sig));
+        obj += gk * ot[t + k][am];
+      }
       obj = Math.max(-3, Math.min(3, obj));
       const e = clip(os[t][w[t].a] - obj);
       dOs[t][w[t].a] = e; err += e * e; cnt++;
     }
-    if (cnt || aux) grad(xs, dOs, null, lr, dPs, ADAM);
+    if (cnt || aux) grad(xs, dOs, h0, lr, dPs, ADAM);
     return cnt ? err / cnt : 0;
   };
-  const copiar = (o) => { for (const k of ['w1', 'u', 'b1', 'w2', 'b2', 'w3', 'b3', 'wg', 'bg']) m[k] = o.m[k].slice(); };
+  const copiar = (o) => { for (const k of NOMS) m[k] = o.m[k].slice(); };
   return { m, step, seq, grad, pre, tdVentana, cero, copiar };
 }
+
+const ser = (m) => { const o = {}; for (const k of Object.keys(m)) o[k] = Array.from(m[k]); return o; };
+
+const suave = (dst, src, tau) => { for (const k of Object.keys(src.m)) { const a = dst.m[k], b = src.m[k]; for (let q = 0; q < a.length; q++) a[q] += tau * (b[q] - a[q]); } };
 
 function migrar(m) {
   const nh0 = m.b1.length, ni0 = Math.round(m.w1.length / nh0), r = () => (Math.random() - 0.5) * 0.1;
@@ -144,36 +167,51 @@ function migrar(m) {
 }
 
 function crearNN(bot, ruta, rutaDatos) {
-  let red = null, eps = [], act = [], pend = [], sucio = false, hs = [], ultSug = null, inc = 0, extras = [];
+  let red = null, mt = null, eps = [], act = [], pend = [], sucio = false, hs = [], ultSug = null, inc = 0, extras = [];
   let st = { pv: 0, na: 0, ra: 0, nd: 0, rd: 0, ent: 0, err: 0, pre: 0, sim: 0, simWin: 0, base: 0, pe: 0, pb: 0, pn: 0 };
   let ultRel = null, ultPend = null, ultPred = null;
   try { const d = JSON.parse(fs.readFileSync(ruta, 'utf8'));
-    if (d && d.m && d.m.u && d.m.w1 && d.m.b1) { d.m = migrar(d.m); red = rnn(d.m); st = Object.assign(st, d.st || {}); if (Array.isArray(d.ms)) extras = d.ms.filter((x) => x && x.w1 && x.u && x.b1).map((x) => rnn(migrar(x))); } } catch (e) { /* nueva */ }
+    if (d && d.m && d.m.u && d.m.w1 && d.m.b1) { d.m = migrar(d.m); red = rnn(d.m); st = Object.assign(st, d.st || {}); if (Array.isArray(d.ms)) extras = d.ms.filter((x) => x && x.w1 && x.u && x.b1).map((x) => rnn(migrar(x))); if (Array.isArray(d.mt)) mt = d.mt; } } catch (e) { /* nueva */ }
   if (!red) red = rnn();
   try { const d = JSON.parse(fs.readFileSync(rutaDatos, 'utf8')); if (Array.isArray(d)) eps = d.filter((e) => Array.isArray(e) && e.length && e[0].s && e[0].s.length <= NI); for (const e of eps) for (const p of e) while (p.s.length < NI) p.s.push(0); } catch (e) { /* vacio */ }
   const MODO = process.env.IA_NN || 'auto';
-  let sinc = 0, ultLibre = Date.now();
+  let ultLibre = Date.now();
   if (st.pv !== 2) { st.pe = 0; st.pb = 0; st.pn = 0; st.pv = 2; }
-  const clon = (r, ruido) => { const m = JSON.parse(JSON.stringify(r.m)); if (ruido) for (const k of ['w1', 'u', 'w2', 'w3']) for (let i = 0; i < m[k].length; i++) m[k][i] += (Math.random() - 0.5) * ruido; return rnn(m); };
+  const clon = (r, ruido) => { const m = ser(r.m); if (ruido) for (const k of ['w1', 'u', 'w2', 'w3']) for (let i = 0; i < m[k].length; i++) m[k][i] += (Math.random() - 0.5) * ruido; return rnn(m); };
   let redes = [red], objetivos = [];
 
-  function precalentar(n = 6000, epocas = 12) {
+  const cede = () => new Promise((r) => setImmediate(r));
+  let listo = false;
+  async function precalentar(n = 6000, epocas = 12) {
     const casos = require('./nn_casos').generar(n);
-    for (let e = 0; e < epocas; e++) { const lr = 0.02 * Math.pow(0.8, e); for (const c of casos) red.pre(c.s, c.q, lr); }
+    let t0 = Date.now();
+    for (let e = 0; e < epocas; e++) {
+      const lr = 0.02 * Math.pow(0.8, e);
+      for (let i = 0; i < casos.length; i++) { red.pre(casos[i].s, casos[i].q, lr); if ((i & 127) === 127 && Date.now() - t0 > 20) { await cede(); t0 = Date.now(); } }
+    }
     st.pre++; sucio = true;
   }
-  function simular(n = 600) {
-    const S = require('./nn_sim');
-    const r = S.entrenar(red, n);
-    st.sim++; st.simWin = r.win; st.base = r.base; sucio = true;
-    diag.log('info', 'nn', `sim ${n} episodios: gana ${Math.round(r.win * 100)}% (experto ${Math.round(r.base * 100)}%)`);
+  async function simular(n = Number(process.env.IA_NN_SIMN) || 3000) {
+    const S = require('./nn_sim'), g = S.entrenarGen(red, n);
+    let r, t0 = Date.now();
+    while (!(r = g.next()).done) { if (Date.now() - t0 > 20) { await cede(); t0 = Date.now(); } }
+    st.sim++; st.simWin = r.value.win; st.base = r.value.base; sucio = true;
+    diag.log('info', 'nn', `sim ${n} episodios: gana ${Math.round(r.value.win * 100)}% (experto ${Math.round(r.value.base * 100)}%)`);
   }
-  if (!st.pre) precalentar();
-  if (!st.sim && process.env.IA_NN_SIM !== '0') simular();
   for (const x of extras.slice(0, NE - 1)) redes.push(x);
   while (redes.length < NE) redes.push(clon(red, 0.1));
   objetivos = redes.map((r) => clon(r, 0));
+  if (Array.isArray(mt)) mt.slice(0, redes.length).forEach((x, i) => { if (x && x.w1 && x.u && x.b1) { try { objetivos[i] = rnn(migrar(x)); } catch (e) { /* ignorar */ } } });
   hs = redes.map((r) => r.cero());
+  const inicial = !st.pre || (!st.sim && process.env.IA_NN_SIM !== '0');
+  (async () => {
+    try {
+      if (!st.pre) await precalentar();
+      if (!st.sim && process.env.IA_NN_SIM !== '0') await simular();
+      if (inicial) { redes = [red, ...redes.slice(1).map(() => clon(red, 0.1))]; objetivos = redes.map((r) => clon(r, 0)); hs = redes.map((r) => r.cero()); }
+    } catch (e) { diag.log('warn', 'nn', 'preparacion: ' + String(e.message).slice(0, 100)); }
+    listo = true;
+  })();
 
   const dmgIn = [], hitsOut = [];
   let hpAnt = null;
@@ -298,16 +336,16 @@ function crearNN(bot, ruta, rutaDatos) {
       const i = k % redes.length, e2 = i === 0 ? ep : elegirEp();
       const ini2 = i === 0 ? ini : Math.max(0, Math.floor(Math.random() * Math.max(1, e2.length - 1)) - 1);
       err += redes[i].tdVentana(e2, ini2, LR, objetivos[i]);
+      suave(objetivos[i], redes[i], TAU);
     }
-    if (++sinc >= 4) { redes.forEach((r, i) => objetivos[i].copiar(r)); sinc = 0; }
     st.ent += n; st.err = err / n; sucio = true;
   }
 
   const softmax = (q, T) => { const mx = Math.max(...q), e = q.map((v) => Math.exp((v - mx) / T)), s = e.reduce((a, b) => a + b, 0); return e.map((v) => v / s); };
-  function elegirAccion(q) {
+  function elegirAccion(q, sd) {
     const e0 = Math.min(0.6, Math.max(0.04, 0.3 * Math.exp(-st.ent / 1500)) + 0.3 * Math.min(1, inc * 2));
     if (Math.random() >= e0) return mejor(q);
-    const p = softmax(q, 0.5); let r = Math.random();
+    const p = softmax(sd ? q.map((v, i) => v + KAPPA * sd[i]) : q, 0.5); let r = Math.random();
     for (let i = 0; i < p.length; i++) { r -= p[i]; if (r <= 0) return i; }
     return mejor(q);
   }
@@ -326,7 +364,7 @@ function crearNN(bot, ruta, rutaDatos) {
 
   let ocupado = false, ultTick = 0;
   function decidir() {
-    if (!bot.entity || ocupado) return;
+    if (!bot.entity || ocupado || !listo) return;
     const ahora = Date.now(), t = bot.pvp && bot.pvp.target;
     if (!t || t.type !== 'player' || !t.position) { if (bot._bandits) bot._bandits.nnExtra = {}; return; }
     ocupado = true; ultTick = ahora;
@@ -343,12 +381,14 @@ function crearNN(bot, ruta, rutaDatos) {
         }
       }
       if (!rapido) ultRel = r1;
-      const rs = redes.map((r, i) => r.step(s, hs[i]));
+      const act_ = ACT_EMA ? objetivos : redes;
+      const rs = act_.map((r, i) => r.step(s, hs[i]));
       hs = rs.map((x) => x.h);
       const q = new Array(NO).fill(0).map((_, k) => rs.reduce((a, x) => a + x.o[k], 0) / rs.length);
-      inc = rs.length > 1 ? q.reduce((a, m, k) => a + Math.sqrt(rs.reduce((b, x) => b + (x.o[k] - m) * (x.o[k] - m), 0) / rs.length), 0) / NO : 0;
+      const sd = q.map((m, k) => (rs.length > 1 ? Math.sqrt(rs.reduce((b, x) => b + (x.o[k] - m) * (x.o[k] - m), 0) / rs.length) : 0));
+      inc = sd.reduce((a, v) => a + v, 0) / NO;
       if (!rapido) ultPred = Array.from({ length: NP }, (_, k) => k).map((k) => rs.reduce((a, x) => a + x.p[k], 0) / rs.length);
-      const sug = elegirAccion(q); ultSug = sug;
+      const sug = elegirAccion(q, sd); ultSug = sug;
       if (bot._bandits) bot._bandits.nnExtra = sesgos(sug, q);
       pend.push({ s, a: accion(t), sug, hp: bot.health, rhp: vidaRival(t), t: ahora, n0: bot._premio ? bot._premio.neto() : 0 });
       if (!rapido) ultPend = pend[pend.length - 1];
@@ -365,7 +405,7 @@ function crearNN(bot, ruta, rutaDatos) {
 
   const guardar = () => {
     if (!sucio) return;
-    try { fs.writeFileSync(ruta, JSON.stringify({ m: red.m, ms: redes.slice(1).map((r) => r.m), st })); fs.writeFileSync(rutaDatos, JSON.stringify(eps)); sucio = false; } catch (e) { /* ignorar */ }
+    try { fs.writeFileSync(ruta, JSON.stringify({ m: ser(red.m), ms: redes.slice(1).map((r) => ser(r.m)), mt: objetivos.map((r) => ser(r.m)), st })); fs.writeFileSync(rutaDatos, JSON.stringify(eps)); sucio = false; } catch (e) { /* ignorar */ }
   };
   const gt = setInterval(guardar, 60_000);
   bot.once('end', () => { clearInterval(it); clearInterval(gt); guardar(); });
