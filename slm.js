@@ -17,23 +17,12 @@ function crearSLM(dir) {
       for (const l of fs.readFileSync(path.join(dir, 'dataset.jsonl'), 'utf8').split('\n')) {
         if (!l.trim()) continue;
         const x = JSON.parse(l), a = String(x.p).replace('>', '').split('|');
-        filas.push({ t: x.t, acc: a[0], est: a[1], rs: (a[2] || '0000').split('').map(Number), r: x.r || 0 });
+        filas.push({ t: x.t, acc: a[0], est: a[1], rs: (a[2] || '0000').split('').map(Number), vb: a[3] || 'v0', vida: a[4] || 'ok', r: x.r || 0 });
       }
     } catch (e) {}
     try {
-      const VB = { atacar: ['v+', 'v0'], retroceder: ['v-', 'v0'], curar: ['v-', 'v0'], bloquear: ['v0', 'v-'], esquivar: ['v0', 'v-'], carga: ['v+', 'v+'] };
-      const RV = { hostil: 0, amenaza: 1, suplica: 2, burla: 3 }, vistas = new Set(filas.map((x) => x.t));
-      const sd = path.join(dir, 'semilla');
-      for (const a of fs.readdirSync(sd).filter((x) => x.endsWith('.json'))) {
-        const acc = a.slice(0, -5), d = JSON.parse(fs.readFileSync(path.join(sd, a), 'utf8'));
-        for (const [est, fr] of Object.entries(d)) for (const t of fr) {
-          if (vistas.has(t)) continue;
-          vistas.add(t);
-          const rs = [0, 0, 0, 0];
-          if (acc === 'rival') rs[RV[est]] = 3;
-          filas.push({ t, acc: acc === 'rival' ? 'otra' : acc, est: acc === 'rival' ? (est === 'burla' ? 'burla_fallo' : est === 'amenaza' ? 'susurro' : 'frio') : est, rs, r: 0.5 });
-        }
-      }
+      const g = require(path.join(dir, 'gramatica')), vistas = new Set(filas.map((x) => x.t));
+      for (const x of g.filas({ cap: 8 })) { if (vistas.has(x.t)) continue; vistas.add(x.t); filas.push({ t: x.t, acc: x.acc, est: x.est, rs: x.rs, vb: x.vb, vida: x.vida, r: x.r }); }
     } catch (e) {}
     return filas;
   }
@@ -48,8 +37,13 @@ function crearSLM(dir) {
       if (v.motivo) continue;
       let sc = (x.acc === info.acc ? 3 : 0) + (x.est === info.estilo ? 3 : 0) + (x.est === 'libre' ? 0.5 : 0);
       for (let i = 0; i < 4; i++) sc -= Math.abs((x.rs[i] || 0) - rs[i]) * 0.4;
+      sc += (x.vb === info.vb ? 0.8 : 0) + (x.vida === info.vida ? 0.8 : 0);
       pt.push([sc + x.r + Math.random() * 0.8, x.t]);
     }
+    try {
+      const g = require(path.join(dir, 'gramatica'));
+      for (const x of g.candidatos(info, 10)) { if (usadas.includes(x.t) || validar(x.t, evitar, true).motivo) continue; pt.push([6.6 + 0.3 + Math.random() * 0.8, x.t]); }
+    } catch (e) {}
     if (!pt.length) return null;
     pt.sort((a, b) => b[0] - a[0]);
     const top = pt.filter((x) => x[0] >= pt[0][0] - 1.5).slice(0, 8), f = top[Math.floor(Math.random() * top.length)][1];
@@ -102,7 +96,7 @@ function crearSLM(dir) {
   }
   function sustituir(f, info) {
     const n = info && info.nombre;
-    f = n ? f.replace(/\{n\}/g, n) : f.replace(/,?\s*\{n\}/g, '').replace(/\s+/g, ' ').trim();
+    f = n ? f.replace(/\{n\}/g, n) : f.replace(/\{n\},\s*/g, '').replace(/,?\s*\{n\}/g, '').replace(/\s+/g, ' ').trim().replace(/^./, (c) => c.toUpperCase());
     return /[{}]/.test(f) ? null : f;
   }
   async function generarModelo(info, opc) {
@@ -138,13 +132,13 @@ function crearSLM(dir) {
     f = f.replace(/\s+/g, ' ').trim();
     const orig = f;
     f = f.replace(/\{n\}/g, 'tu');
-    if (f.length < 12) return { motivo: 'muy corta' };
+    if (f.length < (sinVocab ? 5 : 12)) return { motivo: 'muy corta' };
     if (f.length > (sinVocab ? 170 : 140)) return { motivo: 'muy larga' };
     if (/https?:|\[|\]/.test(f)) return { motivo: 'trae enlaces o corchetes' };
     if (/\.{4,}/.test(f) || (f.match(/"/g) || []).length % 2) return { motivo: 'puntuacion rota' };
     const w = f.toLowerCase().split(' ');
-    if (w.length < 4) return { motivo: 'muy pocas palabras' };
-    if (new Set(w).size < Math.min(4, w.length)) return { motivo: 'palabras repetidas' };
+    if (w.length < (sinVocab ? 2 : 4)) return { motivo: 'muy pocas palabras' };
+    if (!sinVocab && new Set(w).size < Math.min(4, w.length)) return { motivo: 'palabras repetidas' };
     const ap = w.slice(0, 3).join(' ').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9 ]/g, '');
     if (evitar.includes(ap)) return { motivo: 'apertura prohibida' };
     if (!sinVocab && vocab && vocab.palabras && vocab.palabras.length) {

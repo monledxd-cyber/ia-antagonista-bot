@@ -39,34 +39,23 @@ def cargar(ruta):
         return []
 
 
-VB = {"atacar": ["v+", "v0"], "retroceder": ["v-", "v0"], "curar": ["v-", "v0"], "bloquear": ["v0", "v-"], "esquivar": ["v0", "v-"], "carga": ["v+", "v+"], "strafe": ["v0", "v0"], "otra": ["v0", "v0"]}
-RIVAL = {"hostil": 0, "amenaza": 1, "suplica": 2, "burla": 3}
-RIVAL_ESTILO = {"hostil": "frio", "amenaza": "susurro", "suplica": "frio", "burla": "burla_fallo"}
-R_SEMILLA = float(os.environ.get("SLM_R_SEMILLA", "0.5"))
+R_SEMILLA = float(os.environ.get("SLM_R_SEMILLA", "1.0"))
 
 
 def semilla():
+    ruta = os.path.join(R, "semilla_gen.jsonl")
+    if not os.path.exists(ruta):
+        print("falta slm/semilla_gen.jsonl: node slm/gramatica.js")
+        return []
     out = []
-    for ruta in sorted(glob.glob(os.path.join(R, "semilla", "*.json"))):
-        acc = os.path.basename(ruta)[:-5]
-        try:
-            with open(ruta, encoding="utf8") as f:
-                d = json.load(f)
-        except Exception:
-            continue
-        for est, frases in d.items():
-            for i, t in enumerate(frases):
-                t = limpio(t)
-                if not 12 <= len(t) <= MAXLEN:
-                    continue
-                if acc == "rival":
-                    rs = [0, 0, 0, 0]
-                    rs[RIVAL[est]] = 0.9
-                    p = prefijo("otra", RIVAL_ESTILO[est], rs, "v0", "ok")
-                else:
-                    vb = VB.get(acc, ["v0"])[i % len(VB.get(acc, ["v0"]))]
-                    p = prefijo(acc, est, [0, 0, 0, 0], vb, "bajo" if acc == "curar" else "ok")
-                out.append({"p": p, "t": t, "r": R_SEMILLA})
+    with open(ruta, encoding="utf8") as f:
+        for l in f:
+            if not l.strip():
+                continue
+            x = json.loads(l)
+            t = limpio(x["t"])
+            if 5 <= len(t) <= MAXLEN:
+                out.append({"p": x["p"], "t": t, "r": x.get("r", 0.5) * R_SEMILLA})
     return out
 
 
