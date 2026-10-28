@@ -35,7 +35,7 @@ serv.on('newPlayer', (p) => p.once('spawned', () => {
       }
       if (escenario === 'mob') {
         const t = serv.registry.entitiesByName.zombie.id;
-        for (let i = 0; i < 2; i++) serv.spawnMob(t, serv.overworld, p.position.offset(5 + i, 0, 3), {});
+        for (let i = 0; i < 2; i++) serv.spawnMob(t, p.world, p.position.offset(5 + i, 0, 3), {});
       }
       console.log('ESCENARIO_LISTO ' + escenario);
     } catch (e) { console.log('ERROR_ESCENARIO ' + e.message); }
