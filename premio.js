@@ -29,6 +29,7 @@ function crearPremio(bot, stats, memoria, ruta) {
       const l = (uso.get(clave) || []).filter((t) => ahora - t < 600_000);
       x /= 1 + 0.35 * l.length; l.push(ahora); uso.set(clave, l);
     }
+    if (bot._psique) bot._psique.evento(regla, x, mot);
     if (bot._afecto) x = bot._afecto.pesar(regla, x, { k, motivo: mot });
     else if (COMBATE.has(regla) && stats) x *= 1 + 0.15 * Math.log10(1 + stats.v('sadismo'));
     return x;

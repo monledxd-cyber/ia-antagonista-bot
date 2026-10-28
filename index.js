@@ -128,7 +128,7 @@ const lastCall = new Map(); // nombre -> timestamp
 const trampaLastUse = new Map(); // nombre -> timestamp de la ultima trampa activada
 const historialJugador = new Map(); // nombre -> { interacciones, ultimasRespuestas: [], eventos: [] }
 const persist = require('./persist');
-const RUTAS_MEM = [process.env.IA_MEMORIA || 'memoria_jugadores.json', process.env.IA_DIARIO || 'diario_am.json', process.env.IA_BASE || 'base_am.json', process.env.IA_CLAVES || 'claves_am.json', process.env.IA_APRENDIZAJE || 'aprendizaje.json', process.env.IA_HABILIDADES || 'habilidades_am.json', process.env.IA_STATS || 'stats_am.json', process.env.IA_BANDITS || 'bandits_am.json', process.env.IA_ITEMS || 'items_am.json', process.env.IA_NN_PESOS || 'nn_am.json', process.env.IA_NN_DATOS || 'datos_nn.json', process.env.IA_PREMIO || 'premio_am.json', process.env.IA_MAPA_ARCH || 'mapa_am.json', process.env.IA_AUTOPSIA_ARCH || 'autopsias_am.json', process.env.IA_LENGUAJE_ARCH || 'lenguaje_am.json', process.env.IA_CORPUS_ARCH || 'corpus_am.json', 'atascos_am.json', 'afecto_am.json', 'metas_am.json', 'nn_abasto_am.json', 'sesiones_am.json', 'forja_am.json', 'aldeanos_am.json', 'eventos_am.json', 'estructuras_am.json']
+const RUTAS_MEM = [process.env.IA_MEMORIA || 'memoria_jugadores.json', process.env.IA_DIARIO || 'diario_am.json', process.env.IA_BASE || 'base_am.json', process.env.IA_CLAVES || 'claves_am.json', process.env.IA_APRENDIZAJE || 'aprendizaje.json', process.env.IA_HABILIDADES || 'habilidades_am.json', process.env.IA_STATS || 'stats_am.json', process.env.IA_BANDITS || 'bandits_am.json', process.env.IA_ITEMS || 'items_am.json', process.env.IA_NN_PESOS || 'nn_am.json', process.env.IA_NN_DATOS || 'datos_nn.json', process.env.IA_PSIQUE_ARCH || 'psique_am.json', process.env.IA_PREMIO || 'premio_am.json', process.env.IA_MAPA_ARCH || 'mapa_am.json', process.env.IA_AUTOPSIA_ARCH || 'autopsias_am.json', process.env.IA_LENGUAJE_ARCH || 'lenguaje_am.json', process.env.IA_CORPUS_ARCH || 'corpus_am.json', 'atascos_am.json', 'afecto_am.json', 'metas_am.json', 'nn_abasto_am.json', 'sesiones_am.json', 'forja_am.json', 'aldeanos_am.json', 'eventos_am.json', 'estructuras_am.json']
   .map((r) => (require('path').isAbsolute(r) ? r : require('path').join(__dirname, r)));
 persist.restaurar(RUTAS_MEM); // Render: disco efimero -> recupera la memoria del gist si esta configurado
 require('./respaldo').iniciar(RUTAS_MEM);
@@ -386,6 +386,7 @@ function iniciarHuida(bot) {
   require('./sesion').crearSesion(bot, require('path').join(__dirname, process.env.IA_SESION_ARCH || 'sesiones_am.json'), require('./package.json').version);
   require('./eventos').crearEventos(bot, require('path').join(__dirname, process.env.IA_EVENTOS_ARCH || 'eventos_am.json'));
   if (process.env.IA_REFLEJOS !== '0') require('./reflejos').crearReflejos(bot);
+  if (process.env.IA_PSIQUE !== '0') require('./psique').crearPsique(bot, require('path').join(__dirname, process.env.IA_PSIQUE_ARCH || 'psique_am.json'));
   if (process.env.IA_AFECTO !== '0') require('./afecto').crearAfecto(bot, memoria, require('path').join(__dirname, process.env.IA_AFECTO_ARCH || 'afecto_am.json'));
   require('./premio').crearPremio(bot, statsAM, memoria, require('path').join(__dirname, process.env.IA_PREMIO || 'premio_am.json'));
   require('./pesos').iniciar(bot, diag);

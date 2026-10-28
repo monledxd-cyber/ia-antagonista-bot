@@ -3,7 +3,7 @@ const REL = require('./relevancia');
 const diag = require('./diag');
 
 const ACC = ['atacar', 'retroceder', 'curar', 'bloquear', 'esquivar', 'otra'];
-const NI = 65 + REL.NC, NP = 5, AUX = 0.5, NH = 64, NO = ACC.length, GAMMA = Number(process.env.IA_NN_GAMMA) || 0.85, LR = 0.01, VENT = Number(process.env.IA_NN_VENT) || 8;
+const NPS = 8, NI = 65 + REL.NC + NPS, NP = 5, AUX = 0.5, NH = 64, NO = ACC.length, GAMMA = Number(process.env.IA_NN_GAMMA) || 0.85, LR = 0.01, VENT = Number(process.env.IA_NN_VENT) || 8;
 const NE = Math.max(1, Number(process.env.IA_NN_N) || 3);
 const ADAM = process.env.IA_NN_ADAM === '1';
 const BURN = process.env.IA_NN_BURN === undefined ? 16 : Math.max(0, Number(process.env.IA_NN_BURN));
@@ -293,7 +293,7 @@ function crearNN(bot, ruta, rutaDatos) {
       ...(bot._afecto ? bot._afecto.vector(t) : [0, 0, 0]),
       ...(bot._tec ? bot._tec.vector(t) : [1, 1, 0]),
     ];
-    return REL.aplicar(bot, sv, t);
+    return REL.aplicar(bot, sv, t).concat(bot._psique ? bot._psique.vector() : new Array(NPS).fill(0));
   }
 
   function accion(t) {
@@ -349,6 +349,7 @@ function crearNN(bot, ruta, rutaDatos) {
     for (let i = 0; i < p.length; i++) { r -= p[i]; if (r <= 0) return i; }
     return mejor(q);
   }
+  const mezclar = (a, b) => { if (!b) return a; const r = { ...a }; for (const [k, v] of Object.entries(b)) r[k] = (r[k] || 0) + v; return r; };
   const confianza = (q) => { const o = q.slice().sort((a, b) => b - a); return Math.tanh(2 * (o[0] - o[1])); };
   const sesgos = (sug, q) => {
     if (!activo()) return {};
@@ -389,7 +390,7 @@ function crearNN(bot, ruta, rutaDatos) {
       inc = sd.reduce((a, v) => a + v, 0) / NO;
       if (!rapido) ultPred = Array.from({ length: NP }, (_, k) => k).map((k) => rs.reduce((a, x) => a + x.p[k], 0) / rs.length);
       const sug = elegirAccion(q, sd); ultSug = sug;
-      if (bot._bandits) bot._bandits.nnExtra = sesgos(sug, q);
+      if (bot._bandits) bot._bandits.nnExtra = mezclar(sesgos(sug, q), bot._psique && bot._psique.sesgos());
       pend.push({ s, a: accion(t), sug, hp: bot.health, rhp: vidaRival(t), t: ahora, n0: bot._premio ? bot._premio.neto() : 0 });
       if (!rapido) ultPend = pend[pend.length - 1];
       while (pend.length && ahora - pend[0].t >= 3000) { const m = pend.shift(); m.hp2 = bot.health; m.rhp2 = vidaRival(t); cerrarMuestra(m, 0, false); }

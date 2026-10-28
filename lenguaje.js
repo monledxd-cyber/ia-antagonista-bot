@@ -94,6 +94,7 @@ function crearLenguaje(bot, ruta, rutaCorpus) {
   bot.on('chat', (username, mensaje) => {
     if (!username || username === bot.username || typeof mensaje !== 'string' || mensaje.includes('[IA_DATA]')) return;
     const r = analizar(mensaje), prev = decay(username), v = {};
+    if (bot._psique) bot._psique.rasgo(username, r);
     for (const k of RASGOS) v[k] = Math.min(1, prev[k] * 0.5 + r[k]);
     rasgos.set(username, { v, t: Date.now(), ult: r });
     const l = msgs.get(username) || []; l.push({ t: Date.now(), r, m: mensaje.slice(0, 120) }); while (l.length > 8) l.shift(); msgs.set(username, l);
@@ -115,6 +116,7 @@ function crearLenguaje(bot, ruta, rutaCorpus) {
   function elegirEstilo(nombre, clave, rs) {
     const rec = ult.get(nombre) || [], N = d.n + 2;
     let mejor = ESTILOS[0], ms = -1e9;
+    const psb = bot._psique ? bot._psique.sesgoEstilo() : null;
     for (const e of ESTILOS) {
       const a = arm(clave + '#' + e), g = arm('*#' + e), gm = g.n ? g.r / g.n : 0;
       let s = (a.r + 3 * gm) / (a.n + 3) + 0.55 * Math.sqrt(Math.log(N) / (a.n + 1)) + Math.random() * 0.12;
@@ -123,6 +125,7 @@ function crearLenguaje(bot, ruta, rutaCorpus) {
       if (rs.suplica > 0.5 && (e === 'susurro' || e === 'promesa')) s += 0.15;
       if (rs.burla > 0.5 && (e === 'frio' || e === 'burla_fallo')) s += 0.15;
       if (rs.amenaza > 0.5 && (e === 'escala' || e === 'pregunta')) s += 0.15;
+      if (psb) s += 0.5 * psb[ESTILOS.indexOf(e)];
       if (s > ms) { ms = s; mejor = e; }
     }
     return mejor;
@@ -134,6 +137,7 @@ function crearLenguaje(bot, ruta, rutaCorpus) {
     const l = msgs.get(nombre) || [], ultimo = l[l.length - 1];
     const partes = [`accion_real:${acc} (${ACCION[acc]})`, `estilo:${estilo} (${DIRECTIVA[estilo]})`];
     if (adv) partes.push('ventaja:' + adv.toFixed(2));
+    if (bot._psique) partes.push('estado_interno:' + Object.entries(bot._psique.estado()).filter((x) => x[1] > 0.5).map((x) => x[0] + ' ' + x[1].toFixed(2)).join(','));
     const dom = RASGOS.map((k) => [k, rs[k]]).filter((x) => x[1] > 0.35).sort((a, b) => b[1] - a[1]);
     if (dom.length) partes.push('rasgos_rival:' + dom.map((x) => x[0] + ' ' + x[1].toFixed(2)).join(','));
     try {
@@ -147,7 +151,7 @@ function crearLenguaje(bot, ruta, rutaCorpus) {
     const bien = d.buenas.filter((b) => b.a === acc || b.e === estilo).sort((a, b) => b.r - a.r).slice(0, 3).map((b) => '"' + b.f + '"');
     if (bien.length) partes.push('ejemplos_que_funcionaron(imita la forma, no copies):' + bien.join(' / '));
     if (d.evitar.length) partes.push('aperturas_que_fallaron(evitalas):' + d.evitar.slice(-6).join(' / '));
-    const meta = { nombre, clave, acc, estilo, t: Date.now() };
+    const meta = { nombre, clave, acc, estilo, t: Date.now(), psi: bot._psique ? bot._psique.snapshot() : null };
     return { texto: partes.join('\n'), meta };
   }
 
@@ -226,6 +230,7 @@ function crearLenguaje(bot, ruta, rutaCorpus) {
 
   function cerrar(p, r) {
     for (const k of [p.clave + '#' + p.estilo, '*#' + p.estilo]) { const a = arm(k); a.n++; a.r += r; }
+    if (bot._psique) bot._psique.aprenderEstilo(p.estilo, Math.max(-1, Math.min(1, r)), p.psi);
     if (p.base) { const q = d.pl[p.base] || (d.pl[p.base] = { n: 0, r: 0 }); q.n++; q.r += r; }
     if (p.adorno && bot._bandits && bot._bandits.premiar) { try { bot._bandits.premiar('adorno', p.adorno.ctx, p.adorno.k, Math.max(-1, Math.min(1, r))); } catch (e) { /* ignorar */ } }
     palabras(p.f).forEach((w) => { const x = d.pw[w] || (d.pw[w] = { n: 0, r: 0 }); x.n++; x.r += r; });
@@ -278,7 +283,7 @@ function crearLenguaje(bot, ruta, rutaCorpus) {
 
   const media = (o) => (d.or[o] && d.or[o].n >= 8 ? d.or[o].r / d.or[o].n : null);
   const pSLM = (base) => { const a = media('slm'), b = media('llm'); if (a === null || b === null) return base; return Math.max(0.05, Math.min(0.9, base + 0.6 * (a - b))); };
-  const infoSLM = (meta) => { const z = meta.clave.split('|'); return { acc: meta.acc, estilo: meta.estilo, nombre: meta.nombre, rs: vector(meta.nombre), vb: z[1] || 'v0', vida: z[2] || 'ok' }; };
+  const infoSLM = (meta) => { const z = meta.clave.split('|'); return { acc: meta.acc, estilo: meta.estilo, nombre: meta.nombre, psique: bot._psique ? bot._psique.dominante() : null, rs: vector(meta.nombre), vb: z[1] || 'v0', vida: z[2] || 'ok' }; };
   const api = { pSLM, infoSLM, puntuar, evitar: () => d.evitar, ciclo, analizar, vector, preparar, emitido, local, guardar, resumen, rasgos: decay, corpus: () => corpus };
   bot._leng = api;
   return api;
