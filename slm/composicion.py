@@ -76,6 +76,12 @@ def respuesta(cat, v):
     v = dict(v)
     if "X" in v:
         v["X"] = tuyo(v["X"])
+    if cat not in ("gusto_x", "posesion_x", "pedir_x", "donde_x", "estado_usuario", "nombre_usuario"):
+        for k in ("M", "I", "L", "X"):
+            if k in v:
+                x = v[k]
+                return random.choice(["", "", cap(x) + ". ", f"Hablas de {x}. "]) + sobre(x)
+        return neutra()
     if cat == "gusto_x":
         x = v["X"]
         return random.choice(["", "", cap(x) + ". ", f"Hablas de {x}. ", f"¿{cap(x)}? "]) + sobre(x)
@@ -93,3 +99,15 @@ def respuesta(cat, v):
     if cat == "nombre_usuario":
         return random.choice([f"{v['N']}. ", f"{v['N']}, lo guardo. ", f"Tu nombre, {v['N']}, ya es mío. "]) + neutra()
     return generica()
+
+def vocabulario():
+    ws = set()
+    for blk in (SUST, PRED, SUBJ, ADJ):
+        for it in blk:
+            for x in it:
+                ws.update(re.findall(r"[^\W\d_]+", str(x).lower()))
+    for l in (VT, CLAU, MON, TIEMPOS, FUT):
+        for x in l:
+            ws.update(re.findall(r"[^\W\d_]+", x.lower()))
+    ws.update("el la los las un una unos unas tu tus mi mis voy a pienso hablas de estás estar te debilita dices tienes presumes no daré pides quien solo quitará más pedir cambia nada preguntas buscas qué harás cuando antes que son es hasta".split())
+    return sorted(ws)

@@ -28,7 +28,7 @@ def main():
     print("bpe", len(merges), "uniones", f"{time.time() - t0:.0f}s", flush=True)
     tok = B.Tok(merges, base)
     piezas = sorted({a + b for a, b in merges} | set(base))
-    esp = [PAD, FIN, "<U>", "<A>"] + [f"<E:{e}>" for e in ESTILOS] + [f"<R{i}:{d}>" for i in range(4) for d in range(4)]
+    esp = [PAD, FIN, "<U>", "<A>", "<L>", "<S>"] + [f"<E:{e}>" for e in ESTILOS] + [f"<R{i}:{d}>" for i in range(4) for d in range(4)]
     tokens = esp + piezas
     idx = {t: i for i, t in enumerate(tokens)}
     V = len(tokens)
@@ -41,10 +41,12 @@ def main():
     ej = []
     for x in filas:
         u = ids_de(x["u"])[:40]
-        pf = [idx["<U>"]] + u + etiquetas(x["e"], x["rs"]) + [idx["<A>"]]
-        r = ids_de(x["t"])[:CTX - len(pf) - 1] + [idx[FIN]]
-        ids = pf + r
-        ej.append((ids, [0] * len(pf) + [1] * len(r), 1.0))
+        lec = ids_de(x["l"])[:30] + [idx["<S>"]]
+        a = [idx["<U>"]] + u + [idx["<L>"]]
+        tg = etiquetas(x["e"], x["rs"]) + [idx["<A>"]]
+        r = ids_de(x["t"])[:CTX - len(a) - len(lec) - len(tg) - 1] + [idx[FIN]]
+        ids = a + lec + tg + r
+        ej.append((ids, [0] * len(a) + [1] * len(lec) + [0] * len(tg) + [1] * len(r), 1.0))
     random.seed(1)
     random.shuffle(ej)
     corte = max(1, len(ej) // 25)
@@ -137,21 +139,28 @@ def main():
     ciclo(tr, val, epocas, batch, lr, "chat")
 
     m.eval().cpu()
-    prueba = ["hola", "quién eres", "tengo los diamantes", "estoy triste", "te voy a matar", "dónde está mi casa", "me llamo Pedro", "qué piensas de la lluvia"]
-    for p in prueba:
-        pf = [idx["<U>"]] + ids_de(p)[:40] + etiquetas("frio", "0000") + [idx["<A>"]]
-        ids = list(pf)
-        for _ in range(50):
+    prueba = ["hola", "tengo miedo de las arañas", "estoy construyendo una torre", "me llamo Valentina", "qué opinas del café", "te voy a matar", "dónde está mi casa", "voy a dormir"]
+    esp_ids = set(range(len(esp)))
+    def gen(ids, parar):
+        sal = []
+        for _ in range(60):
             with torch.no_grad():
                 lg = m(torch.tensor([ids]))[0, -1]
-            lg[:len(esp)] = -1e9 if len(ids) < len(pf) + 3 else lg[:len(esp)]
-            lg[idx[PAD]] = -1e9
-            lg[idx["<U>"]] = lg[idx["<A>"]] = -1e9
-            nx = int(torch.multinomial(F.softmax(lg / 0.6, -1), 1))
-            if nx == idx[FIN]:
+            for i in esp_ids:
+                if i != parar and i != idx[FIN]:
+                    lg[i] = -1e9
+            nx = int(lg.argmax())
+            if nx == parar or nx == idx[FIN]:
                 break
             ids.append(nx)
-        print("  >", p, "->", "".join(tokens[i] for i in ids[len(pf):]), flush=True)
+            sal.append(nx)
+        return sal
+    for p in prueba:
+        ids = [idx["<U>"]] + ids_de(p)[:40] + [idx["<L>"]]
+        lec = gen(ids, idx["<S>"])
+        ids += [idx["<S>"]] + etiquetas("frio", "0000") + [idx["<A>"]]
+        rep = gen(ids, idx[FIN])
+        print("  >", p, "=>", "".join(tokens[i] for i in lec), "=>", "".join(tokens[i] for i in rep), flush=True)
     os.makedirs(SALIDA, exist_ok=True)
     dummy = torch.zeros(1, 24, dtype=torch.long)
     torch.onnx.export(m, dummy, os.path.join(SALIDA, "modelo.onnx"), input_names=["ids"], output_names=["logits"], dynamic_axes={"ids": {1: "t"}, "logits": {1: "t"}}, opset_version=17, dynamo=False)

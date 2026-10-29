@@ -54,41 +54,73 @@ function crearChat(dir) {
     for (let i = 0; i < c.length; i++) { r -= ps[i]; if (r <= 0) return c[i][1]; }
     return c[0][1];
   }
+  const prohibidos = () => new Set(vocab.tokens.map((t, i) => (/^<(U|A|L|S|E:[^>]*|R\d:\d|pad)>$/.test(t) ? i : -1)).filter((i) => i >= 0));
+  async function paso(ids) {
+    const t = new sesion._ort.Tensor('int64', BigInt64Array.from(ids.map((x) => BigInt(x))), [1, ids.length]);
+    const out = await sesion.run({ ids: t });
+    const V = vocab.tokens.length, off = (ids.length - 1) * V;
+    return out.logits.data.subarray(off, off + V);
+  }
+  async function leer(texto) {
+    await cargar();
+    if (!sesion) return null;
+    const ids = [idx.get('<U>'), ...codificar(String(texto).slice(0, 200)).slice(0, 40), idx.get('<L>')];
+    const s = idx.get('<S>'), pr = prohibidos();
+    pr.delete(s);
+    pr.add(idx.get(vocab.fin));
+    const n0 = ids.length, sal = [];
+    for (let i = 0; i < 40; i++) {
+      const lg = await paso(ids);
+      let mx = -1e9, nx = 0;
+      for (let j = 0; j < lg.length; j++) if (!pr.has(j) && lg[j] > mx) { mx = lg[j]; nx = j; }
+      ids.push(nx);
+      if (nx === s) break;
+      sal.push(vocab.tokens[nx]);
+    }
+    const txt = sal.join('').replace(/\s+/g, ' ').trim();
+    const partes = txt.split('|').map((x) => x.trim());
+    const slots = {};
+    for (const p of partes.slice(1)) { const m = p.match(/^(\w+):\s*(.+)$/); if (m) slots[m[1]] = m[2].trim(); }
+    return { txt, intencion: partes[0].replace(/\s+/g, '_'), slots, ids };
+  }
   let permitidas = null;
   const palabras = (t) => String(t).toLowerCase().match(/\p{L}+/gu) || [];
   function cargarPermitidas() {
     permitidas = new Set();
     try {
-      const b = JSON.parse(fs.readFileSync(path.join(dir, '..', 'dialogo_base.json'), 'utf8'));
-      for (const c of Object.values(b.C)) for (const r of c.r) for (const w of palabras(r.split('|').slice(1).join('|'))) permitidas.add(w);
-      for (const l of fs.readFileSync(path.join(dir, '..', 'semilla', 'otra.json'), 'utf8').split('\n')) for (const w of palabras(l)) permitidas.add(w);
-      for (const f of ['psique.json', 'rival.json']) for (const w of palabras(fs.readFileSync(path.join(dir, '..', 'semilla', f), 'utf8'))) permitidas.add(w);
-    } catch (e) { permitidas = null; }
+      for (const f of ['dialogo_base.json', 'dialogo_juego.json']) {
+        const b = JSON.parse(fs.readFileSync(path.join(dir, '..', f), 'utf8'));
+        for (const c of Object.values(b.C)) for (const r of c.r) for (const w of palabras(r.split('|').slice(1).join('|'))) permitidas.add(w);
+      }
+      for (const f of ['psique.json', 'rival.json', 'otra.json']) for (const w of palabras(fs.readFileSync(path.join(dir, '..', 'semilla', f), 'utf8'))) permitidas.add(w);
+      const c = require(path.join(dir, '..', 'composicion.json'));
+      for (const w of c) permitidas.add(w);
+    } catch (e) { if (!permitidas.size) permitidas = null; }
   }
-  const valida = (f, texto) => {
+  const valida = (f, extra) => {
     if (!permitidas) return true;
-    const ent = new Set(palabras(texto));
+    const ent = new Set(palabras(extra));
     return palabras(f).every((w) => permitidas.has(w) || ent.has(w) || w === 'n');
   };
   async function responder(texto, info) {
     await cargar();
-    if (!permitidas) cargarPermitidas();
     if (!sesion) return null;
+    if (!permitidas) cargarPermitidas();
     info = info || {};
+    const lec = info.lectura || (await leer(texto));
+    if (!lec) return null;
     const g = (k, d) => (idx.has(k) ? idx.get(k) : idx.get(d));
     const rs = (info.rs || [0, 0, 0, 0]).slice(0, 4).map(q);
-    const ids = [idx.get('<U>'), ...codificar(String(texto).slice(0, 200)).slice(0, 40), g(`<E:${info.estilo}>`, '<E:libre>'), ...rs.map((d, i) => idx.get(`<R${i}:${d}>`)), idx.get('<A>')];
-    const n0 = ids.length, fin = idx.get(vocab.fin), nEsp = vocab.tokens.findIndex((t) => !/^<.*>$/.test(t) || t.length === 1);
-    const prohibidos = new Set(vocab.tokens.map((t, i) => (/^<(U|A|E:[^>]*|R\d:\d|pad)>$/.test(t) ? i : -1)).filter((i) => i >= 0));
+    const ids = lec.ids.slice();
+    ids.push(...[g(`<E:${info.estilo}>`, '<E:libre>'), ...rs.map((d, i) => idx.get(`<R${i}:${d}>`)), idx.get('<A>')]);
+    const fin = idx.get(vocab.fin), pr = prohibidos();
     const sal = [];
-    const temp = info.temp || Number(process.env.SLM_TEMP) || 0.65, k = info.k || 10;
+    const temp = info.temp || Number(process.env.SLM_TEMP) || 0.6, k = info.k || 8;
     const t0 = Date.now();
     try {
-      for (let i = 0; i < Math.min(70, vocab.ctx - n0 - 1); i++) {
-        const t = new sesion._ort.Tensor('int64', BigInt64Array.from(ids.map((x) => BigInt(x))), [1, ids.length]);
-        const out = await sesion.run({ ids: t });
-        const V = vocab.tokens.length, off = (ids.length - 1) * V;
-        const nx = muestra(out.logits.data.subarray(off, off + V), temp, k, i < 3 ? new Set([...prohibidos, fin]) : prohibidos);
+      for (let i = 0; i < Math.min(70, vocab.ctx - ids.length - 1); i++) {
+        const lg = await paso(ids);
+        const nx = muestra(lg, temp, k, i < 3 ? new Set([...pr, fin]) : pr);
         if (nx === fin) break;
         ids.push(nx); sal.push(vocab.tokens[nx]);
         if (Date.now() - t0 > 15000) break;
@@ -97,10 +129,10 @@ function crearChat(dir) {
     let f = sal.join('').replace(/\s+/g, ' ').trim();
     const nom = info.nombre;
     f = nom ? f.replace(/\{n\}/g, nom) : f.replace(/\{n\},\s*/g, '').replace(/,?\s*\{n\}/g, '').replace(/\s+/g, ' ').trim().replace(/^./, (c) => c.toUpperCase());
-    if (f.length < 4 || /[{}]/.test(f) || !valida(f, texto + ' ' + (nom || ''))) return null;
+    if (f.length < 4 || /[{}]/.test(f) || !valida(f, texto + ' ' + (nom || '') + ' ' + Object.values(lec.slots).join(' '))) return null;
     return f;
   }
   cargar();
-  return { responder, listo: () => !!sesion, cargar };
+  return { responder, leer, listo: () => !!sesion, cargar };
 }
 module.exports = { crearChat };

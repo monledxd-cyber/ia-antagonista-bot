@@ -33,8 +33,9 @@ async function responder(texto) {
   await chatM.cargar();
   if (chatM.listo() && process.env.AM_BIBLIOTECA !== '1') {
     let m = null;
-    for (let i = 0; i < 6 && !m; i++) m = await chatM.responder(texto, { estilo, rs, nombre });
-    if (m) return { f: m, estilo: 'modelo:' + estilo, dom, rs };
+    const lectura = await chatM.leer(texto);
+    for (let i = 0; i < 6 && !m; i++) m = await chatM.responder(texto, { estilo, rs, nombre, lectura });
+    if (m) return { f: m, estilo: 'modelo:' + estilo + ' | leyó: ' + lectura.txt, dom, rs };
   }
   const mx = Math.max(...rs), tr = RIV[rs.indexOf(mx)], S = gr.semilla();
   if (mx >= 0.5 && S.rival && S.rival[tr] && Math.random() < 0.85) return { f: sub(elegir(S.rival[tr])), estilo: 'rival:' + tr, dom, rs };
