@@ -1,4 +1,6 @@
 import json, os, random, re, unicodedata, sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import composicion as K
 R = os.path.dirname(os.path.abspath(__file__))
 B = json.load(open(os.path.join(R, "dialogo_base.json"), encoding="utf8"))
 SEM = os.path.join(R, "semilla")
@@ -70,7 +72,13 @@ def ruido():
             fr += [l.strip() for l in open(p, encoding="utf8") if 15 <= len(l.strip()) <= 90]
     return fr
 
+def corpus_dominio(n=60000):
+    with open(os.path.join(R, "preentrenar", "am_comp.txt"), "w", encoding="utf8") as fh:
+        for _ in range(n):
+            fh.write(K.generica().replace("{n}", random.choice(B["N"])) + "\n")
+
 def main():
+    corpus_dominio()
     C = B["C"]
     nombres = list(C)
     gen, rui = generico(), ruido()
@@ -90,7 +98,16 @@ def main():
             v = {"X": sorteo_x(), "E": sorteo_e(), "N": sorteo_n()}
             u = aumentar(random.choice(PRE_) + llenar(random.choice(c["u"]), v) + random.choice(SUF_))
             e, t = random.choice(c["r"]).split("|", 1)
-            t = cap(llenar(t, v))
+            vr = dict(v)
+            vr["X"] = K.tuyo(v["X"])
+            if cat in ("gusto_x", "posesion_x", "pedir_x", "donde_x", "estado_usuario", "nombre_usuario") and random.random() < 0.55:
+                t = K.respuesta(cat, v)
+                e = "f"
+            elif cat not in ("gusto_x", "posesion_x", "pedir_x", "donde_x", "estado_usuario", "nombre_usuario") and random.random() < 0.2:
+                t = llenar(t, vr) + " " + K.neutra()
+            else:
+                t = llenar(t, vr)
+            t = cap(t)
             rs = c["rs"] if random.random() > 0.2 else "0000"
         k = (u, t)
         if k in vistos:
