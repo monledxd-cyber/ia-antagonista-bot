@@ -1,3 +1,4 @@
+require('fs').rmSync('/tmp/aldea_test.json', { force: true });
 const assert = require('assert');
 const { crearAldeanos } = require('../aldeanos');
 const inv = [{ name: 'emerald', count: 40 }, { name: 'lectern', count: 1 }];
