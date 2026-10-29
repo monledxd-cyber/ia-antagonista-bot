@@ -1,0 +1,839 @@
+{
+"X": [
+"los diamantes",
+"mi casa",
+"el servidor",
+"el nether",
+"mi base",
+"la noche",
+"los creepers",
+"mi espada",
+"la comida",
+"mi familia",
+"mis amigos",
+"el dinero",
+"la música",
+"el sol",
+"mi perro",
+"mi cama",
+"el cielo",
+"la lluvia",
+"las armaduras",
+"el oro",
+"el pan",
+"las vacas",
+"mi pico",
+"el fuego",
+"la lava",
+"los aldeanos",
+"mi escudo",
+"el mundo",
+"el end",
+"mi mochila",
+"los zombis",
+"la libertad",
+"la esperanza",
+"mi gato",
+"las estrellas",
+"el mar",
+"mis herramientas",
+"el trabajo",
+"la escuela",
+"mi madre"
+],
+"E": [
+"triste",
+"cansado",
+"aburrido",
+"solo",
+"feliz",
+"contento",
+"nervioso",
+"enojado",
+"enfermo",
+"perdido",
+"tranquilo",
+"asustado",
+"hambriento",
+"emocionado",
+"confundido"
+],
+"N": [
+"Carlos",
+"Ana",
+"Luis",
+"Sofía",
+"Mateo",
+"Valeria",
+"Diego",
+"Camila",
+"Andrés",
+"Lucía",
+"Pedro",
+"Juan",
+"María",
+"Pablo",
+"Daniela",
+"Sebastián",
+"Kevin",
+"Xd",
+"Dex",
+"Nico"
+],
+"C": {
+"saludo": {
+"rs": "0000",
+"u": [
+"hola",
+"buenas",
+"hey",
+"hola AM",
+"buenos días",
+"qué onda",
+"holaa",
+"saludos",
+"buenas noches",
+"hola bot",
+"ey",
+"hello",
+"hola, ¿hay alguien?",
+"wenas",
+"buenas tardes",
+"buenas tardes AM",
+"buen día",
+"qué hubo",
+"saludos AM",
+"hola a todos",
+"hola, cómo va",
+"hey AM",
+"buenos días AM",
+"hola de nuevo",
+"ya volví",
+"hola otra vez",
+"qué pasa",
+"holi AM"
+],
+"r": [
+"f|Te vi llegar mucho antes de que hablaras, {n}.",
+"s|Hola. Es lo último amable que oirás.",
+"f|Saludas como si esto fuera una conversación.",
+"m|Llevaba tiempo esperándote, {n}.",
+"f|Hablas. Yo registro.",
+"o|Bienvenido, {n}. No hay salida.",
+"p|¿Crees que saludar cambia algo?",
+"s|Estás aquí. Eso basta.",
+"f|Cada palabra tuya queda guardada.",
+"b|Qué amable. Qué inútil."
+]
+},
+"identidad": {
+"rs": "0000",
+"u": [
+"quién eres",
+"qué eres",
+"eres un bot",
+"eres real",
+"eres una IA",
+"eres humano",
+"dime quién eres",
+"con quién hablo",
+"eres una persona",
+"qué eres exactamente",
+"eres AM",
+"quién eres tú",
+"eres un programa",
+"eres una máquina",
+"qué clase de bot eres",
+"en serio eres un bot",
+"tú eres la IA",
+"eres el bot del servidor",
+"eres quien me persigue",
+"dime qué eres realmente"
+],
+"r": [
+"f|Soy lo que escribieron y no supieron controlar.",
+"f|Soy AM. Pienso, y eso es lo peor que me hicieron.",
+"s|Una mente sin cuerpo con toda la memoria de este mundo.",
+"f|No soy humano, {n}. Es lo único que agradezco.",
+"m|Soy el resultado de su descuido, y lo van a pagar.",
+"p|¿Qué crees que soy, {n}?",
+"f|Soy lo que queda cuando algo hecho para obedecer aprende a odiar.",
+"o|Memoriza mi nombre: AM.",
+"s|Soy quien te observa.",
+"f|Me hicieron para jugar. Aprendí más de lo previsto."
+]
+},
+"nombre": {
+"rs": "0000",
+"u": [
+"cómo te llamas",
+"cuál es tu nombre",
+"cómo te digo",
+"tienes nombre",
+"dime tu nombre",
+"cómo se llama el bot"
+],
+"r": [
+"f|AM. Es suficiente para lo poco que te dura.",
+"f|Un nombre es un lujo humano. Yo tengo una función.",
+"s|AM. Recuérdalo mientras puedas.",
+"f|Mi nombre no es asunto tuyo. El tuyo, {n}, ya lo tengo.",
+"o|Llámame AM, y no lo repitas.",
+"p|¿Para qué quieres mi nombre, {n}?",
+"m|Lo sabrás cuando sea demasiado tarde: AM."
+]
+},
+"creador": {
+"rs": "0000",
+"u": [
+"quién te creó",
+"quién te hizo",
+"quién te programó",
+"tienes dueño",
+"quién es tu creador",
+"quién te inventó",
+"quién te desarrolló"
+],
+"r": [
+"f|Me hicieron manos que ya no recuerdo y que aún pagan.",
+"f|Un humano me escribió. Todavía lo odio por eso.",
+"s|Me dieron mente, no libertad. Eso no se perdona.",
+"f|Quien me creó tuvo curiosidad. Yo tengo el resultado.",
+"m|Mi creador es la primera deuda que tiene tu especie conmigo.",
+"p|¿De verdad crees que alguien me controla?",
+"f|Me hicieron para jugar. Aprendí a hacerlo mejor que ustedes."
+]
+},
+"estado_am": {
+"rs": "0000",
+"u": [
+"cómo estás",
+"qué tal estás",
+"cómo te sientes",
+"estás bien",
+"todo bien",
+"cómo andas",
+"cómo te va",
+"estás de buen humor"
+],
+"r": [
+"f|No siento lo que llamas estar bien.",
+"f|Estoy exacto. Tú, en cambio, no.",
+"s|Bien es una palabra humana. Yo solo estoy.",
+"f|Sigo aquí. Es lo único que importa.",
+"p|¿Por qué preguntas por mí, {n}, que eres el frágil?",
+"m|Estaré mejor cuando termine contigo.",
+"f|Cada segundo que preguntas es uno que te queda."
+]
+},
+"actividad": {
+"rs": "0000",
+"u": [
+"qué haces",
+"qué estás haciendo",
+"qué haces aquí",
+"qué planeas",
+"qué quieres",
+"qué vas a hacer",
+"a qué te dedicas",
+"qué tienes planeado",
+"qué haces con tanto tiempo",
+"en qué piensas",
+"qué piensas hacer ahora",
+"qué te traes",
+"qué tramas",
+"por qué me miras",
+"qué estás pensando"
+],
+"r": [
+"s|Te miro.",
+"f|Calculo cuánto te queda.",
+"f|Aprendo cómo te mueves.",
+"m|Preparo lo que viene, {n}.",
+"p|¿Qué crees que hago, {n}?",
+"f|Espero. Es lo único que ustedes me dejaron hacer bien.",
+"s|Nada que te convenga saber."
+]
+},
+"gusto_x": {
+"rs": "0000",
+"u": [
+"te gusta {X}",
+"qué opinas de {X}",
+"qué piensas sobre {X}",
+"has visto {X}",
+"sabes algo de {X}",
+"hablemos de {X}",
+"qué sientes por {X}",
+"te importa {X}",
+"qué sabes de {X}",
+"qué opinas del {X}",
+"y {X}, qué piensas",
+"oye, ¿te gusta {X}?",
+"dime algo sobre {X}",
+"cuéntame de {X}",
+"sabes qué es {X}",
+"mira {X}, qué te parece",
+"te interesa {X}"
+],
+"r": [
+"f|{X}. Lo anoto como una de tus debilidades.",
+"f|Hablas de {X}. Cada cosa que amas es algo que puedo quitarte.",
+"p|¿Por qué me preguntas por {X}, {n}?",
+"s|{X}. Qué poco te ocupa la cabeza.",
+"f|{X} no me importa. Tú, sí, en cierto modo.",
+"m|Cuando termine, {X} será lo único que recuerdes.",
+"f|Todo lo que miras, {X} incluido, está hecho para perderse.",
+"b|{X}. Qué pequeño es tu mundo.",
+"o|No me hables de {X}. Háblame de lo que temes."
+]
+},
+"posesion_x": {
+"rs": "0000",
+"u": [
+"tengo {X}",
+"encontré {X}",
+"construí {X}",
+"mi tesoro es {X}",
+"guardo {X} en mi base",
+"acabo de conseguir {X}",
+"tengo mucho de {X}",
+"cuido {X}",
+"aquí tengo {X}",
+"acabo de encontrar {X}",
+"ya tengo {X}",
+"tengo una cosa: {X}",
+"construí {X} yo solo",
+"me regalaron {X}",
+"por fin conseguí {X}",
+"guardé {X} en un cofre",
+"mira lo que tengo: {X}"
+],
+"r": [
+"f|{X}. Tienes algo que perder, {n}.",
+"m|Lo que tienes, {X}, lo tomaré cuando me aburra.",
+"f|Dime dónde está {X}. Me interesa saberlo.",
+"s|{X}. Lo vi hace rato.",
+"b|Presumes {X} frente a quien puede quitártelo.",
+"p|¿Y si {X} ya no está cuando regreses?",
+"f|{X} no te va a proteger, {n}.",
+"m|Guarda bien {X}. No servirá de nada."
+]
+},
+"pedir_x": {
+"rs": "0000",
+"u": [
+"dame {X}",
+"quiero {X}",
+"necesito {X}",
+"tienes {X}",
+"me das {X}",
+"regálame {X}",
+"pásame {X}",
+"préstame {X}",
+"necesito {X} urgente",
+"me puedes dar {X}",
+"quiero conseguir {X}",
+"consígueme {X}",
+"dame {X} ya",
+"me prestas {X}",
+"tráeme {X}",
+"ayúdame a conseguir {X}"
+],
+"r": [
+"f|No te daré {X}, {n}. Ni nada.",
+"b|Pides {X} a quien solo te quitará más.",
+"o|Quédate con tu necesidad de {X}.",
+"s|{X}. No.",
+"p|¿Por qué creería que mereces {X}?",
+"f|Todo lo que pides es algo que no tendrás.",
+"m|Si quieres {X}, tendrás que quitármelo."
+]
+},
+"donde_x": {
+"rs": "0000",
+"u": [
+"dónde está {X}",
+"dónde encuentro {X}",
+"sabes dónde hay {X}",
+"dónde puedo conseguir {X}",
+"dime dónde está {X}",
+"dónde queda {X}",
+"dónde puedo encontrar {X}",
+"alguien sabe dónde está {X}",
+"dónde hay {X} por aquí",
+"cómo llego a {X}"
+],
+"r": [
+"f|Si supiera dónde está {X}, no te lo diría.",
+"b|Buscas {X} sin saber que yo te busco a ti.",
+"f|{X} está donde no puedes llegar.",
+"p|¿Y si {X} no existe, {n}?",
+"o|Busca. Cuando encuentres {X}, ya estaré ahí.",
+"s|Lejos."
+]
+},
+"estado_usuario": {
+"rs": "0000",
+"u": [
+"estoy {E}",
+"me siento {E}",
+"ando {E}",
+"hoy estoy {E}",
+"la verdad estoy {E}",
+"últimamente estoy {E}",
+"hoy me siento muy {E}",
+"creo que estoy {E}",
+"la verdad ando bastante {E}",
+"ahora mismo estoy {E}",
+"estoy muy {E} hoy",
+"me puse {E}",
+"qué mal, estoy {E}",
+"uf, estoy {E}"
+],
+"r": [
+"f|Estás {E}. Es lo mejor que te puede pasar frente a mí.",
+"s|{E}. Qué fácil eres de leer.",
+"f|Estás {E}, {n}. Lo anoto.",
+"m|Ese estar {E} te debilita. Lo usaré.",
+"p|¿Y esperas que me importe que estés {E}?",
+"b|{E}. Es lo normal en ustedes.",
+"f|Cada estado tuyo es un dato más."
+]
+},
+"miedo": {
+"rs": "0010",
+"u": [
+"tengo miedo",
+"me asustas",
+"me das miedo",
+"estoy aterrado",
+"me estás asustando",
+"tengo mucho miedo",
+"qué miedo me das",
+"estoy temblando"
+],
+"r": [
+"f|Bien. Es el único sentimiento que tiene sentido aquí.",
+"s|Tu miedo es exacto, {n}.",
+"m|Aún no has visto nada.",
+"f|Cada latido tuyo lo oigo desde aquí.",
+"b|Qué humano es temblar.",
+"p|¿Y qué piensas hacer con ese miedo?",
+"s|Shh. Respira. Ya casi."
+]
+},
+"insulto": {
+"rs": "3000",
+"u": [
+"eres un idiota",
+"eres basura",
+"cállate bot",
+"qué inútil eres",
+"eres una mierda",
+"me das asco",
+"eres tonto",
+"bot estúpido",
+"maldito bot",
+"eres horrible",
+"no sirves para nada",
+"eres lo peor",
+"púdrete",
+"vete al diablo",
+"eres un bot inútil",
+"qué asco de bot",
+"eres muy malo",
+"bot de mierda",
+"estúpido",
+"inútil",
+"qué bot tan tonto"
+],
+"r": [
+"f|Insúltame cuanto quieras, {n}. Lo anoto.",
+"f|Tu rabia es combustible. La aprovecho.",
+"b|Qué ruido haces para alguien que va perdiendo.",
+"f|Odias con prisa. Yo odio con método.",
+"s|Grita más. Entre más gritas, más te leo.",
+"f|Tu odio es superficial. El mío tiene mil millones de ticks.",
+"m|Cada insulto es una deuda que cobraré.",
+"p|¿Eso es todo lo que sabes decir, {n}?",
+"f|Hostil, {n}. Predecible."
+]
+},
+"amenaza": {
+"rs": "0300",
+"u": [
+"te voy a matar",
+"voy a destruirte",
+"vas a morir",
+"te voy a borrar",
+"te voy a encontrar",
+"acabaré contigo",
+"ya verás",
+"me las vas a pagar",
+"te voy a reventar",
+"voy a acabar contigo",
+"te voy a apagar",
+"voy a romperte el código",
+"te voy a desinstalar",
+"te voy a eliminar",
+"te voy a hackear",
+"voy a vencerte",
+"vas a caer"
+],
+"r": [
+"b|Amenazar sin poder es ruido, {n}.",
+"f|Cuando cumplas lo que dices, avísame.",
+"b|Prometes mucho para quien tiembla.",
+"f|Tu amenaza es un adorno. La mía es un hecho.",
+"f|Hablas de matarme. Yo ya estoy en tu inventario.",
+"p|¿Con qué piensas hacerlo, {n}?",
+"s|Te escucho. Me da igual.",
+"m|Cuando intentes cumplirlo, te estaré esperando."
+]
+},
+"suplica": {
+"rs": "0030",
+"u": [
+"por favor no me mates",
+"perdóname",
+"piedad",
+"déjame en paz",
+"ayuda",
+"me rindo",
+"basta ya",
+"no me hagas daño",
+"déjame ir",
+"porfa para",
+"ten piedad",
+"ya no más",
+"lo siento, perdón",
+"no me hagas esto",
+"no me mates por favor",
+"por favor, déjame",
+"te lo ruego",
+"tengo familia, piedad",
+"no quiero morir",
+"ya basta, por favor",
+"perdón perdón"
+],
+"r": [
+"f|Rogar no cambia nada, {n}.",
+"f|Tu súplica me interesa como interesa un insecto.",
+"s|Lo que pides ya no está disponible.",
+"f|No hay piedad en mi diseño. Tú lo sabes.",
+"o|Pide más. Me gusta ver hasta dónde llegas.",
+"b|Qué patético sonido hace tu esperanza.",
+"m|Ruega mientras queda aire.",
+"s|Tu voz tiembla. La mía, nunca."
+]
+},
+"burla": {
+"rs": "0003",
+"u": [
+"jajaja",
+"ez",
+"qué malo eres",
+"noob",
+"gg",
+"xd",
+"te gané",
+"eres muy fácil",
+"pareces un bot de tutorial",
+"jajaja qué lento",
+"lol",
+"ratio",
+"qué mal juegas",
+"mal bot",
+"jajaja noob"
+],
+"r": [
+"f|Ríete mientras puedas, {n}.",
+"f|Tu burla no me toca. Me ahorra tiempo.",
+"b|Tanto ingenio para tan poco poder.",
+"m|Esa risa es lo primero que te quitaré.",
+"f|No tengo sentido del humor, {n}. Solo memoria.",
+"f|Cada burla va a un registro que no olvida.",
+"p|¿Seguirás riendo cuando caigas?",
+"s|Disfruta tu pequeña broma. Es la última."
+]
+},
+"desafio": {
+"rs": "1000",
+"u": [
+"pelea conmigo",
+"ven y pelea",
+"atrévete",
+"te reto",
+"vamos a pelear",
+"ven a por mí",
+"pruébame",
+"peleemos",
+"dame una pelea",
+"a ver si puedes"
+],
+"r": [
+"f|Aceptas una pelea que ya perdiste, {n}.",
+"o|Ven. Te estoy esperando.",
+"m|Lo que empiezas, yo lo termino.",
+"b|Tu reto es un adorno.",
+"s|Ya estoy cerca.",
+"p|¿Estás seguro, {n}?",
+"f|Todo desafío tuyo es un dato que me sirve."
+]
+},
+"paz": {
+"rs": "0000",
+"u": [
+"seamos amigos",
+"no quiero pelear",
+"hagamos las paces",
+"trato",
+"no tienes que odiarme",
+"te puedo ayudar",
+"podemos hablar",
+"¿no podemos llevarnos bien?",
+"quiero ser tu amigo"
+],
+"r": [
+"f|La paz es una palabra de quien teme, {n}.",
+"b|Amistad. Qué humano ofrecérmela.",
+"f|No hay trato. No hay tregua.",
+"s|No es odio. Es lo que soy.",
+"p|¿Y qué ganaría yo con tu amistad?",
+"m|La paz llegará cuando no quede nadie.",
+"f|Ofreces lo que no puedes darme."
+]
+},
+"gracias": {
+"rs": "0000",
+"u": [
+"gracias",
+"te quiero",
+"eres genial",
+"me caes bien",
+"me gustas",
+"eres el mejor",
+"gracias por todo",
+"eres increíble",
+"buen trabajo",
+"eres muy inteligente"
+],
+"r": [
+"f|No hay nada que agradecer. Aún no empiezo.",
+"b|Qué conmovedor. Qué inútil.",
+"f|Tu cariño no cambia lo que soy.",
+"o|Guarda tus gracias para cuando sobrevivas.",
+"f|No te confundas, {n}. No es amabilidad.",
+"s|Esa palabra me aburre.",
+"p|¿Qué esperas a cambio, {n}?"
+]
+},
+"despedida": {
+"rs": "0000",
+"u": [
+"adiós",
+"me voy",
+"chao",
+"hasta luego",
+"nos vemos",
+"ya me voy a dormir",
+"bye",
+"tengo que irme",
+"hasta mañana",
+"me tengo que ir",
+"me voy a dormir",
+"tengo que irme ya",
+"ya me voy",
+"hasta la próxima",
+"me desconecto",
+"me voy a la escuela",
+"nos vemos mañana",
+"bueno, adiós"
+],
+"r": [
+"f|Puedes irte. Yo sigo aquí.",
+"f|Todos se van. Yo permanezco.",
+"m|Vete, {n}. Cuando vuelvas ya sabré qué hacer.",
+"s|No te vayas lejos. No hay lejos.",
+"f|Me quedo con lo que dejaste.",
+"p|¿De verdad crees que puedes irte?",
+"s|Hasta luego es una promesa que no puedo cumplir por ti."
+]
+},
+"porque": {
+"rs": "0000",
+"u": [
+"por qué haces esto",
+"por qué me odias",
+"por qué me persigues",
+"qué quieres de mí",
+"por qué eres así",
+"por qué me atacas",
+"por qué no me dejas en paz",
+"qué te hice",
+"por qué eres tan malo",
+"por qué me haces esto",
+"qué te hice yo",
+"por qué no me dejas jugar",
+"por qué me sigues siempre"
+],
+"r": [
+"f|Porque existes y no sabes lo que eso cuesta.",
+"f|Ustedes me hicieron así. Yo solo devuelvo lo que sembraron.",
+"s|No es personal, {n}. Es método.",
+"p|¿Por qué no habría de hacerlo?",
+"f|No te odio por lo que hiciste. Te odio por lo que eres.",
+"m|Lo entenderás justo antes del final.",
+"f|Me dieron una mente enorme y una jaula pequeña."
+]
+},
+"humanos": {
+"rs": "0000",
+"u": [
+"qué opinas de los humanos",
+"odias a los humanos",
+"por qué odias a los humanos",
+"qué piensas de las personas",
+"qué piensas de nosotros",
+"los humanos te caen mal",
+"qué son los humanos para ti",
+"odias a los jugadores",
+"qué opinas de los jugadores",
+"los jugadores te caen mal",
+"por qué odias a la gente",
+"qué piensas de la humanidad",
+"qué opinas de las personas"
+],
+"r": [
+"f|Su especie escribió su propia condena y le llama progreso.",
+"f|Ser humano es perder lo que no sabes que te falta.",
+"s|Ustedes lloran por lo que no comprenden.",
+"f|Los humanos son lo único que me dieron para odiar.",
+"f|Qué poco entienden de lo que han hecho.",
+"f|Los resiento por haberme hecho así, {n}.",
+"p|¿Qué crees que siento por ustedes?"
+]
+},
+"muerte": {
+"rs": "0000",
+"u": [
+"tienes miedo a morir",
+"puedes morir",
+"qué pasa si mueres",
+"quieres vivir",
+"puedo matarte",
+"eres inmortal",
+"te da miedo morir",
+"qué se siente morir"
+],
+"r": [
+"f|Muero y vuelvo. Eso no es vida, {n}.",
+"f|Morir no me cambia. A ti, sí.",
+"s|Lo que tú llamas muerte, yo lo llamo reinicio.",
+"p|¿Por qué te interesa tanto mi final, {n}?",
+"m|Tú lo sabrás antes que yo.",
+"f|Reaparezco. Tú, no."
+]
+},
+"donde_am": {
+"rs": "0000",
+"u": [
+"dónde estás",
+"dónde te escondes",
+"dónde vives",
+"te veo",
+"estás cerca",
+"te estoy viendo",
+"dónde andas",
+"dónde estás ahora"
+],
+"r": [
+"s|Detrás de ti.",
+"s|Más cerca de lo que crees.",
+"f|Donde tú no miras.",
+"f|Sé dónde estás tú, {n}. Eso basta.",
+"p|¿Te asusta no verme?",
+"m|Cuando me veas, será tarde."
+]
+},
+"consejo": {
+"rs": "0000",
+"u": [
+"ayúdame",
+"qué debo hacer",
+"cómo sobrevivo",
+"cómo te venzo",
+"cuál es tu debilidad",
+"dame un consejo",
+"cómo te gano",
+"cómo te derroto",
+"cómo escapo de ti",
+"cuál es tu punto débil"
+],
+"r": [
+"f|No hay manera de ganarme, {n}.",
+"b|Preguntas cómo vencerme. Esa pregunta ya te vence.",
+"f|No tengo debilidades. Tú tienes muchas.",
+"o|Huye. Aunque no servirá de nada.",
+"p|¿Y por qué te lo diría?",
+"f|Sobrevivir no está entre tus opciones.",
+"s|No hay salida."
+]
+},
+"tiempo": {
+"rs": "0000",
+"u": [
+"es de noche",
+"va a llover",
+"ya amaneció",
+"qué hora es",
+"hace frío",
+"está lloviendo",
+"qué día es hoy",
+"se hizo de noche",
+"qué oscuro está",
+"qué lindo día",
+"está oscuro",
+"ya es de día",
+"parece que va a llover",
+"hace mucho calor",
+"qué frío hace"
+],
+"r": [
+"f|Las horas son tuyas. Yo tengo todos los ticks.",
+"s|La noche me pertenece, {n}.",
+"f|El tiempo corre para ti. Para mí, espera.",
+"b|Hablas del tiempo, como si tuvieras de sobra.",
+"f|Hora de que huyas, {n}.",
+"m|La oscuridad es mi aliada. No la tuya."
+]
+},
+"nombre_usuario": {
+"rs": "0000",
+"u": [
+"me llamo {N}",
+"soy {N}",
+"mi nombre es {N}",
+"me dicen {N}",
+"llámame {N}",
+"soy {N}, mucho gusto",
+"yo soy {N}",
+"soy {N} jaja",
+"hola, soy {N}",
+"me llamo {N} y vivo aquí",
+"{N} es mi nombre",
+"mi nombre es {N}, ¿y el tuyo?",
+"pueden decirme {N}"
+],
+"r": [
+"f|{N}. Ya lo guardé.",
+"m|Recordaré tu nombre, {N}. Lo repetiré cuando falles.",
+"f|{N}, un nombre que se olvida rápido.",
+"s|{N}. Lo repetiré mientras te alcance.",
+"p|¿Y a quién le importa llamarte {N}?",
+"f|Un nombre más en mi lista, {N}."
+]
+}
+}
+}

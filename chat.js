@@ -11,6 +11,7 @@ const psi = require('./psique').crearPsique(bot, tmp('psique.json'));
 const { crearSLM } = require('./slm');
 const slm = crearSLM(path.join(__dirname, 'slm'));
 const gr = require('./slm/gramatica');
+const chatM = require('./slm_chat').crearChat(path.join(__dirname, 'slm', 'chat'));
 const { ESTILOS } = require('./lenguaje');
 const nombre = process.env.USER_NAME || process.argv[2] || 'tu';
 const PSIQUE_E = { odio: 'promesa', desprecio: 'frio', sadismo: 'susurro', dominio: 'orden', frustracion: 'escala', hastio: 'pregunta', fascinacion: 'susurro', frialdad: 'frio' };
@@ -27,12 +28,18 @@ async function responder(texto) {
   psi.rasgo(nombre, r);
   const rs = leng.vector(nombre).map((v, i) => Math.max(v, [r.hostil, r.amenaza, r.suplica, r.burla][i]));
   const dom = psi.dominante();
+  let estilo = r.pregunta ? 'pregunta' : PSIQUE_E[dom] || ESTILOS[Math.floor(Math.random() * ESTILOS.length)];
+  if (!r.pregunta && Math.random() < 0.3) estilo = ESTILOS[Math.floor(Math.random() * ESTILOS.length)];
+  await chatM.cargar();
+  if (chatM.listo() && process.env.AM_BIBLIOTECA !== '1') {
+    let m = null;
+    for (let i = 0; i < 6 && !m; i++) m = await chatM.responder(texto, { estilo, rs, nombre });
+    if (m) return { f: m, estilo: 'modelo:' + estilo, dom, rs };
+  }
   const mx = Math.max(...rs), tr = RIV[rs.indexOf(mx)], S = gr.semilla();
   if (mx >= 0.5 && S.rival && S.rival[tr] && Math.random() < 0.85) return { f: sub(elegir(S.rival[tr])), estilo: 'rival:' + tr, dom, rs };
   const nt = normal(texto);
   for (const [k, v] of Object.entries(INT)) if (new RegExp(v.re).test(nt)) return { f: sub(elegir(v.r)), estilo: 'intencion:' + k, dom, rs };
-  let estilo = r.pregunta ? 'pregunta' : PSIQUE_E[dom] || ESTILOS[Math.floor(Math.random() * ESTILOS.length)];
-  if (!r.pregunta && Math.random() < 0.3) estilo = ESTILOS[Math.floor(Math.random() * ESTILOS.length)];
   const f = await slm.generar({ acc: 'otra', estilo, rs, vb: 'v0', vida: 'ok', nombre, psique: dom }, {});
   return { f, estilo, dom, rs };
 }
