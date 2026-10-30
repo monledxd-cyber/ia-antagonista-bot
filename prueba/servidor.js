@@ -15,6 +15,25 @@ async function pozo(p) {
   const base = p.position.floored();
   for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) for (let dy = 0; dy < 4; dy++) await serv.setBlock(serv.overworld, base.offset(dx, dy, dz), estado('dirt'));
 }
+async function lago(p, r, prof, gap) {
+  const c = p.position.floored();
+  for (let dx = -r; dx <= r; dx++) for (let dz = -r; dz <= r; dz++) {
+    if (Math.hypot(dx, dz) > r) continue;
+    for (let dy = 1; dy <= gap; dy++) await serv.setBlock(serv.overworld, c.offset(dx, -dy, dz), estado('air'));
+    for (let dy = 1 + gap; dy <= prof + gap; dy++) await serv.setBlock(serv.overworld, c.offset(dx, -dy, dz), estado('water'));
+  }
+  const t0 = Date.now();
+  let dentro = true, fuera = false, n = 0;
+  const iv = setInterval(async () => {
+    try {
+      const q = p.position, b = await serv.overworld.getBlock(new Vec3(Math.floor(q.x), Math.floor(q.y), Math.floor(q.z)));
+      const d = Math.hypot(q.x - c.x, q.z - c.z);
+      if (++n % 10 === 0) console.log(`AGUA pos ${q.x.toFixed(1)} ${q.y.toFixed(1)} ${q.z.toFixed(1)} d=${d.toFixed(1)} bloque=${b && b.name}`);
+      if (!fuera && d > r + 0.8 && b && b.name !== 'water') { fuera = true; console.log(`AGUA_FUERA seg=${((Date.now() - t0) / 1000).toFixed(1)}`); }
+    } catch (e) { /* ignorar */ }
+  }, 500);
+  return iv;
+}
 async function arboles(p) {
   const base = p.position.floored();
   for (const [dx, dz] of [[6, 0], [-6, 4], [4, -7]]) for (let dy = 0; dy < 5; dy++) await serv.setBlock(serv.overworld, base.offset(dx, dy, dz), estado('oak_log'));
@@ -25,6 +44,7 @@ serv.on('newPlayer', (p) => p.once('spawned', () => {
   setTimeout(async () => {
     try {
       if (escenario === 'pozo') await pozo(p);
+      if (escenario === 'agua') await lago(p, Number(process.env.LAGO_R || 9), Number(process.env.LAGO_PROF || 2), Number(process.env.LAGO_GAP || 0));
       if (escenario === 'base' || escenario === 'rival') await arboles(p);
       if (escenario === 'rival') {
         let n = 0;

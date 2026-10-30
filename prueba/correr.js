@@ -11,7 +11,7 @@ const puerto = Number(process.env.PRUEBA_PUERTO || 25599);
 if (!fs.existsSync(path.join(__dirname, 'node_modules', 'flying-squid'))) execSync('npm install --no-audit --no-fund', { cwd: __dirname, stdio: 'inherit' });
 if (!fs.existsSync(path.join(raiz, 'node_modules', 'mineflayer'))) execSync('npm install --no-audit --no-fund', { cwd: raiz, stdio: 'inherit' });
 
-const tmp = path.join(os.tmpdir(), 'am_prueba');
+const tmp = path.join(os.tmpdir(), 'am_prueba_' + puerto);
 fs.rmSync(tmp, { recursive: true, force: true });
 fs.mkdirSync(tmp, { recursive: true });
 for (const f of fs.readdirSync(raiz)) if (/\.js$|^package(-lock)?\.json$/.test(f)) fs.copyFileSync(path.join(raiz, f), path.join(tmp, f));
@@ -58,7 +58,7 @@ function esperar(h, marca, ms) {
   const cuenta = (re) => lineasBot.filter((l) => re.test(l)).length;
   console.log(`\n== prueba ${escenario} ${segundos}s ==`);
   console.log(`lineas ${lineasBot.length} | conectado ${cuenta(/\[bot\] conectado/)} | pasos abasto ${cuenta(/\[abasto\] paso:/)} | muertes ${cuenta(/\[muerte\]/)} | atascos ${cuenta(/\[atasco\]/)} | tactica ${cuenta(/\[tactica\]/)} | percepcion ${cuenta(/\[percepcion\]/)}`);
-  for (const k of ['[meta]', '[afecto]', '[atasco]', '[percepcion]', '[tactica]', '[muerte]']) { const l = lineasBot.filter((x) => x.includes(k)).slice(-2); for (const x of l) console.log('  ' + x.slice(0, 160)); }
+  for (const k of ['[meta]', '[afecto]', '[atasco]', '[percepcion]', '[tactica]', '[muerte]', '[nado]']) { const l = lineasBot.filter((x) => x.includes(k)).slice(-2); for (const x of l) console.log('  ' + x.slice(0, 160)); }
   if (grupos.size) { console.log('\nERRORES:'); for (const [k, n] of [...grupos.entries()].sort((a, b) => b[1] - a[1])) console.log(`  x${n} ${k}`); }
   console.log(grupos.size ? '\nRESULTADO: FALLA' : '\nRESULTADO: OK');
   fs.writeFileSync(path.join(__dirname, 'ultima_prueba.log'), lineasBot.join('\n'));
