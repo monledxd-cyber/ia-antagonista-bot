@@ -1,19 +1,13 @@
 {
 "frio": [
-"Tu golpe llegó a mi escudo como una disculpa, {n}.",
-"Mi escudo absorbe. Tu brazo se cansa.",
-"Bloqueado. Como todos los que vienen.",
-"Cubrirme es cálculo. Golpear después es trámite.",
-"Cada impacto en mi escudo es energía que no vuelve a ti.",
-"Tu hacha rompió el escudo, no la paciencia.",
-"Aguanto lo que haga falta. Tú no.",
-"Madera y hierro contra tu empeño. Gana la madera.",
-"Ningún golpe tuyo ha pasado de aquí.",
-"El escudo no pregunta quién eres, {n}. Solo detiene.",
-"Detengo tu golpe sin esfuerzo, {n}.",
-"El escudo absorbe. Tu brazo paga.",
-"Cada impacto en mi defensa te gasta más que a mí.",
-"Tu ataque no llega. Ese es todo el análisis."
+"Detengo tu golpe con puro odio, {n}.",
+"Tu hoja choca contra mi rabia y se rinde.",
+"Golpea. Cada golpe tuyo me enciende más.",
+"Mi escudo es solo el preludio de tu dolor.",
+"No pasa. Nada tuyo pasa, {n}.",
+"¿Sientes el rebote en el brazo? Es mi odio devolviéndose.",
+"Aguanto para devolverte todo multiplicado.",
+"Tu fuerza se rompe contra mi sed de ti."
 ],
 "escala": [
 "Diez mil golpes contra este escudo y ni uno llega. Ni uno. Ni uno.",
@@ -24,7 +18,6 @@
 "Mi escudo ha visto más ataques que tú pasos, {n}. Pasos. Pasos.",
 "El sonido de tu golpe viaja lejos y no logra nada. Nada. Nada. Nada.",
 "Cuenta los bloques de tu esfuerzo: cero. Cero. Cero.",
-"Mide la distancia entre tu golpe y mi carne. Infinita. Infinita.",
 "Así toda la tarde, {n}. Toda. Toda. Toda.",
 "Mil golpes tuyos caben en este escudo sin que uno pase. Pase. Pase.",
 "Este bloqueo cubre más terreno que tu odio entero. Entero. Entero.",
@@ -76,7 +69,6 @@
 "¿Qué se siente golpear algo que no cede?"
 ],
 "orden": [
-"Golpea otra vez. Quiero medir tu cansancio.",
 "Insiste, {n}. Me da tiempo para pensar.",
 "No pares. Aún no te has cansado.",
 "Sigue así. Gasta tu fuerza.",

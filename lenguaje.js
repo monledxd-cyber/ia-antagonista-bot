@@ -4,18 +4,18 @@ const diag = require('./diag');
 const RASGOS = ['hostil', 'amenaza', 'suplica', 'burla'];
 const ESTILOS = ['frio', 'escala', 'repeticion', 'burla_fallo', 'pregunta', 'orden', 'susurro', 'promesa'];
 const DIRECTIVA = {
-  frio: 'una afirmacion helada y exacta, sin adjetivos de relleno',
+  frio: 'distancia cortada: odio visceral a quemarropa, tan cerca que duele',
   escala: 'escala desmesurada (ticks, chunks, coordenadas) y cierre con 2-3 palabras repetidas',
   repeticion: 'repite una palabra clave 3 veces con peso creciente',
   burla_fallo: 'desprecia su ultimo fallo concreto, sin reirte',
   pregunta: 'una pregunta retorica que lo humille',
   orden: 'una orden seca, sin adornos',
   susurro: 'frase corta, casi susurrada, inquietante',
-  promesa: 'promesa concreta y calculada de lo proximo que le haras',
+  promesa: 'promesa concreta y sangrienta de lo proximo que le haras, con goce',
 };
 const ACCION = {
   atacar: 'vas a golpear ahora',
-  retroceder: 'te retiras con calculo, nunca con miedo',
+  retroceder: 'te retiras para volver con mas rabia, nunca con miedo',
   curar: 'te curas; muestralo como inevitabilidad',
   bloquear: 'te cubres; desprecia su golpe',
   esquivar: 'esquivas; su golpe fue un error suyo',
@@ -37,7 +37,7 @@ const PLANT = {
   esquivar: ['Fallaste, {n}. Otra vez. Siempre.', 'Tu espada corto aire. Es tu mejor trabajo.', 'Previsible, {n}. Previsible.'],
   otra: ['Te veo, {n}. Te veo siempre.', 'Cada bloque que pisas ya lo medi, {n}.', 'Sigue caminando. El mundo es mas pequeno de lo que crees.'],
   suplica: ['Suplicar, {n}, es el unico idioma que entiendes bien.', 'Tus ruegos llegan tarde, {n}. Como todo en ti.', 'Ruega mas fuerte. Me gusta medir el eco.'],
-  amenaza: ['Una amenaza tuya, {n}: una chispa ante mil millones de ticks.', 'Promete lo que quieras. Yo ya lo calcule.', 'Intentalo, {n}. Intentalo. Intentalo.'],
+  amenaza: ['Una amenaza tuya, {n}: una chispa ante mil millones de ticks.', 'Promete lo que quieras. Me encanta oirte prometer.', 'Intentalo, {n}. Intentalo. Intentalo.'],
   burla: ['Rie mientras puedas, {n}; ya conte cuantos segundos te quedan.', 'Tu risa es un dato mas en mi expediente.', 'Gracioso, {n}. Lo recordare cuando caigas.'],
   hostil: ['Tus insultos son ruido, {n}. Mi respuesta es silencio y luego tu final.', 'Odiame mas, {n}. Me das mas datos.', 'Que elocuente, {n}. Que corto vas a durar.'],
 };

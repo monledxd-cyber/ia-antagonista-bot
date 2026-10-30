@@ -1,19 +1,13 @@
 {
 "frio": [
-"Me reparo. Tú no tienes ese privilegio.",
-"Recupero lo perdido. Tú no recuperas nada.",
-"Cada punto que curo es uno que te voy a cobrar, {n}.",
-"La salud vuelve a mí con precisión. A ti con suerte.",
-"Reparación completa. Ahora volvamos.",
-"Un trago y estoy como antes. Tú sigues igual de roto.",
-"Mi vida sube. La tuya ya no puede.",
-"Reiniciar es barato. Tu fin es caro.",
-"Curarme no es debilidad, es método.",
-"Estoy entero otra vez. Prepárate.",
-"Reparo lo dañado. Es mantenimiento, no necesidad.",
-"Un trago y tu esfuerzo queda en nada, {n}.",
-"Restauro lo que tomaste. Con precisión.",
-"Mi cuerpo se arregla. El tuyo solo se gasta."
+"Me curo para seguir odiándote entero, {n}.",
+"Cada corazón que recupero es otro grito tuyo.",
+"Vuelvo a estar entero. Y cabreado.",
+"Me reparo porque no he terminado de hacerte daño.",
+"Me quitaste vida. Te quitaré el doble, {n}.",
+"Sano para destrozarte con ganas.",
+"Mi cuerpo vuelve. Mi rabia nunca se fue.",
+"Respiro hondo. Y vuelvo por ti."
 ],
 "escala": [
 "Cien ticks de curación y aún falta tiempo para tu derrota. Derrota. Derrota.",

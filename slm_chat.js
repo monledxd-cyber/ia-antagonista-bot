@@ -86,18 +86,14 @@ function crearChat(dir) {
   let permitidas = null;
   const palabras = (t) => String(t).toLowerCase().match(/\p{L}+/gu) || [];
   function cargarPermitidas() {
-    permitidas = new Set();
-    try {
-      for (const f of ['dialogo_base.json', 'dialogo_juego.json']) {
-        const b = JSON.parse(fs.readFileSync(path.join(dir, '..', f), 'utf8'));
-        for (const c of Object.values(b.C)) for (const r of c.r) for (const w of palabras(r.split('|').slice(1).join('|'))) permitidas.add(w);
-      }
-      for (const f of ['psique.json', 'rival.json', 'otra.json']) for (const w of palabras(fs.readFileSync(path.join(dir, '..', 'semilla', f), 'utf8'))) permitidas.add(w);
-      const c = require(path.join(dir, '..', 'composicion.json'));
-      for (const w of c) permitidas.add(w);
-    } catch (e) { if (!permitidas.size) permitidas = null; }
+    try { permitidas = new Set(JSON.parse(fs.readFileSync(path.join(dir, 'palabras.json'), 'utf8'))); } catch (e) { permitidas = null; }
   }
-  const valida = (f, extra) => {
+  const valida = (f, extra, hv) => {
+    const nums = f.match(/\d+/g) || [];
+    if (nums.length) {
+      const ok = new Set((String(extra) + ' ' + Object.values(hv || {}).join(' ')).match(/\d+/g) || []);
+      if (!nums.every((n) => ok.has(n))) return false;
+    }
     if (!permitidas) return true;
     const ent = new Set(palabras(extra));
     return palabras(f).every((w) => permitidas.has(w) || ent.has(w) || w === 'n');
@@ -112,6 +108,11 @@ function crearChat(dir) {
     const g = (k, d) => (idx.has(k) ? idx.get(k) : idx.get(d));
     const rs = (info.rs || [0, 0, 0, 0]).slice(0, 4).map(q);
     const ids = lec.ids.slice();
+    const claves = (vocab.hechos && vocab.hechos[lec.intencion]) || [];
+    const hv = info.hechos || {};
+    if (claves.length && claves.every((k) => hv[k] !== undefined)) ids.push(idx.get('<F>'), ...codificar(claves.map((k) => `${k}: ${hv[k]}`).join(' | ')).slice(0, 24));
+    const mem = Object.entries(info.memoria || {}).filter(([k, v]) => ['teme', 'tiene', 'refugio', 'nombre'].includes(k) && v).sort((a, b) => (a[0] < b[0] ? -1 : 1)).slice(0, 2);
+    if (mem.length) ids.push(idx.get('<M>'), ...codificar(mem.map(([k, v]) => `${k}: ${v}`).join(' | ')).slice(0, 24));
     ids.push(...[g(`<E:${info.estilo}>`, '<E:libre>'), ...rs.map((d, i) => idx.get(`<R${i}:${d}>`)), idx.get('<A>')]);
     const fin = idx.get(vocab.fin), pr = prohibidos();
     const sal = [];
@@ -129,7 +130,7 @@ function crearChat(dir) {
     let f = sal.join('').replace(/\s+/g, ' ').trim();
     const nom = info.nombre;
     f = nom ? f.replace(/\{n\}/g, nom) : f.replace(/\{n\},\s*/g, '').replace(/,?\s*\{n\}/g, '').replace(/\s+/g, ' ').trim().replace(/^./, (c) => c.toUpperCase());
-    if (f.length < 4 || /[{}]/.test(f) || !valida(f, texto + ' ' + (nom || '') + ' ' + Object.values(lec.slots).join(' '))) return null;
+    if (f.length < 4 || /[{}]/.test(f) || !valida(f, texto + ' ' + (nom || '') + ' ' + Object.values(lec.slots).join(' ') + ' ' + mem.map((x) => x[1]).join(' '), Object.fromEntries(claves.filter((k) => hv[k] !== undefined).map((k) => [k, hv[k]])))) return null;
     return f;
   }
   cargar();

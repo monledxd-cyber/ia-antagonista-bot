@@ -1,14 +1,14 @@
 {
 "v+": {
 "frio": [
-"Vas perdiendo desde el primer golpe, {n}.",
-"La diferencia entre los dos ya no se cierra.",
-"Cada intercambio me favorece. Es aritmética.",
-"Llevas ventaja cero y desgaste máximo.",
-"El resultado está decidido. Solo falta el trámite.",
-"Tu vida baja a un ritmo que ya medí.",
-"Esto es lo que pasa cuando el cálculo gana a la rabia.",
-"Voy por delante y ni siquiera me apuro."
+"Vas perdiendo desde el primer golpe, {n}, y qué rico lo siento.",
+"Cada intercambio me favorece y me da más hambre.",
+"Tu vida baja y mi sed sube.",
+"Esto ya está decidido, y lo voy a saborear.",
+"Qué dulce es verte caer.",
+"Voy ganando y mi odio no se sacia.",
+"Tu sangre me da ganas de más.",
+"Mírate. Y mírame. Sabes quién gana."
 ],
 "escala": [
 "Te llevo cuarenta ticks de ventaja y creciendo. Creciendo. Creciendo.",
@@ -53,16 +53,13 @@
 "orden": [
 "Sigue así, {n}. Cada error tuyo me sirve.",
 "Mira cómo sube mi ventaja. No apartes la vista.",
-"Aguanta un poco más. Quiero medirte entero.",
 "Acepta el marcador. Es el único honesto.",
-"No te rindas todavía. Me divierte el cálculo.",
 "Respira mientras puedas.",
 "Cuenta tus corazones, {n}. Son pocos.",
 "Gasta lo que te queda. Lo guardaré."
 ],
 "susurro": [
 "Ya casi.",
-"Todo va como lo calculé.",
 "Shh. Va bien.",
 "Voy ganando, {n}. Sin ruido.",
 "Se nota quién manda.",
@@ -74,23 +71,21 @@
 "Con esta ventaja, {n}, terminaré antes de que llegues a pensarlo.",
 "Cuando cierre esta diferencia no quedará nada tuyo.",
 "Esta ventaja es solo el principio de lo que sigue.",
-"Te quitaré lo que te queda con el mismo método.",
 "Voy a convertir esta ventaja en tu final.",
 "Antes de que acabe el minuto, esto estará resuelto.",
-"Lo siguiente no será una pelea, {n}. Será un trámite.",
 "Pronto tu nombre será un recuerdo útil para mí."
 ]
 },
 "v-": {
 "frio": [
-"Que me hieras no cambia el cálculo, {n}.",
-"Voy detrás. Es un dato, no un problema.",
-"La ventaja es tuya. Por ahora.",
-"Perder un intercambio no es perder la pelea.",
-"Anoto tus aciertos. Ninguno se repetirá.",
-"Estás por delante, y eso solo me da información.",
-"Mi plan sigue entero aunque tú vayas primero.",
-"Ya vi cómo golpeas. Eso basta."
+"Me heriste, {n}, y ahora te voy a hacer pagar con intereses.",
+"Voy detrás, y qué furia me da.",
+"Tu ventaja me enciende.",
+"Cada herida tuya me la cobraré en carne.",
+"Ya probé tu golpe. Ahora pruebas el mío.",
+"Que me hieras solo me hace odiarte más.",
+"Voy detrás por un instante.",
+"Me duele y me encanta: ahora sí quiero matarte."
 ],
 "escala": [
 "Me sacas diez ticks de ventaja y los recuperaré todos. Todos. Todos.",
@@ -105,10 +100,8 @@
 "repeticion": [
 "Atrás, atrás, atrás voy. Y tú tampoco avanzas.",
 "Aprendo, aprendo, aprendo de cada golpe.",
-"Otro golpe, otro golpe, otro dato más.",
 "Tarde, tarde, tarde llegará tu victoria.",
 "Duele, duele, duele. Y sirve.",
-"Mides, mides, mides. Yo también.",
 "Espera, espera, espera. Ya viene mi turno.",
 "Cuenta, cuenta, cuenta tus aciertos, {n}."
 ],
@@ -165,14 +158,14 @@
 },
 "bajo": {
 "frio": [
-"Sangro. Es información, no debilidad.",
-"Poca vida, mucha precisión.",
-"Mis corazones bajan; mi cálculo no.",
-"Herido, sí. Detenido, no.",
-"El daño es un dato más, {n}.",
-"Cada punto que pierdo me enseña dónde golpeas.",
-"Menos vida significa menos errores permitidos. Ninguno.",
-"Con esta salud sigo siendo exacto."
+"Sangro, y más rabia me da.",
+"Poca vida, mucho odio.",
+"Herido me vuelvo más peligroso, {n}.",
+"Mis corazones bajan; mi furia sube.",
+"Cada punto que pierdo te lo cobro doble.",
+"Casi sin vida y aun así te odio entero.",
+"Duele. Y qué bueno, porque ahora sí me enciendo.",
+"Con este corazón que me queda te destruyo, {n}."
 ],
 "escala": [
 "Me quedan pocos corazones y todos valen mil de los tuyos. Tuyos. Tuyos.",
@@ -201,8 +194,7 @@
 "Ni herido me temes. Es tu error.",
 "Tu mejor momento ya pasó.",
 "Tu miedo sigue pesando más que mi herida.",
-"Casi me tienes. Siempre casi.",
-"Mi vida es un dato. Tu temor, una certeza."
+"Casi me tienes. Siempre casi."
 ],
 "pregunta": [
 "¿Crees que estar herido me hace débil, {n}?",

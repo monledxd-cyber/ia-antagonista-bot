@@ -7,6 +7,11 @@ J = json.load(open(os.path.join(R, "dialogo_juego.json"), encoding="utf8"))
 for k in ("M", "I", "L", "V"):
     B[k] = J[k]
 B["C"].update(J["C"])
+RESP = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "dialogo_resp.json"), encoding="utf8"))
+for k, l in RESP["r"].items():
+    B["C"][k]["r"] = l
+B["C"].update(RESP["nuevas"])
+HECHOS = RESP["h"]
 SEM = os.path.join(R, "semilla")
 random.seed(int(os.environ.get("SLM_SEED", "5")))
 N = int(os.environ.get("SLM_DIALOGOS", "60000"))
@@ -130,6 +135,26 @@ def sorteo(held):
         v = {"X": pseudo_np(), "X2": pseudo_np(), "E": pseudo_adj(), "N": pseudo_nombre(), "M": pseudo_np(), "I": pseudo_np(), "L": pseudo_np(), "V": pseudo_verbo()}
     return v
 
+ACC = ["vigilándote", "siguiendo tu rastro", "cavando hacia ti", "afilando mi odio", "esperando que bajes la guardia", "recuperándome", "preparando tu final", "cazándote", "contando tus latidos", "rodeándote"]
+MOM = ["la noche", "el día", "el amanecer", "el atardecer", "la madrugada"]
+MANO = ["una espada de diamante", "un hacha", "un arco", "una espada de hierro", "un tridente", "una maza", "las manos vacías", "una espada de netherita"]
+MEM_FRASES = {
+    "teme": ["Sé que le temes a {teme}.", "Recuerdo tu miedo a {teme}, {n}.", "Tu miedo a {teme} sigue conmigo."],
+    "tiene": ["Sigo oliendo {tiene} entre tus cosas.", "Voy a quitarte {tiene}, {n}.", "No olvido {tiene}."],
+    "refugio": ["Sé dónde te escondes: {refugio}.", "Iré a {refugio} por ti, {n}.", "{refugio} no es seguro, {n}."],
+    "nombre": ["Te conozco, {nombre}.", "{nombre}. No olvido tu nombre."],
+}
+MEM_DE = {"miedo_x": ("teme", "M"), "posesion_x": ("tiene", "X"), "minar_x": ("tiene", "I"), "ir_a_l": ("refugio", "L"), "dormir": ("refugio", "L"), "construir": ("refugio", "L"), "nombre_usuario": ("nombre", "N")}
+
+def hechos(keys):
+    g = {"lugar": lambda: random.choice(B["L"]), "distancia": lambda: str(random.randint(2, 60)), "vida": lambda: str(random.randint(2, 20)), "rival_vida": lambda: str(random.randint(2, 20)), "muertes": lambda: str(random.randint(2, 40)), "accion": lambda: random.choice(ACC), "momento": lambda: random.choice(MOM), "mano": lambda: random.choice(MANO)}
+    return {k: g[k]() for k in keys}
+
+def memoria_azar():
+    ks = random.sample(list(MEM_FRASES), random.choice([1, 2]))
+    g = {"teme": lambda: random.choice(B["M"]), "tiene": lambda: random.choice(B["I"]), "refugio": lambda: random.choice(B["L"]), "nombre": lambda: random.choice(LEX["names"])}
+    return {k: g[k]() for k in ks}
+
 def usados(tpl):
     return [k for k in SLOTS if "{" + k + "}" in tpl]
 
@@ -175,6 +200,10 @@ def par(cat, c, held, tpl_held, gen, rui):
         vr[k] = K.tuyo(v[k])
     propios = ("gusto_x", "posesion_x", "pedir_x", "donde_x", "estado_usuario", "nombre_usuario")
     tiene_np = any(k in usados(tu) for k in ("X", "M", "I", "L"))
+    hk = HECHOS.get(cat, [])
+    hv = hechos(hk) if hk else {}
+    if hv:
+        tiene_np = False
     if (cat in propios or tiene_np) and random.random() < 0.5:
         t = K.respuesta(cat, {k: vr[k] for k in usados(tu) if k in vr} | ({"X": vr["X"]} if cat in propios else {}))
         e = "f"
@@ -182,8 +211,19 @@ def par(cat, c, held, tpl_held, gen, rui):
         t = llenar(t, vr) + " " + K.neutra()
     else:
         t = llenar(t, vr)
+    for k, x in hv.items():
+        t = t.replace("{" + k + "}", x)
+    mem = {}
+    if random.random() < 0.3:
+        mem = memoria_azar()
+        k = random.choice(list(mem))
+        fr = random.choice(MEM_FRASES[k]).replace("{" + k + "}", K.tuyo(mem[k])).replace("{n}", "{n}")
+        t = t + " " + fr
+    t = re.sub(r"\bde el\b", "del", re.sub(r"\ba el\b", "al", t))
     rs = c["rs"] if random.random() > 0.2 else "0000"
-    return {"u": u, "e": EST[e], "rs": rs, "t": cap(t), "c": cat, "l": lectura(cat, tu, v)}
+    f = " | ".join(f"{k}: {hv[k]}" for k in hk)
+    m = " | ".join(f"{k}: {mem[k]}" for k in sorted(mem))
+    return {"u": u, "e": EST[e], "rs": rs, "t": cap(t), "c": cat, "l": lectura(cat, tu, v), "f": f, "m": m}
 
 def main():
     C = B["C"]
@@ -226,6 +266,12 @@ def main():
     with open(os.path.join(R, "chat_test.jsonl"), "w", encoding="utf8") as fh:
         for x in test:
             fh.write(json.dumps(x, ensure_ascii=False) + "\n")
+    pw = set()
+    for x in out:
+        pw.update(re.findall(r"[^\W\d_]+", x["t"].lower()))
+    os.makedirs(os.path.join(R, "chat"), exist_ok=True)
+    json.dump(sorted(pw), open(os.path.join(R, "chat", "palabras.json"), "w", encoding="utf8"), ensure_ascii=False)
+    json.dump({"hechos": HECHOS}, open(os.path.join(R, "chat_meta.json"), "w", encoding="utf8"), ensure_ascii=False)
     cnt = {}
     for x in out:
         cnt[x["c"]] = cnt.get(x["c"], 0) + 1

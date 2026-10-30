@@ -1,5 +1,5 @@
 import json, math, os, sys, random, time
-os.environ.setdefault("SLM_CTX", "128")
+os.environ.setdefault("SLM_CTX", "192")
 import torch
 import torch.nn.functional as F
 import entrenar as E
@@ -28,7 +28,7 @@ def main():
     print("bpe", len(merges), "uniones", f"{time.time() - t0:.0f}s", flush=True)
     tok = B.Tok(merges, base)
     piezas = sorted({a + b for a, b in merges} | set(base))
-    esp = [PAD, FIN, "<U>", "<A>", "<L>", "<S>"] + [f"<E:{e}>" for e in ESTILOS] + [f"<R{i}:{d}>" for i in range(4) for d in range(4)]
+    esp = [PAD, FIN, "<U>", "<A>", "<L>", "<S>", "<F>", "<M>"] + [f"<E:{e}>" for e in ESTILOS] + [f"<R{i}:{d}>" for i in range(4) for d in range(4)]
     tokens = esp + piezas
     idx = {t: i for i, t in enumerate(tokens)}
     V = len(tokens)
@@ -43,7 +43,12 @@ def main():
         u = ids_de(x["u"])[:40]
         lec = ids_de(x["l"])[:30] + [idx["<S>"]]
         a = [idx["<U>"]] + u + [idx["<L>"]]
-        tg = etiquetas(x["e"], x["rs"]) + [idx["<A>"]]
+        ctx_ = []
+        if x.get("f"):
+            ctx_ += [idx["<F>"]] + ids_de(x["f"])[:24]
+        if x.get("m"):
+            ctx_ += [idx["<M>"]] + ids_de(x["m"])[:24]
+        tg = ctx_ + etiquetas(x["e"], x["rs"]) + [idx["<A>"]]
         r = ids_de(x["t"])[:CTX - len(a) - len(lec) - len(tg) - 1] + [idx[FIN]]
         ids = a + lec + tg + r
         ej.append((ids, [0] * len(a) + [1] * len(lec) + [0] * len(tg) + [1] * len(r), 1.0))
@@ -164,7 +169,7 @@ def main():
     os.makedirs(SALIDA, exist_ok=True)
     dummy = torch.zeros(1, 24, dtype=torch.long)
     torch.onnx.export(m, dummy, os.path.join(SALIDA, "modelo.onnx"), input_names=["ids"], output_names=["logits"], dynamic_axes={"ids": {1: "t"}, "logits": {1: "t"}}, opset_version=17, dynamo=False)
-    json.dump({"tipo": "chat", "tokens": tokens, "ctx": CTX, "fin": FIN, "pad": PAD, "estilos": ESTILOS, "merges": [list(x) for x in merges], "base": base}, open(os.path.join(SALIDA, "vocab.json"), "w", encoding="utf8"), ensure_ascii=False)
+    json.dump({"tipo": "chat", "tokens": tokens, "ctx": CTX, "fin": FIN, "pad": PAD, "estilos": ESTILOS, "merges": [list(x) for x in merges], "base": base, "hechos": json.load(open(os.path.join(R, "chat_meta.json")))["hechos"]}, open(os.path.join(SALIDA, "vocab.json"), "w", encoding="utf8"), ensure_ascii=False)
     print("listo: slm/chat/modelo.onnx slm/chat/vocab.json")
 
 

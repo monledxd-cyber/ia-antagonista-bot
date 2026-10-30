@@ -1,19 +1,13 @@
 {
 "frio": [
-"Giro a tu alrededor. Tú giras sobre el mismo error, {n}.",
-"Me desplazo de lado. Tu golpe sigue recto.",
-"Circulo. Mido. Decido.",
-"Cada paso lateral es un dato nuevo.",
-"El círculo es mi forma de pensar.",
-"Tu frente es predecible. Tu costado, mejor.",
-"Me muevo y tú sigues apuntando donde estuve.",
-"Orbito para encontrarte el hueco.",
-"Un lado, otro lado. Ya lo tengo.",
-"Estoy donde no miras, {n}.",
-"Circulo. Tú giras sobre tu error, {n}.",
-"Mido el costado que dejas abierto.",
-"Me muevo de lado. Tu defensa mira al frente.",
-"Cada vuelta me acerca a tu punto ciego."
+"Te rodeo porque quiero verte desde todos los lados, {n}.",
+"Cada vuelta es una uña más cerca de tu piel.",
+"Mi círculo se aprieta alrededor de tu cuello.",
+"Giro, {n}, y mi odio gira conmigo.",
+"Siento tu miedo en cada ángulo.",
+"No sabes por dónde llego. Y eso me encanta.",
+"La distancia se estrecha en espiral.",
+"Cada vuelta es un hueso menos de tu paz."
 ],
 "escala": [
 "Doy vueltas del tamaño de un chunk y tú sigues en el centro. Centro. Centro.",
@@ -79,7 +73,6 @@
 "Quédate en el centro. Yo me encargo del borde.",
 "Intenta cerrarme el paso.",
 "Respira hondo. Mareará.",
-"Mide tus pasos. Los míos son más cortos y mejores.",
 "Aguanta el giro. Aprende.",
 "Atento. Un costado queda abierto.",
 "Gira conmigo, {n}.",

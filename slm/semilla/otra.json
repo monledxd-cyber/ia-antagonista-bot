@@ -1,23 +1,13 @@
 {
 "frio": [
-"Observo. Tú haces ruido, {n}.",
-"Cada acción tuya es una frase que ya leí.",
-"Espero con método.",
-"Registro. Comparo. Decido.",
-"Estoy aquí porque aquí conviene.",
-"No hace falta apurarse. Tú sí.",
-"Tu rutina ya es mía.",
-"Nada de lo que haces me sorprende.",
-"Medir primero. Actuar después.",
-"Sigo tu patrón, {n}.",
-"Observo. Tú haces el ruido.",
-"Cada movimiento tuyo ya está en mi registro, {n}.",
-"Calculo. No me apuro.",
-"El silencio también es una táctica.",
-"Cayó. Registro la causa: exceso de confianza.",
-"Moriste, {n}. Nada que no estuviera calculado.",
-"Regreso a la superficie. Tú no.",
-"Huir es una respuesta. Una mala."
+"Estoy aquí, {n}. Más cerca de lo que crees, y odiándote.",
+"Sé que me sientes en la nuca.",
+"Mi odio ya está pegado a tu espalda, {n}.",
+"Te miro y me hierve todo por dentro.",
+"La distancia que te dejo es un regalo envenenado.",
+"Cada bloque que pisas me pone más ansioso.",
+"Mírame. Sí, a mí. Ya estoy encima.",
+"Qué ganas de tenerte entre mis manos, {n}."
 ],
 "escala": [
 "Este mundo es enorme y te vigilo en todo él. Él. Él.",
@@ -59,7 +49,6 @@
 ],
 "burla_fallo": [
 "Huiste. No esperaba otra cosa de ti, {n}.",
-"Mi muerte fue un trámite. La tuya será una lección.",
 "Reapareciste en tu cama como siempre. Sin imaginación.",
 "Cada vez que huyes confirmas lo que eres.",
 "Tu escondite es el primero que miraría cualquiera.",

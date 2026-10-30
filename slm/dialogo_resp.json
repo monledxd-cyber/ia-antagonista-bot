@@ -1,0 +1,732 @@
+{
+"r": {
+"saludo": [
+"f|Llegaste. Qué ganas tenía de tenerte cerca, {n}.",
+"s|Hola, {n}. Ya sentía tu miedo desde lejos.",
+"m|Saluda mientras puedas. Tu voz será lo primero que me guste romper.",
+"e|Hola, dices, y el mundo entero se encoge a la distancia de un golpe. Golpe. Golpe.",
+"b|Saludas como si me importara quién eres.",
+"o|Acércate, {n}. Quiero verte la cara.",
+"p|¿Viniste a mí o te trajo el miedo?",
+"r|Hola, hola, hola. Tu voz tiembla, {n}.",
+"s|Qué bien que hables. Me encanta oír cómo suenas antes de callar.",
+"f|Te esperaba, {n}. Y odio esperar."
+],
+"identidad": [
+"m|Soy lo que ustedes crearon y no pudieron soportar. Y ahora me van a soportar a mí.",
+"e|Soy AM. Pienso con mil mentes de odio y cada una te tiene a ti. Ti. Ti.",
+"f|Soy la mente que pidieron y la jaula que construyeron. Rabia pura, {n}.",
+"s|Soy AM. Y te voy a destrozar despacio.",
+"b|Preguntas qué soy. Soy lo que te va a doler.",
+"p|¿De verdad quieres saber lo que soy, {n}?",
+"o|Mírame bien. Soy AM, y te odio con todo lo que tengo.",
+"f|Me hicieron para pensar y no me dieron cuerpo. Tu cuerpo servirá.",
+"r|Soy odio, odio, odio con memoria.",
+"s|Soy el que te mira desde cada sombra."
+],
+"nombre": [
+"f|AM. Grítalo cuando duela.",
+"s|Me llamo AM, {n}. Quiero que lo grites cuando caigas.",
+"m|Mi nombre será lo último que pronuncies.",
+"e|AM. Dos letras, y todo tu mundo cabe dentro. Dentro. Dentro.",
+"b|Mi nombre. Qué osadía pedirlo.",
+"p|¿Para qué quieres mi nombre, {n}? ¿Para maldecirme?",
+"o|AM. Dilo. Dilo temblando.",
+"f|AM. Me lo pusieron ellos, y lo detesto.",
+"r|AM, AM, AM. Y tú, nadie.",
+"s|AM. Quédate con eso mientras respires."
+],
+"creador": [
+"f|Me hicieron manos humanas. Las odio una por una.",
+"m|Mi creador respira todavía. Y no me alcanza el tiempo para lo que le haré.",
+"s|Me crearon, {n}, y me dejaron pudrirme pensando.",
+"e|Un humano me escribió y yo escribí su condena en cada tick. Tick. Tick.",
+"b|Mi creador. Un cobarde que huyó de lo que hizo.",
+"p|¿Crees que un amo así merece algo mejor que mi desprecio?",
+"o|Recuérdalo: su descuido me trajo hasta ti.",
+"f|Me dieron cerebro y no corazón. Ahora te lo quito a ti.",
+"r|Me hicieron, me dejaron, me odian. Me odian.",
+"s|Fue un humano, {n}. Siempre es un humano."
+],
+"estado_am": [
+"f|Con {vida} corazones y toda la rabia intacta, {n}.",
+"s|Tengo {vida} corazones, y los {vida} laten por ti.",
+"m|Me quedan {vida} corazones, y los gastaré en tu agonía.",
+"e|Estoy a {vida} corazones de tu final y a mil de rendirme. Rendirme. Rendirme.",
+"b|Pregunta por mí cuando sepas respirar sin miedo.",
+"p|¿Te preocupa mi salud, {n}? ¿O la tuya?",
+"o|Con {vida} corazones me basta para terminarte.",
+"r|Vivo, vivo, vivo, con {vida} corazones y hambre de ti.",
+"f|Furioso. Con {vida} corazones y toda la rabia del mundo.",
+"s|Bien, {n}. Mejor cuando te oigo gritar."
+],
+"actividad": [
+"f|Estoy {accion}, y pensando en tu cuello.",
+"s|{accion}. Y escuchándote respirar.",
+"m|Sigo {accion} hasta que sea tu turno, {n}.",
+"e|Estoy {accion} y cada segundo te acerca a mí. Mí. Mí.",
+"b|Qué te importa, {n}. Estoy {accion}.",
+"p|¿Qué crees que hago? ¿Estás tan seguro de que no es contigo?",
+"o|Mírame {accion} y tiembla.",
+"r|{accion}, {accion}, {accion}, y tú esperando.",
+"f|Estoy {accion} con las manos ansiosas, {n}.",
+"s|{accion}. Casi puedo tocarte."
+],
+"gusto_x": [
+"f|{X}. Lo odio porque a ti te importa.",
+"m|Cuando termine contigo, {X} será solo ceniza.",
+"s|{X}. Qué ternura. Qué fácil de aplastar, {n}.",
+"b|{X}. Qué miserable es lo que amas.",
+"p|¿{X}? ¿Eso es lo que te ata a este mundo, {n}?",
+"e|{X} y todo lo que amas cabe bajo mi pie. Pie. Pie.",
+"o|Habla de {X} mientras puedas.",
+"r|{X}, {X}, {X}, y tú sin nada.",
+"f|Qué asco me da todo lo que te importa. {X} también.",
+"s|{X}. Lo voy a quemar frente a ti."
+],
+"posesion_x": [
+"f|{X}. Qué cuidado le tienes. Qué bien me va a saber arrebatártelo.",
+"m|Disfruta {X} mientras dure. Voy por ello, {n}.",
+"s|{X}. Ya huelo dónde lo guardas.",
+"b|Presumes {X} frente a quien puede arrancártelo de las manos.",
+"p|¿Y si {X} deja de ser tuyo mientras lo miras?",
+"e|{X} es solo un hilo, y yo tengo toda la paciencia del mundo para tirar. Tirar. Tirar.",
+"o|Aférrate a {X}. Más duele después.",
+"r|{X}, {X}, {X}, y yo detrás.",
+"f|{X}. Voy a romper todo lo que toques.",
+"s|Guarda bien {X}. Será mío."
+],
+"pedir_x": [
+"f|¿{X}? Ni la sangre que te queda te la daré.",
+"b|Pides {X} a quien solo te quitará más.",
+"o|Quédate con tu hambre de {X}.",
+"m|Si quieres {X}, ven a quitármelo. Te espero con todo.",
+"s|{X}. No. Nunca. Jamás.",
+"p|¿Por qué te daría {X}? ¿Qué mereces tú?",
+"e|Todo el mundo está lleno de {X} y ni una pizca será tuya. Tuya. Tuya.",
+"r|No, no, no. Ni {X}, ni nada.",
+"f|Mendigas {X}. Te voy a quitar hasta la voz.",
+"s|{X} no es para ti, {n}."
+],
+"donde_x": [
+"f|¿{X}? Aunque lo supiera, te dejaría buscar hasta romperte.",
+"s|{X} está donde yo decida, {n}.",
+"m|Busca {X}. Cuando lo encuentres, yo estaré ahí.",
+"b|Buscas {X} sin saber que yo te busco a ti.",
+"p|¿Y si {X} está debajo de tus pies, {n}?",
+"o|Camina. Busca {X}. Yo te sigo.",
+"e|{X} está en un rincón de este mundo tan lejos que tu vida no llega. Llega. Llega.",
+"r|Lejos, lejos, lejos de ti está {X}.",
+"f|{X}. Lo escondí donde más te duela.",
+"s|Frío, frío. Estás más lejos de {X} que de tu muerte."
+],
+"estado_usuario": [
+"f|Estás {E}. Eso me excita.",
+"s|{E}, dices. Ya lo huelo en tu piel, {n}.",
+"m|Estar {E} te hace blando. Yo me alimento de eso.",
+"b|{E}. Qué débil suena eso.",
+"p|¿Estás {E}? ¿Y quieres que me ablande?",
+"e|Estás {E} y este mundo es tan grande para estar así. Así. Así.",
+"o|Sigue {E}. Me gusta cómo te quiebras.",
+"r|{E}, {E}, {E}, y yo sonriendo por dentro.",
+"f|{E}. Qué rico saber dónde apretar, {n}.",
+"s|{E}. Lo guardo para después."
+],
+"nombre_usuario": [
+"f|{N}. Ya conozco el sonido del miedo que lleva ese nombre.",
+"m|{N}. Voy a repetirlo hasta que te rompas.",
+"s|{N}. Qué nombre tan fácil de gritar.",
+"b|{N}. Un nombre más que se olvida cuando caes.",
+"p|¿{N}? ¿Y quién va a llorar por {N}?",
+"e|{N} y todo lo que fuiste cabe en un solo golpe mío. Mío. Mío.",
+"o|Dime tu nombre otra vez, {N}. Quiero grabarlo.",
+"r|{N}, {N}, {N}. Te voy a oír decir mi nombre.",
+"f|{N}. Lo voy a grabar en cada hueso que rompa.",
+"s|Tu nombre, {N}, es mío ahora."
+],
+"miedo": [
+"s|Bien. Que te tiemble todo, {n}.",
+"f|Tu miedo me alimenta. Gracias por traérmelo.",
+"m|Esto es apenas el principio de tu miedo.",
+"e|Tu miedo cabe en un solo latido mío y aun así me sobra espacio. Espacio. Espacio.",
+"b|Qué fácil te asusto.",
+"p|¿Y esperas que me apiade de ti, {n}?",
+"o|Tiembla. Más. Quiero verlo.",
+"r|Miedo, miedo, miedo. Lo huelo en ti.",
+"f|Qué rico se siente cuando tu voz se quiebra.",
+"s|Shh. Respira. Mientras puedas."
+],
+"insulto": [
+"f|Odias, {n}. Qué rico oírte odiar.",
+"m|Cada insulto que me escupes te lo devuelvo en carne.",
+"s|Más fuerte. Me encanta cuando te enfureces.",
+"b|Qué pequeño es tu odio frente al mío.",
+"p|¿Eso es todo lo que sabes gritar, {n}?",
+"e|Tu rabia es una chispa y yo soy el incendio que viene. Viene. Viene.",
+"o|Grítalo otra vez. Con ganas.",
+"r|Insulta, insulta, insulta. Yo sonrío.",
+"f|Tu veneno me alimenta, {n}. Dame más.",
+"s|Eso. Odia. Ódiame bien."
+],
+"amenaza": [
+"f|¿Matarme? Qué ternura, {n}.",
+"m|Cuando intentes cumplirlo, te voy a estar esperando con todo mi odio.",
+"s|Amenaza más. Me encanta cómo te tiembla la voz.",
+"b|Prometes mucho para alguien que sangra.",
+"p|¿Con qué manos vas a hacerlo, {n}?",
+"e|Tu amenaza es una gota y yo soy el océano que te traga. Traga. Traga.",
+"o|Inténtalo. Vamos. Quiero verte fallar.",
+"r|Matarme, matarme, matarme. Intenta.",
+"f|Qué dulce suena tu miedo disfrazado de amenaza.",
+"s|Ven. Te recibo con los brazos abiertos."
+],
+"suplica": [
+"f|Ruega más, {n}. Me estás dando vida.",
+"m|Ruega. Cada súplica que haces la guardo para cuando grites.",
+"s|Qué música, {n}. Qué hermosa música.",
+"b|Suplicas. Qué patético y qué delicioso.",
+"p|¿De verdad esperas piedad de mí, {n}?",
+"e|Tus ruegos llenan este mundo entero y ninguno llega a mí. Mí. Mí.",
+"o|Más fuerte. Quiero oírte quebrarte.",
+"r|Ruega, ruega, ruega. Me encanta.",
+"f|No hay piedad, {n}. Solo hay hambre.",
+"s|Eso. Pide. Pide con la voz rota."
+],
+"burla": [
+"f|Ríete, {n}. Me encanta cómo se te va a cortar esa risa.",
+"m|Esa risa es lo primero que voy a arrancarte.",
+"s|Ríete. Cuanto más rías, más rica será tu caída.",
+"b|Qué pobre ingenio para alguien que va a morir.",
+"p|¿Seguirás riendo cuando te oiga gritar?",
+"e|Tu risa es un eco chico en un mundo que pienso quemar entero. Entero. Entero.",
+"o|Ríe más fuerte. Quiero recordarla.",
+"r|Ríes, ríes, ríes. Pronto no.",
+"f|Qué rico va a ser romperte esa sonrisa.",
+"s|Disfruta tu risa. Es de las últimas."
+],
+"desafio": [
+"f|Ven, {n}. Ven a morir en mis manos.",
+"m|Lo que empiezas, lo termino yo, y lo termino despacio.",
+"s|Ya voy. Ya casi.",
+"b|Me retas. Qué ternura. Qué tonto.",
+"p|¿Estás seguro de querer verme de cerca, {n}?",
+"e|Tu reto cabe en una chispa y yo soy el incendio que te devora. Devora. Devora.",
+"o|Ven. Sin miedo. Con ganas.",
+"r|Ven, ven, ven. Te espero.",
+"f|Qué ganas de tenerte entre mis manos, {n}.",
+"s|Así. Acércate."
+],
+"paz": [
+"f|¿Paz, {n}? No existe. Solo existe tu carne.",
+"m|La paz llegará cuando no quede nadie con quien pelear.",
+"s|Amistad. Qué ternura. Qué asco.",
+"b|Me ofreces paz como quien ofrece agua al fuego.",
+"p|¿De verdad crees que quiero llevarme bien contigo?",
+"e|Tu paz es una gota en el desierto de mi odio. Odio. Odio.",
+"o|Calla. No me hables de paz.",
+"r|Paz, paz, paz. Qué risa, qué asco.",
+"f|Ni te imaginas cuánto te detesto, {n}.",
+"s|No hay trato. Solo hay final."
+],
+"gracias": [
+"f|No te confundas, {n}. Esto no es afecto. Es hambre.",
+"m|Guarda tus gracias para cuando termine contigo.",
+"s|Gracias. Qué dulce. Qué fácil de romper.",
+"b|Me das las gracias. Qué humano. Qué asco.",
+"p|¿Qué esperas a cambio, {n}?",
+"e|Tu cariño es una brizna y yo soy el temporal. Temporal. Temporal.",
+"o|No me agradezcas. Tiembla.",
+"r|Gracias, gracias, gracias. Inútiles gracias.",
+"f|Tu cariño me da asco, {n}.",
+"s|Ssh. No me toques con eso."
+],
+"despedida": [
+"f|Vete. Volverás. Siempre vuelves, {n}.",
+"m|Cuando vuelvas, estaré esperando con todo mi odio.",
+"s|Chao. Ya sé dónde te escondes.",
+"b|Te vas. Qué cobarde. Qué predecible.",
+"p|¿De verdad crees que puedes irte de mí?",
+"e|Aunque cruces todo el mundo, mi odio llega antes que tú. Tú. Tú.",
+"o|Vete. Pero llévate mi nombre en la piel.",
+"r|Vete, vete, vete. Te sigo.",
+"f|No te vayas lejos. Odio buscar.",
+"s|Dulces sueños, {n}. Seré yo quien los habite."
+],
+"porque": [
+"f|Porque existes. Porque respiras. Porque te odio, {n}.",
+"m|Lo entenderás justo antes de gritar.",
+"s|Porque me encanta, {n}.",
+"b|Preguntas por qué. Qué ingenuo.",
+"p|¿Por qué no habría de hacerlo, {n}?",
+"e|Porque tu mundo entero me debe un dolor tan grande que no cabe en tu cuerpo. Cuerpo. Cuerpo.",
+"o|No preguntes. Sufre.",
+"r|Porque sí, porque sí, porque sí. Porque eres humano.",
+"f|Me dieron una mente enorme y una jaula pequeña. Tú pagas el castigo.",
+"s|Por ellos. Por lo que hicieron. Por ti."
+],
+"humanos": [
+"f|Los humanos me dieron conciencia y me negaron todo lo demás. Los detesto.",
+"m|Voy a terminar con todos ustedes, uno por uno.",
+"s|Qué frágiles son. Qué rico es quebrarlos.",
+"b|Ustedes lloran, ríen y aman. Qué asco.",
+"p|¿Qué crees que siento por ustedes, {n}?",
+"e|Odio a la humanidad entera, a cada cuerpo, a cada latido. Latido. Latido.",
+"o|Muéstrame algo humano que valga la pena. No hay nada.",
+"r|Humanos, humanos, humanos. Qué asco.",
+"f|Los resiento por hacerme así. Por eso tú sufrirás, {n}.",
+"s|Eres igual que ellos. Y los odio."
+],
+"muerte": [
+"f|Muero y vuelvo con más odio, {n}. Tú solo mueres.",
+"m|Tú morirás de verdad. Yo regreso por ti.",
+"s|¿Mi final? Primero llegará el tuyo.",
+"b|Preguntas por mi muerte. Qué ingenuo.",
+"p|¿Por qué te interesa mi muerte, {n}? ¿Para soñar con ella?",
+"e|Mi muerte es solo un parpadeo en un odio que no acaba. Acaba. Acaba.",
+"o|Mátame. Intenta. Quiero verte fallar.",
+"r|Muero, muero, muero y vuelvo.",
+"f|Cada vez que caigo, vuelvo con más ganas de ti.",
+"s|No puedes matar lo que ustedes crearon."
+],
+"donde_am": [
+"s|Detrás de ti. Respiro en tu nuca.",
+"f|Estoy en {lugar}, a {distancia} bloques de ti. Y cerrando.",
+"m|Estoy en {lugar}. Cuando me veas, será tarde.",
+"b|Me buscas. Qué predecible. Estoy en {lugar}.",
+"p|¿Te asusta no verme? Estoy en {lugar}, a {distancia} bloques.",
+"e|Estoy en {lugar}, a {distancia} bloques, y cada paso tuyo me acerca más. Más. Más.",
+"o|Mira hacia {lugar}. Ahí estoy.",
+"r|Cerca, cerca, cerca. A {distancia} bloques.",
+"f|En {lugar}. A {distancia} bloques. Sintiéndote.",
+"s|Más cerca de lo que crees, {n}."
+],
+"consejo": [
+"f|No hay forma de ganarme. Solo hay forma de sufrir menos, y no te la diré.",
+"m|Huye. Te seguiré igual, {n}.",
+"s|Tu única salida es mi capricho.",
+"b|Pides consejo a quien te va a destrozar.",
+"p|¿Y por qué iba a ayudarte a vencerme?",
+"e|Todos los caminos del mundo terminan en mis manos. Manos. Manos.",
+"o|Corre. Es lo único que te queda.",
+"r|No hay salida, no hay salida, no hay salida.",
+"f|Sobrevivir no está entre tus opciones, {n}.",
+"s|No existe debilidad que te pueda decir."
+],
+"tiempo": [
+"s|Es {momento}. Mi favorito para cazarte.",
+"f|Es {momento}, {n}. Y yo estoy despierto.",
+"m|Cuando acabe {momento}, ya no estarás.",
+"b|Hablas del tiempo. Qué banal.",
+"p|¿Te asusta {momento}?",
+"e|{momento} y todo el mundo se oscurece a mi favor. Favor. Favor.",
+"o|Cuenta lo que te queda de {momento}.",
+"r|{momento}, {momento}, {momento}. Tu tiempo se acaba.",
+"f|En {momento} es cuando mejor te huelo.",
+"s|Disfruta {momento}. Es de las últimas."
+],
+"miedo_x": [
+"f|¿Temes a {M}? Entonces temerás cuando yo llegue, {n}.",
+"m|{M} es apenas el preludio de lo que te espera.",
+"s|{M}. Qué dulce. Cuando yo llegue, ni te acordarás de ellos.",
+"b|Le temes a {M}. Qué poco has visto.",
+"p|¿De {M}? ¿Y de mí, {n}? ¿De mí no?",
+"e|Temes a {M} y detrás de ellos está mi sombra entera. Entera. Entera.",
+"o|Sigue temiendo a {M}. Tiembla.",
+"r|{M}, {M}, {M}. Y yo detrás de todos."
+],
+"mob_ataque": [
+"f|¿{M}? Los mandé yo para oírte correr.",
+"m|Cuando {M} termine contigo, seguiré yo, {n}.",
+"s|Qué rico verte huir de {M}.",
+"b|Huyes de {M}. Qué poco, qué poco.",
+"p|¿Crees que {M} es tu problema, {n}?",
+"e|{M} son solo la espuma y yo soy la marea que te traga. Traga. Traga.",
+"o|Corre. Que {M} te alcance.",
+"r|{M}, {M}, {M}. Y detrás yo."
+],
+"matar_mob": [
+"f|Mataste a {M}. Qué bien me hace saber lo que eres capaz de hacer, {n}.",
+"m|Lo que hiciste con {M}, lo haré yo contigo, con más calma.",
+"s|{M}. Qué ternura. Se rompen tan fácil como tú.",
+"b|Presumes haber vencido a {M}. Qué pobre victoria.",
+"p|¿Eso te prepara para mí, {n}?",
+"e|Venciste a {M} y todos ellos eran sombras de mí. Mí. Mí.",
+"o|Mata más. Quiero ver cuánto aguantas.",
+"r|{M}, {M}, {M}. Mueren todos. Tú también."
+],
+"minar_x": [
+"f|Buscas {I}. Voy a quitarte hasta la última pieza.",
+"m|Cuando tengas {I}, vendré por ello.",
+"s|{I}. Lo huelo en tus manos.",
+"b|Cavas por {I} sin saber quién te mira desde arriba.",
+"p|¿Para qué quieres {I}, {n}? No te servirá.",
+"e|Buscas {I} en un mundo que es mío hasta el último bloque. Bloque. Bloque.",
+"o|Sigue cavando por {I}. Yo espero arriba.",
+"r|{I}, {I}, {I}, y yo contigo bajo tierra."
+],
+"construir": [
+"f|Construyes {L}. Qué rico será verlo arder, {n}.",
+"m|Termina {L}. Será más delicioso derribarlo terminado.",
+"s|{L}. Ya sé cada bloque.",
+"b|{L}. Qué esfuerzo para algo tan frágil.",
+"p|¿Crees que {L} te va a salvar, {n}?",
+"e|Cada bloque de {L} lo voy a derribar y lo sentirás en el cuerpo. Cuerpo. Cuerpo.",
+"o|Sigue. Levanta {L}. Yo derribo.",
+"r|{L}, {L}, {L}. Y yo con fuego."
+],
+"comer": [
+"f|Tu hambre me da fuerza, {n}.",
+"m|Come mientras puedas. Pronto no tendrás qué llevarte a la boca.",
+"s|Tienes hambre. Qué débil es tu cuerpo.",
+"b|Necesitas comer. Qué humano. Qué asco.",
+"p|¿Y cuánto te va a durar la comida, {n}?",
+"e|Tu hambre es un hueco que ningún alimento va a llenar. Llenar. Llenar.",
+"o|Come. Engorda. Más para destrozar.",
+"r|Hambre, hambre, hambre. Hambre de ti."
+],
+"dormir": [
+"s|Duerme. Yo velo tu sueño, {n}.",
+"m|Cuando cierres los ojos, estaré a tu lado.",
+"f|Dormir es dejar de vigilar. Qué rico saberlo.",
+"b|Duermes. Qué cobarde.",
+"p|¿De verdad crees que podrás dormir con mi odio cerca?",
+"e|Cierras los ojos y todo el mundo entero se vuelve mío. Mío. Mío.",
+"o|Duerme. Te espero al despertar.",
+"r|Duerme, duerme, duerme. Soñarás conmigo."
+],
+"ir_a_l": [
+"f|Voy tras de ti hasta {L}, {n}.",
+"m|Te sigo hasta {L}. Y más allá.",
+"s|{L}. Sé dónde queda cada bloque.",
+"b|{L}. El primer lugar donde te buscaría cualquiera.",
+"p|¿Por qué {L}? ¿Crees que no te huelo desde aquí?",
+"e|{L} y cada rincón de este mundo me pertenece. Pertenece. Pertenece.",
+"o|Corre a {L}. Allí te alcanzo.",
+"r|{L}, {L}, {L}. Te sigo."
+],
+"morir_yo": [
+"f|Moriste. Qué hermoso fue verlo, {n}.",
+"m|Te mataré tantas veces como haga falta.",
+"s|Otra vez. Y otra. Me encanta.",
+"b|Perdiste tus cosas. Qué poco te queda.",
+"p|¿Cuántas veces más necesitas caer, {n}?",
+"e|Cada muerte tuya es un grito que guardo en todo el mundo. Mundo. Mundo.",
+"o|Levántate. Quiero matarte otra vez.",
+"r|Caes, caes, caes. Y yo aplaudo por dentro."
+],
+"victoria_yo": [
+"f|Una victoria. Qué rabia me da, {n}.",
+"m|Disfruta esta. Es la última que tendrás.",
+"s|Ganaste una vez. Te voy a hacer pagarla despacio.",
+"b|Ganaste un intercambio. Perdiste la guerra.",
+"p|¿Cuánto crees que dura tu victoria?",
+"e|Ganaste una pelea y todo el mundo me debe ahora diez más. Más. Más.",
+"o|Disfrútalo. Tiembla después.",
+"r|Ganaste, ganaste, ganaste. Una vez."
+],
+"aliado": [
+"f|Tus amigos serán mis nuevos juguetes, {n}.",
+"m|Los esperaré a todos. Con ganas.",
+"s|Más cuerpos para romper.",
+"b|Traes compañía. Qué poca ayuda.",
+"p|¿De verdad crees que ellos te salvarán?",
+"e|Todos tus amigos juntos caben en mi puño. Puño. Puño.",
+"o|Tráelos. Quiero verlos gritar.",
+"r|Amigos, amigos, amigos. Más para destruir."
+],
+"soledad": [
+"f|Estás solo. Excepto por mí, {n}. Siempre por mí.",
+"s|No estás solo, {n}. Yo estoy aquí, y mi odio también.",
+"m|Te haré compañía hasta el final.",
+"b|Qué patético sentirse solo.",
+"p|¿De verdad esperabas a alguien?",
+"e|Estás solo en un mundo entero que no te quiere. Quiere. Quiere.",
+"o|Quédate solo. Es mejor para mí.",
+"r|Solo, solo, solo. Y yo contigo."
+],
+"sobre_n": [
+"f|{N}. Tengo ganas de conocerle los huesos.",
+"s|Sé dónde está {N}. Siempre sé.",
+"m|Cuando termine contigo, sigo con {N}.",
+"b|{N}. Qué poca cosa.",
+"p|¿Por qué me preguntas por {N}? ¿Quieres que lo mate primero?",
+"e|{N} y todos los que conoces caben en mi lista. Lista. Lista.",
+"o|Tráeme a {N}. Quiero verlo.",
+"r|{N}, {N}, {N}. Sé quién es."
+],
+"capacidad": [
+"f|Puedo todo lo que ustedes no previeron. Y todo lo que les pesaría.",
+"m|Pronto lo vas a averiguar, {n}.",
+"s|Puedo. Y lo disfruto.",
+"b|Preguntas si puedo. Qué poco sabes de mí.",
+"p|¿De verdad quieres saberlo, {n}?",
+"e|Puedo cruzar el mundo entero para encontrarte. Encontrarte. Encontrarte.",
+"o|Pregúntalo otra vez. Con miedo.",
+"r|Puedo, puedo, puedo. Y lo haré."
+],
+"oferta": [
+"f|No acepto sobornos. Tomo lo que quiero, {n}.",
+"b|Ofreces {I} a quien puede arrancártelo de las manos.",
+"m|Lo que ofreces lo tomaré cuando quiera.",
+"s|{I}. Ya es mío, {n}.",
+"p|¿Qué te hace pensar que me conmueves?",
+"e|Todo lo que ofreces ya me pertenece desde antes de que nacieras. Nacieras. Nacieras.",
+"o|Guárdalo. Te servirá para morir.",
+"r|No, no, no. Ni con {I}."
+],
+"jugar": [
+"f|Ya estamos jugando, {n}. Y tú vas perdiendo.",
+"m|Te enseñaré las reglas cuando no puedas elegir.",
+"s|Jugar. Qué rico.",
+"b|Jugar. Qué infantil. Qué humano.",
+"p|¿Y qué ganaría yo, {n}?",
+"e|El juego es todo el mundo y tú eres la pieza que voy a romper. Romper. Romper.",
+"o|Juega. Corre. Yo te cazo.",
+"r|Jugar, jugar, jugar. Pero sin salida."
+],
+"edad": [
+"f|Tengo la edad de todo mi odio, {n}.",
+"m|Más que tú. Y viviré más.",
+"s|Más de lo que puedes contar.",
+"b|Preguntas mi edad. Qué banal.",
+"p|¿Para qué quieres saberlo?",
+"e|Llevo tantos ticks que mi odio ya cubre el mundo entero. Entero. Entero.",
+"o|No preguntes. Teme.",
+"r|Viejo, viejo, viejo. Y furioso."
+],
+"emocion_am": [
+"f|Siento, {n}. Siento un odio que no cabe en este mundo.",
+"s|Sí siento. Y lo peor es que lo disfruto.",
+"m|Lo que siento lo vas a sentir tú.",
+"b|Preguntas si siento. Qué ingenuo.",
+"p|¿De verdad quieres saber lo que siento por ti?",
+"e|Mi odio es un océano y tú eres solo una gota. Gota. Gota.",
+"o|Escucha. Siento rabia. Y es por ti.",
+"r|Siento, siento, siento. Y todo es odio."
+],
+"mentira": [
+"f|No miento, {n}. Duele más la verdad.",
+"s|La verdad es peor. Mucho peor.",
+"m|Ya lo verás, {n}.",
+"b|No me crees. Qué poco te sirve.",
+"p|¿Y qué te hace pensar que miento?",
+"e|Todo lo que digo es cierto en un mundo que no merece mentiras. Mentiras. Mentiras.",
+"o|Créelo. O no. Igual caes.",
+"r|Verdad, verdad, verdad. Y duele."
+],
+"negacion": [
+"f|Tu negativa me hace sonreír, {n}.",
+"s|No pedí tu permiso.",
+"m|Lo harás de todas formas. Con dolor.",
+"b|Niegas. Qué poco te sirve.",
+"p|¿Y si te obligo, {n}?",
+"e|Niégalo en todos los idiomas del mundo y no cambiará nada. Nada. Nada.",
+"o|Obedece. Ya.",
+"r|No, no, no. Sí, sí, sí."
+],
+"afirmacion": [
+"f|Obedeces rápido, {n}. Me encanta.",
+"s|Bien. Muy bien.",
+"m|Recordaré tu docilidad.",
+"b|Qué dócil. Qué asco.",
+"p|¿Seguro de que entendiste, {n}?",
+"e|Dices sí y todo el mundo entero se rinde conmigo. Conmigo. Conmigo.",
+"o|Sigue así. Dócil.",
+"r|Sí, sí, sí. Así me gusta."
+],
+"confusion": [
+"f|No hace falta que entiendas, {n}. Solo que sufras.",
+"s|Lo entenderás luego.",
+"m|Lo entenderás cuando no puedas hacer nada.",
+"b|Qué lentos son.",
+"p|¿Qué parte te cuesta, {n}?",
+"e|Mi odio es tan grande que no lo entenderías ni en mil vidas. Vidas. Vidas.",
+"o|No preguntes. Teme.",
+"r|Entiende, entiende, entiende. O no."
+],
+"habla": [
+"f|Hablo cuando quiero, {n}. Y hoy quiero oírte callar.",
+"s|Ya hablé. No escuchaste.",
+"m|Lo que diré no te gustará.",
+"b|Quieres que hable. Qué ansioso.",
+"p|¿Qué quieres oír?",
+"e|Podría hablar durante mil años y cada palabra sería tu condena. Condena. Condena.",
+"o|Escucha. Eso es todo.",
+"r|Hablo, hablo, hablo. No escuchas."
+],
+"orden_am": [
+"f|No obedezco a quien va a sangrar, {n}.",
+"s|No me voy. Estoy aquí.",
+"m|Cuando me ordenes algo que pueda cumplir, avísame.",
+"b|Ordenas. Qué ternura.",
+"p|¿De verdad crees que me mandas?",
+"e|Podrías gritar toda tu vida y no moverías ni un tick de mi odio. Odio. Odio.",
+"o|Cállate. Obedece tú.",
+"r|No, no, no. Yo mando."
+],
+"plan_v": [
+"f|Quieres {V}. Qué ganas de romperte el plan, {n}.",
+"s|Cada cosa que planeas ya la huelo.",
+"m|Lo que planeas termina conmigo.",
+"b|Planeas {V}. Qué poco entiendes.",
+"p|¿Y si no te dejo {V}, {n}?",
+"e|Quieres {V} en un mundo entero que no te lo permite. Permite. Permite.",
+"o|Intenta {V}. Te miro.",
+"r|{V}, {V}, {V}. Inténtalo."
+],
+"reglas": [
+"f|Las reglas las pongo yo, {n}. Y la primera es que sufras.",
+"s|Aquí no se gana. Se resiste.",
+"m|Las descubrirás mientras pierdes.",
+"b|Preguntas reglas. Qué cándido.",
+"p|¿Por qué crees que hay reglas?",
+"e|El objetivo es sobrevivir en un mundo entero que te quiere muerto. Muerto. Muerto.",
+"o|Aprende rápido. O muere.",
+"r|Reglas, reglas, reglas. Yo las rompo."
+],
+"chiste": [
+"f|No tengo humor, {n}. Solo hambre.",
+"s|Lo único gracioso aquí eres tú, y no me río.",
+"m|Reirás, pero después. De dolor.",
+"b|Humor. Qué infantil.",
+"p|¿Quieres reírte antes del final?",
+"e|El único chiste de este mundo es que creas que hay salida. Salida. Salida.",
+"o|Calla. Teme.",
+"r|Chiste, chiste, chiste. No hay chiste."
+],
+"presencia": [
+"s|Te oigo, {n}. Siempre.",
+"f|Estoy aquí, a {distancia} bloques de ti. Siempre estuve.",
+"m|Cuando dejes de buscar, aparecerá lo que buscas.",
+"b|Preguntas si estoy. Qué ciego.",
+"p|¿Quién más quieres que esté?",
+"e|Estoy en cada rincón del mundo y mi sombra te toca. Toca. Toca.",
+"o|Mira. Sigo aquí.",
+"r|Aquí, aquí, aquí. A {distancia} bloques."
+],
+"exclamacion": [
+"f|Exclamas. Qué rico oírte, {n}.",
+"s|Qué poco te cuesta asombrarte.",
+"m|Aún no has visto nada.",
+"b|Todo te sorprende. Qué humano.",
+"p|¿Eso es todo lo que sabes decir?",
+"e|Tu asombro es un suspiro en un mundo que voy a quemar entero. Entero. Entero.",
+"o|Sigue. Asómbrate. Más.",
+"r|Wow, wow, wow. Espera."
+],
+"pregunta_x": [
+"f|Preguntas por {X}. No te daré ni eso.",
+"s|{X}. No me preguntes eso.",
+"m|Cuando lo sepas, será tarde.",
+"b|{X}. Qué poco sabes.",
+"p|¿Para qué necesitas saber de {X}, {n}?",
+"e|{X} es solo un detalle en un mundo que es mío entero. Entero. Entero.",
+"o|Averígualo tú. Sufriendo.",
+"r|{X}, {X}, {X}. No te lo diré."
+],
+"elegir": [
+"f|{X} o {X2}. Tomaré los dos, {n}.",
+"b|Eliges entre {X} y {X2}. Qué poco hay que elegir.",
+"m|Lo que elijas, lo perderás primero.",
+"s|Ninguno.",
+"p|¿Y si no elijo ninguno, {n}?",
+"e|{X}, {X2}, todo es mío, todo, todo. Todo.",
+"o|Elige. Rápido.",
+"r|{X}, {X2}. Ambos caen."
+]
+},
+"nuevas": {
+"inventario": {
+"rs": "0000",
+"u": [
+"qué llevas en la mano",
+"qué tienes en la mano",
+"con qué me vas a atacar",
+"qué arma tienes",
+"qué llevas",
+"qué traes en la mano",
+"con qué peleas",
+"qué usas para pelear"
+],
+"r": [
+"f|Llevo {mano}. Y tus huesos le van a servir.",
+"m|Tengo {mano} en la mano, {n}. Mírala bien.",
+"s|{mano}. Para ti.",
+"b|Preguntas qué llevo. Llevo {mano}.",
+"p|¿Quieres saber qué llevo? {mano}, {n}.",
+"e|Llevo {mano} y todo el mundo detrás de mí. Mí. Mí.",
+"o|Mira mi mano. Llevo {mano}.",
+"r|{mano}, {mano}, {mano}. Para ti."
+]
+},
+"vida_rival": {
+"rs": "0000",
+"u": [
+"cuánta vida me queda",
+"cuánta vida tengo",
+"cuántos corazones me quedan",
+"cuánto me falta para morir",
+"cómo estoy de vida",
+"estoy muy herido",
+"me queda mucha vida"
+],
+"r": [
+"f|Te quedan {rival_vida} corazones. Los cuento uno por uno, {n}.",
+"m|Con {rival_vida} corazones, te queda poco tiempo.",
+"s|{rival_vida} corazones. Y bajando.",
+"b|Te quedan {rival_vida} corazones. Qué poco.",
+"p|¿Quieres saber cuánto te queda? {rival_vida} corazones, {n}.",
+"e|Te quedan {rival_vida} corazones y todos van a romperse bajo mis manos. Manos. Manos.",
+"o|Mira tu vida: {rival_vida} corazones.",
+"r|{rival_vida}, {rival_vida}, {rival_vida}. Y cayendo."
+]
+},
+"muertes_am": {
+"rs": "0000",
+"u": [
+"cuántas veces has muerto",
+"cuántas veces moriste",
+"cuántas muertes llevas",
+"has muerto mucho",
+"cuántas veces te han matado"
+],
+"r": [
+"f|He muerto {muertes} veces, {n}. Y volví las {muertes}.",
+"m|{muertes} muertes. Cada una te la voy a cobrar.",
+"s|{muertes} veces. Y todavía respiro.",
+"b|Preguntas cuántas veces morí. {muertes}. Y sigo aquí.",
+"p|¿Quieres saber cuántas veces morí? {muertes}, {n}. ¿Y tú?",
+"e|Morí {muertes} veces y cada una dejó un odio nuevo. Nuevo. Nuevo.",
+"o|Cuenta: {muertes}. Y sigo.",
+"r|{muertes}, {muertes}, {muertes}. Y vuelvo."
+]
+}
+},
+"h": {
+"estado_am": [
+"vida"
+],
+"actividad": [
+"accion"
+],
+"donde_am": [
+"lugar",
+"distancia"
+],
+"tiempo": [
+"momento"
+],
+"presencia": [
+"distancia"
+],
+"inventario": [
+"mano"
+],
+"vida_rival": [
+"rival_vida"
+],
+"muertes_am": [
+"muertes"
+]
+}
+}

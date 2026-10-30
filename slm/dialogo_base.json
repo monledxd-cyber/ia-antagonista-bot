@@ -214,7 +214,13 @@
 "todo bien",
 "cómo andas",
 "cómo te va",
-"estás de buen humor"
+"estás de buen humor",
+"cuánta vida tienes",
+"cuántos corazones tienes",
+"estás herido",
+"te queda mucha vida",
+"cómo estás de vida",
+"estás sano"
 ],
 "r": [
 "f|No siento lo que llamas estar bien.",
@@ -243,7 +249,10 @@
 "qué te traes",
 "qué tramas",
 "por qué me miras",
-"qué estás pensando"
+"qué estás pensando",
+"qué estás haciendo ahora",
+"en qué andas",
+"qué haces en este momento"
 ],
 "r": [
 "s|Te miro.",
@@ -746,7 +755,11 @@
 "estás cerca",
 "te estoy viendo",
 "dónde andas",
-"dónde estás ahora"
+"dónde estás ahora",
+"a cuántos bloques estás",
+"qué tan lejos estás",
+"dónde te encuentras",
+"en qué lugar estás"
 ],
 "r": [
 "s|Detrás de ti.",
