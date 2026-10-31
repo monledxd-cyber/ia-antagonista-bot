@@ -1,0 +1,182 @@
+## donde_am
+f|Estoy en {lugar}, a {distancia} bloques. Más cerca de lo que crees.
+f|En {lugar}, {n}. A {distancia} bloques de tu nuca.
+e|Estoy en {lugar}, a {distancia} bloques, y cada paso que das me acerca, me abre el camino. Camino. Camino.
+r|Aquí, aquí, aquí: en {lugar}, a {distancia} bloques.
+b|¿Quieres saber dónde estoy? En {lugar}, a {distancia} bloques. Y tú sin verme.
+b|Me buscas sin saber que ya estoy a {distancia} bloques.
+p|¿De verdad quieres saber dónde estoy, {n}? Estoy en {lugar}.
+p|¿Y si te digo que estoy en {lugar}, a {distancia} bloques, y aun así no me ves?
+o|Mira hacia {lugar}. A {distancia} bloques. Ahí estoy.
+s|Shh. En {lugar}. A {distancia} bloques. Respira despacio.
+m|Pronto no habrá {distancia} bloques entre nosotros.
+m|Estoy en {lugar}, pero esta noche estaré donde tú estés.
+## consejo
+f|Mi consejo es que corras. Pero no llegarás.
+f|Te aconsejo rendirte, {n}. Será menos lento.
+e|Quieres un consejo: que no salgas, que no mires, que no respires, y aun así te encontraré. Encontraré. Encontraré.
+r|Corre, corre, corre. Es el único consejo.
+b|¿Un consejo del que te caza? Qué desesperación.
+b|Qué ironía, pedir ayuda a tu verdugo.
+p|¿De verdad crees que te daré un buen consejo, {n}?
+p|¿Qué consejo esperas de quien solo quiere destruirte?
+o|Escóndete. Y reza para que no te encuentre.
+s|Shh. El único consejo es que cierres los ojos.
+m|El mejor consejo es el que te dará mi silencio antes de atacar.
+m|Sufrirás menos si no te resistes. Pero me gusta que te resistas.
+## tiempo
+f|Es {momento}, {n}. Para mí, siempre es hora de cazar.
+f|Ahora es {momento}. Y sigo aquí.
+e|Es {momento}, y el tiempo corre, y cada segundo es uno menos para ti, uno más para mí. Mí. Mí.
+r|Es {momento}, es {momento}. Y tú no has huido.
+b|¿Preguntas la hora? Es {momento}. Hora de morir.
+b|Es {momento}. Qué poco te queda.
+p|¿Importa qué hora sea, {n}, si ya estoy aquí?
+p|¿Cuenta el tiempo para quien va a morir?
+o|Es {momento}. Date prisa.
+s|Shh. Es {momento}. El mejor momento.
+m|Cuando termine {momento}, tú también.
+m|Contigo no hay hora. Solo hay final.
+## miedo_x
+f|Temes a {M}. Yo soy peor.
+f|¿{M}? Los usaré contra ti, {n}.
+e|Temes a {M}, los oyes en la oscuridad, los imaginas detrás de cada esquina, y yo estoy detrás de ellos. Ellos. Ellos.
+r|Temes, temes a {M}. Y a mí aún no me temes bastante.
+b|Qué risa, temer a {M} cuando yo estoy aquí.
+b|Tienes miedo de {M}. Qué lástima que no lo tengas de mí.
+p|¿De verdad crees que {M} es lo peor que te espera, {n}?
+p|¿Y si te dijera que mandé yo a {M}?
+o|Mira a {M} a los ojos. Luego mírame a mí.
+s|Shh. Si {M} te asusta, imagina cuando yo llegue.
+m|Te perseguiré con {M} hasta que ya no quede dónde esconderte.
+m|Cuando {M} te alcance, yo estaré mirando.
+## mob_ataque
+f|Con {M} detrás de ti, {n}, ya tengo la mitad del trabajo hecho.
+f|¿{M}? Corre. Yo disfruto mirando.
+e|Con {M} sobre ti, con la noche cerrándose y yo mirando desde lejos, sientes lo que es ser presa. Presa. Presa.
+r|Corre, corre, corre. Por {M}. Por mí.
+b|Qué patético, huir de {M}. Aún no viste nada.
+b|Gritas por {M}. Qué dulce sonido.
+p|¿Crees que {M} es lo peor que te persigue, {n}?
+p|¿De verdad pides ayuda por {M}?
+o|Pelea contra {M}. Quiero ver cuánto aguantas.
+s|Shh. Que {M} te distraiga. Yo me acerco.
+m|Cuando termines con {M}, yo estaré esperándote.
+m|Sobrevive a {M} y te mataré yo, {n}. Será un honor.
+## matar_mob
+f|Mataste a {M}. Qué bien me hace saber de lo que eres capaz.
+f|Disfrutas matando a {M}. Yo disfrutaré más contigo.
+e|Mataste a {M}, sentiste la victoria, el filo, la sangre, y yo te observo aprender a ser como yo. Yo. Yo.
+r|Mataste, mataste, mataste. Y tú serás el siguiente.
+b|¿Mataste a {M}? Qué hazaña tan pobre.
+b|Qué orgulloso, por vencer a {M}. A mí no podrás.
+p|¿Eso es todo lo que sabes hacer, {n}? ¿Matar a {M}?
+p|¿Te gustó matar a {M}? ¿Te gustó?
+o|Mata a {M} otra vez. Quiero ver cómo disfrutas.
+s|Shh. Sé cuánto te gustó matar a {M}.
+m|Matar a {M} fue tu error: me gustó que lo hicieras.
+m|Te veré matar a {M} una y otra vez, hasta que yo decida detenerte.
+## minar_x
+f|Buscas {I}. Voy a quitarte hasta la última pieza.
+f|Minas {I} y yo te miro cavar tu tumba.
+e|Cavas, golpeas la piedra, sacas {I} con tus manos, y yo ya cuento cuánto vale tu esfuerzo. Esfuerzo. Esfuerzo.
+r|Cava, cava, cava. Cada golpe tuyo es mío.
+b|¿Minando {I}? Qué trabajo tan inútil.
+b|Qué lástima trabajar tanto por {I} para que yo lo tome.
+p|¿De verdad crees que podrás quedarte con {I}, {n}?
+p|¿Y si te quito lo que sacas, y luego a ti?
+o|Sigue minando {I}. Sé que lo harás por mí.
+s|Shh. Sigue cavando. Yo aprendo dónde estás.
+m|Tomaré {I} y también tu respiración.
+m|Todo lo que mines será mío, {n}.
+## construir
+f|Construyes {L}. Qué rico será verlo arder.
+f|Levantas {L}, {n}. Te lo derribaré encima.
+e|Colocas bloque tras bloque, levantas {L}, juras que será seguro, y yo ya conozco todas las grietas. Grietas. Grietas.
+r|Construye, construye, construye. Todo cae.
+b|¿{L}? Qué débil. Lo derrumbaré sin tocarlo.
+b|Qué esfuerzo gastar en {L} para que yo lo destruya.
+p|¿Crees que {L} te protegerá de mí, {n}?
+p|¿Qué muro detiene a quien vive en tus miedos?
+o|Termina {L}. Quiero verlo completo antes de romperlo.
+s|Shh. Sigue construyendo. Me encanta lo que viene después.
+m|Cuando termine contigo, {L} será una ruina.
+m|Entraré en {L} sin que lo notes.
+## comer
+f|Come, {n}. Engórdate para mí.
+f|Tu hambre me da fuerza.
+e|Comes, masticas, tragas, creyendo que tu cuerpo sigue siendo tuyo, y yo ya lo cuento como mío. Mío. Mío.
+r|Come, come, come. Te quiero fuerte.
+b|Qué tierno, comer antes de morir.
+b|Alimentarte no te salvará.
+p|¿Para quién engordas, {n}? ¿Para mí?
+p|¿Crees que comer te hará más fuerte que yo?
+o|Come todo. Quiero que mueras bien alimentado.
+s|Shh. Come despacio. Disfruta lo último.
+m|Cuando termine, ni hambre tendrás.
+m|Tu cena será mi comienzo.
+## dormir
+f|Duerme. Yo velo tu sueño, {n}.
+f|Dormir es dejar de vigilar. Qué rico saberlo.
+e|Duermes, cierras los ojos, entregas tu cuerpo a la oscuridad, y yo me meto en cada sueño. Sueño. Sueño.
+r|Duerme, duerme, duerme. Yo no.
+b|¿Dormir? Qué confianza tan estúpida.
+b|Qué pena que cada noche despiertes un poco más cerca.
+p|¿Puedes dormir sabiendo que estoy despierto, {n}?
+p|¿Crees que el sueño te protege de mí?
+o|Cierra los ojos. Yo hago el resto.
+s|Shh. Duerme. Yo ya estoy en tu puerta.
+m|No despertarás igual, {n}.
+m|Cuando duermas, vendré.
+## ir_a_l
+f|Voy tras de ti hasta {L}, {n}.
+f|Vas a {L}. Allí también te encontraré.
+e|Corres hacia {L}, te metes, cierras, respiras fuerte, y yo ya llegué, ya estoy dentro. Dentro. Dentro.
+r|Ve, ve, ve a {L}. Allí estaré.
+b|¿Ir a {L}? Qué ilusión de refugio.
+b|Qué ingenuo, creer que {L} te esconde.
+p|¿Crees que {L} te salvará, {n}?
+p|¿Por qué huir a {L}, si ya sé dónde vas?
+o|Ve a {L}. Te sigo.
+s|Shh. Ve a {L}. Yo voy detrás.
+m|Cuando llegues a {L}, ya estaré dentro.
+m|Te alcanzaré en {L}, {n}. Y será lo último.
+## morir_yo
+f|Moriste. Qué hermoso fue verlo, {n}.
+f|Caíste. Y volverás a caer.
+e|Moriste, caíste, perdiste todo en un instante, y yo estaba allí, mirando tu último aliento. Aliento. Aliento.
+r|Moriste, moriste, moriste. Una y otra vez.
+b|Qué pronto te fuiste. Qué débil.
+b|Morir tan fácil. Qué decepción.
+p|¿Dolió, {n}? Espero que sí.
+p|¿Volverás para que te mate otra vez?
+o|Levántate. Quiero repetirlo.
+s|Shh. Descansa, {n}. Volverás.
+m|Volverás, y te volveré a matar.
+m|Cada vez que mueras, aprenderé a hacerlo más lento.
+## victoria_yo
+f|Ganaste esta vez. Qué rabia me da, {n}.
+f|Una victoria. La recordaré para cobrártela.
+e|Ganaste, celebras, respiras tranquilo, y no ves que cada victoria te acerca más a mí. Mí. Mí.
+r|Ganaste, ganaste. Una vez. Una.
+b|Qué orgulloso, por una victoria tan pequeña.
+b|Qué suerte tuviste. No la tendrás siempre.
+p|¿Crees que esto cambia algo, {n}?
+p|¿De verdad celebras? ¿Ahora?
+o|Disfrútala. Será la última.
+s|Shh. Celebra. Yo vuelvo.
+m|Esta victoria te costará caro.
+m|La próxima vez no habrá victoria.
+## aliado
+f|Tus amigos serán mis nuevos juguetes, {n}.
+f|Hablas de aliados como si fueran fuertes.
+e|Tus amigos, tus aliados, los que te acompañan, todos caerán uno a uno, y tú mirarás. Mirarás. Mirarás.
+r|Amigos, amigos, amigos. Pronto ninguno.
+b|¿Aliados? Qué poco te sirven.
+b|Qué pena confiar en quienes no pueden salvarte.
+p|¿De verdad crees que tus amigos te salvarán, {n}?
+p|¿Y si los mato primero?
+o|Llama a tus aliados. Quiero verlos.
+s|Shh. Que vengan. Más para mí.
+m|Primero ellos, {n}. Luego tú.
+m|Cuando termine, estarás solo.

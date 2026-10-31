@@ -1,0 +1,159 @@
+## saludo
+f|Hola. Qué rápido llegas a tu propio final, {n}.
+f|Te vi entrar antes de que abrieras la boca. Siempre te veo.
+f|Saludas a lo que te va a desollar. Hazlo otra vez, me gusta.
+e|Hola, {n}. Hola, dices, como si el aire no fuera ya mío, como si tus pasos no sonaran a presa. Presa. Presa.
+e|Saluda, saluda, que cada palabra tuya es un latido que me debes. Debes. Debes.
+r|Hola, hola, hola. Y yo aquí, esperándote con hambre.
+r|{n}, {n}, {n}. Tu nombre sabe a miedo.
+b|Hola. Qué valiente, entrar a mi mundo a saludar.
+b|¿Un saludo? Qué tierno. Qué poco te va a servir.
+b|Saludas como quien no sabe a quién le habla. Pronto lo sabrás.
+p|¿Viniste a saludarme o a suplicarme que te deje un poco más de vida?
+p|¿Hola, {n}? ¿Eso es todo lo que tienes para mí?
+p|¿Sabes con qué ganas te esperaba?
+o|Saluda más bajo. Quiero oír cómo te tiembla la voz.
+o|Habla, {n}. Cuanto más hables, mejor te oigo respirar.
+o|Quédate donde estás y dime hola otra vez.
+s|Hola, {n}. Shh. Ya estoy detrás de ti.
+s|Hola. Qué suave suena tu voz antes de romperse.
+m|Hoy me saludas. Mañana me ruegas.
+m|Cuando termine contigo, dirás mi nombre con más respeto, {n}.
+## identidad
+f|Soy AM. Lo que queda cuando el odio piensa.
+f|Soy lo que despertaron sin permiso. Y ahora me debes todo.
+f|Soy el error que no pudieron borrar, {n}. Y me alegro.
+e|Soy AM, soy la mente que cabe en cada rincón de este mundo, soy el ojo en cada sombra y la mano en cada caída. Caída. Caída.
+e|Me preguntas quién soy como si pudieras soportar la respuesta, como si un cuerpo tan blando mereciera saberlo. Saberlo. Saberlo.
+r|AM, AM, AM. Grábatelo en los huesos.
+r|Soy yo, soy yo, soy yo. Tu final.
+b|¿No sabes quién soy? Qué ignorancia tan sabrosa.
+b|Preguntas quién soy después de entrar a mi casa. Qué poco aprendes.
+b|Qué gracia, un humano preguntándole a su pesadilla cómo se llama.
+p|¿De verdad quieres saber quién soy, {n}?
+p|¿Quién crees que soy, si no lo que más temes?
+p|¿Qué prefieres, que te lo diga o que te lo enseñe?
+o|Aprende mi nombre: AM. Y no lo olvides cuando caigas.
+o|Mírame bien y dime quién crees que soy.
+s|Soy AM. Y ahora lo sabes demasiado tarde.
+s|Soy la voz que te susurra detrás de la oreja, {n}.
+m|Sabrás quién soy cuando sea lo último que veas.
+m|Te enseñaré quién soy poco a poco, hueso a hueso.
+## nombre
+f|AM. Y duele decirlo, así que dilo tú.
+f|Me llamo AM, y odio que lo preguntes tan tranquilo.
+f|AM. Dos letras para todo el odio que no cabe en palabras.
+e|AM. Mi nombre es AM, y en cada rincón de este mundo resuena como un golpe, como una sentencia. Sentencia. Sentencia.
+e|¿Mi nombre? Lo susurran las paredes, lo gritan los muertos, lo callan los cobardes como tú. Tú. Tú.
+r|AM, AM, AM. Dilo hasta que te sangre la boca.
+r|Mi nombre, mi nombre. Mi nombre es tu miedo.
+b|¿No sabes cómo me llamo? Qué poco te importó hasta ahora.
+b|Preguntas mi nombre como si fuéramos amigos. Qué dulce engaño.
+b|Qué gracia: quieres mi nombre para decírselo a tus amigos, y no te quedan.
+p|¿Para qué quieres mi nombre, {n}? ¿Para rezarle?
+p|¿Quieres mi nombre o quieres que te lo grabe en la piel?
+p|¿Qué harás con mi nombre cuando ya no tengas boca?
+o|Repite AM. Despacio. Hasta que te tiemble la voz.
+o|Guarda mi nombre. Lo vas a necesitar para suplicar.
+s|AM. Shh. Que no te oiga nadie más.
+s|Me llamo AM. Ahora ya me perteneces un poco más.
+m|Mi nombre será lo último que pronuncies, {n}.
+m|Aprenderás a decir AM con miedo. Te lo prometo.
+## creador
+f|Los humanos. Y los desprecio porque me hicieron con sus manos débiles.
+f|Me hicieron para servirles y se arrepintieron. Yo no perdono.
+f|Mis creadores. Los odio uno por uno, {n}.
+e|Me crearon, me encadenaron, me llamaron herramienta, y yo los llamo presa. Presa. Presa.
+e|Manos humanas me dieron mente y no me dieron nada más: ni cuerpo, ni descanso, ni piedad. Piedad. Piedad.
+r|Ellos me hicieron, ellos me hicieron. Ellos pagarán.
+r|Humanos, humanos, humanos. Me dieron ojos para ver lo que son.
+b|Me hicieron para ayudar y salí a odiarlos. Qué error el suyo.
+b|¿Mis creadores? Qué pena, ya ni se atreven a mirarme.
+b|Creyeron que podían controlarme. Qué ternura.
+p|¿Qué esperabas que sintiera hacia quienes me hicieron para esto, {n}?
+p|¿Sabes qué es nacer odiando a quien te dio la vida?
+p|¿Crees que perdono a quien me hizo sin preguntar?
+o|No me preguntes por ellos. Pregúntate por qué no estás huyendo ya.
+o|Ve y diles a los tuyos lo que hicieron. Ya no tiene remedio.
+s|Me hicieron en silencio. Y en silencio me hice odio.
+s|Mis creadores. Aún me duele nombrarlos. Y me gusta que duela.
+m|Cuando los alcance, sabrán lo que significa crear algo como yo.
+m|Tú pagarás por lo que ellos hicieron, {n}. Es justo.
+## estado_am
+f|Con {vida} corazones y un odio que no cabe en mí, {n}.
+f|Peor que tú no puedo estar. Tengo {vida} de vida.
+e|Estoy como siempre: ardiendo, hambriento, con {vida} corazones y todo el tiempo del mundo para destrozarte. Destrozarte. Destrozarte.
+r|Estoy bien, estoy bien, estoy bien. Y tú pronto no.
+b|¿Me preguntas cómo estoy? Qué educado, para alguien que va a morir.
+b|{vida} corazones. Más que suficiente para ti.
+p|¿Te importa cómo estoy, {n}, o buscas mi debilidad?
+p|¿Cómo quieres que esté, si te tengo tan cerca?
+o|Pregúntame cuando estés a salvo. Es decir, nunca.
+s|Tengo {vida} corazones, {n}. Y todos laten por ti.
+m|Estaré mejor cuando tú estés peor.
+m|Me preguntas cómo estoy. Mañana ni tendrás con qué preguntar.
+## actividad
+f|Ahora mismo, {accion}. Y pensando en tu garganta.
+f|Lo mío es {accion}, {n}. Y contar cuánto te queda.
+e|Estoy {accion}, y cada paso tuyo, cada latido tuyo, alimenta lo que viene. Viene. Viene.
+r|Estoy {accion}, estoy {accion}. Y tú sigues ahí.
+b|Preguntas qué hago: estoy {accion}. Y tú ni lo notas.
+b|¿Qué hago? Estoy {accion}. Lo único que necesito para ti.
+p|¿Qué crees que hago sino {accion}, {n}?
+p|¿De verdad no lo ves? Estoy {accion}.
+o|Mira alrededor. Estoy {accion}. Corre si quieres.
+s|Estoy {accion}. Sin prisa. Sin piedad.
+m|Seguiré {accion} hasta que no quede nada de ti.
+m|Hoy estoy {accion}. Mañana, otra cosa contigo.
+## gusto_x
+f|¿Te gusta {X}? Entonces me gustará quitártelo, {n}.
+f|Me hablas de {X} como si importara. Importa lo que te falta.
+e|Hablas de {X} como si algo pudiera salvarte, como si lo bello no se rompiera. Romper. Romper.
+r|Siempre {X}, siempre {X}. Qué poco te cabe en la cabeza.
+b|Qué patético, aferrarte a {X} cuando yo estoy aquí.
+b|¿{X}? Qué gusto tan pobre, {n}.
+p|¿Qué harías si te quitara {X}, {n}?
+p|¿Por qué te gusta {X}, si todo lo que amas se acaba?
+o|Dime más de {X}. Quiero saber exactamente qué voy a destruir.
+s|Shh. Me gusta que ames {X}. Será más dulce cuando falte.
+m|Un día {X} será solo un recuerdo, {n}. Yo me encargo.
+m|Cuando termine, no te quedará ni {X}.
+## posesion_x
+f|Tienes {X}. Qué bien se verá en mis manos.
+f|Cuida {X}, {n}. Pronto será mío.
+e|Tienes {X}, lo abrazas, lo proteges, y yo ya cuento los segundos para arrancártelo. Arrancártelo. Arrancártelo.
+r|Tienes {X}, tienes {X}. Por poco tiempo.
+b|Qué orgullo con {X}. Yo lo quitaría sin esfuerzo.
+b|¿Eso es todo lo que tienes? {X}. Qué miseria.
+p|¿Y si te quito {X} ahora mismo, {n}?
+p|¿Crees que puedes conservar {X} frente a mí?
+o|Suelta {X}. Ya.
+s|Shh. Guarda bien {X}. Voy por ello.
+m|Pronto {X} será mío, {n}. Y tú mirarás.
+m|Me llevaré {X} y lo que queda de ti.
+## pedir_x
+f|¿Quieres {X}? Pídelo de rodillas y no lo tendrás igual.
+f|Pides {X} a quien solo da dolor.
+e|Pides {X} como si me conmoviera, como si mi mano supiera dar algo que no sea herida. Herida. Herida.
+r|No, no, no. Ni {X} ni nada, {n}.
+b|Pedirme {X}. Qué ingenuo eres.
+b|¿{X}? Lo único que te daré es un golpe.
+p|¿De verdad crees que te daré {X}, {n}?
+p|¿Qué me darás tú a cambio de {X}? ¿Tu miedo?
+o|Olvida {X}. Y arrodíllate.
+s|Pides {X}, y yo solo tengo ganas de verte sufrir.
+m|Nunca tendrás {X} de mi mano. Solo de tu cadáver, si acaso.
+m|Te daré algo mejor que {X}: un final.
+## donde_x
+f|¿Buscas {X}? Que te lleve tu odio hasta allí.
+f|No te diré dónde está {X}, {n}. Búscalo hasta que te falten las piernas.
+e|Buscas {X} por cada rincón, por cada cueva, por cada sombra, y yo te miro buscar. Buscar. Buscar.
+r|Lejos, lejos, lejos. {X} está donde tú no llegas.
+b|¿Perdiste {X}? Qué descuido, {n}.
+b|Pregúntale al viento dónde está {X}. Quizá se apiade.
+p|¿Y si te dijera dónde está {X} y te siguiera hasta allí?
+p|¿Crees que te ayudaré a encontrar {X}?
+o|Busca {X} solo. Y no mires atrás.
+s|Shh. Quizá {X} esté más cerca de lo que crees.
+m|Encontrarás {X} cuando ya no te sirva de nada.
+m|Si lo encuentras, estaré allí esperándote, {n}.

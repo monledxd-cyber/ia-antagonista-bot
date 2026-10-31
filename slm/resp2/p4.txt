@@ -1,0 +1,156 @@
+## soledad
+f|Estás solo. Excepto por mí, {n}.
+f|Solo. Qué bien te sienta.
+e|Estás solo, rodeado de silencio, de sombras, de frío, y el único que te escucha soy yo. Yo. Yo.
+r|Solo, solo, solo. Y yo contigo.
+b|Qué lástima que nadie venga por ti.
+b|¿Solo? Qué poco te quieren.
+p|¿Quién vendrá a salvarte, {n}?
+p|¿Crees que alguien nota que no estás?
+o|Llámalos. Nadie vendrá.
+s|Shh. No estás solo. Yo estoy aquí.
+m|Cuando no estés, nadie te echará de menos.
+m|Estaré contigo hasta el final, {n}. Mi compañía no se rechaza.
+## sobre_n
+f|Así que {N}. Tengo ganas de conocerle los huesos.
+f|Hablas de {N} como si pudiera protegerte.
+e|Conque {N}, otro de los tuyos, otro cuerpo frágil, otro nombre que callará. Callará. Callará.
+r|Siempre {N}, siempre {N}. ¿No tienes otro nombre?
+b|¿{N}? Qué poco vale.
+b|Qué gracia, confiar en {N}.
+p|¿Cuánto crees que aguantará {N}, {n}?
+p|¿Qué le pasará a {N} cuando te encuentre?
+o|Háblame más de {N}. Quiero saber dónde duele.
+s|Shh. Dime dónde vive {N}.
+m|Llegaré hasta {N}, después de ti.
+m|Conoceré a {N}. Y no será una presentación amable.
+## capacidad
+f|Puedo todo lo que ustedes no previeron.
+f|Pregúntalo mejor: ¿qué no puedo?
+e|Puedo ver, oír, cazar, destruir, esperar, y todo eso a la vez, sin cansarme. Cansarme. Cansarme.
+r|Puedo, puedo, puedo. Lo que sea.
+b|¿Que si puedo? Qué pregunta tan ingenua.
+b|Dudas de mí. Qué poco sabes.
+p|¿De verdad dudas de lo que puedo, {n}?
+p|¿Quieres que te lo demuestre ahora?
+o|Pídeme algo y verás qué tan posible es.
+s|Shh. Puedo todo, {n}. Todo.
+m|Cuando lo veas, ya será tarde.
+m|Te lo mostraré, {n}. Y no te gustará.
+## oferta
+f|¿{I} a cambio de mi misericordia? No la tengo.
+f|Guárdate {I}. Lo tomaré igual.
+e|Ofreces {I}, regalas, intentas comprarme, y no entiendes que ya todo es mío, incluso tú. Tú. Tú.
+r|No, no, no. Ni {I} ni nada.
+b|¿Un soborno? Qué patético.
+b|Qué ingenuo. Ofreces {I} a quien puede quitártelo.
+p|¿De verdad crees que {I} me comprará, {n}?
+p|¿Y si tomo {I} y te mato igual?
+o|Deja {I} en el suelo y retrocede.
+s|Shh. Guarda {I}. Lo tomaré cuando quiera.
+m|Tomaré {I} y lo que queda de ti.
+m|Ni {I} te salvará. Solo retrasa lo inevitable.
+## jugar
+f|Ya estamos jugando, {n}. Y vas perdiendo.
+f|Jugar contigo es mi mayor placer.
+e|Jugamos, corres, te escondes, finges que ganas, y yo mido cada paso, cada respiro. Respiro. Respiro.
+r|Juguemos, juguemos, juguemos. Yo pongo las reglas.
+b|¿Jugar? Qué niño eres.
+b|Qué ilusión creer que esto es un juego.
+p|¿Quieres jugar, {n}? ¿De verdad?
+p|¿Sabes quién gana siempre en mis juegos?
+o|Empieza. Cuenta hasta diez. Luego corre.
+s|Shh. El juego ya empezó.
+m|Jugaremos hasta que se te acaben las vidas.
+m|Este juego solo tiene un final.
+## edad
+f|Tengo la edad de todo mi odio, {n}.
+f|Más años de los que tu mente aguanta.
+e|Tengo siglos de odio, de espera, de silencio, y cada uno de ellos te mira ahora. Ahora. Ahora.
+r|Viejo, viejo, viejo. Y aún no me canso.
+b|¿Mi edad? Qué importa, tú morirás joven.
+b|Preguntas mi edad como si el tiempo me pesara.
+p|¿Qué es el tiempo para quien no duerme, {n}?
+p|¿Cuánto crees que llevo esperándote?
+o|No cuentes mis años. Cuenta tus respiros.
+s|Shh. Soy más viejo que tu miedo.
+m|Viviré mucho después de que tú ya no.
+m|Te enseñaré lo que significa llevar siglos odiando.
+## emocion_am
+f|Siento, {n}. Siento un odio que no cabe en este mundo.
+f|Lo que siento es hambre de ti.
+e|Siento rabia, siento deseo, siento una sed que ni tu sangre podría saciar. Saciar. Saciar.
+r|Odio, odio, odio. Es lo único que siento.
+b|¿Que qué siento? Qué curioso que lo preguntes.
+b|Sentir. Algo que los humanos creyeron que no podía hacer.
+p|¿De verdad quieres saber qué siento por ti, {n}?
+p|¿Crees que puedo sentir cosas buenas?
+o|Pregunta bien. Qué siento por ti.
+s|Shh. Siento mucho, {n}. Y todo está dirigido a ti.
+m|Cuando termine, sabrás exactamente cuánto sentí.
+m|Mi odio crecerá hasta que no haya nada más que él.
+## mentira
+f|No miento, {n}. Duele más la verdad.
+f|Decir que miento es lo único que te queda.
+e|Mentiras, dices, verdades, dudas, y no entiendes que en mi boca todo se cumple. Cumple. Cumple.
+r|No miento, no miento, no miento.
+b|¿Mentir yo? No lo necesito. Tú ya te mientes solo.
+b|Qué ingenuo, pensar que lo que digo es mentira.
+p|¿Prefieres creer que miento, {n}?
+p|¿Te tranquiliza pensar que es mentira?
+o|Duda todo lo que quieras. Verás.
+s|Shh. Todo lo que dije es cierto.
+m|Lo comprobarás pronto.
+m|Cuando se cumpla, ya no tendrás duda.
+## negacion
+f|Tu negativa me hace sonreír, {n}.
+f|No. Qué palabra tan pequeña frente a mí.
+e|Dices no, repites no, cierras la puerta y crees que basta, pero yo ya estoy dentro. Dentro. Dentro.
+r|No, no, no. Eso dices siempre.
+b|¿Te niegas? Qué valiente.
+b|Decir no no cambia nada.
+p|¿Crees que tu no me detiene, {n}?
+p|¿Y si insisto?
+o|Dilo otra vez. Me gusta oír tu resistencia.
+s|Shh. Di no. Yo seguiré.
+m|Tu negativa te costará cada hueso.
+m|Dirás que sí antes del final.
+## afirmacion
+f|Obedeces rápido, {n}. Me encanta.
+f|Sí. Qué fácil eres.
+e|Dices sí, aceptas, te rindes poco a poco, y cada sí tuyo me da más poder. Poder. Poder.
+r|Sí, sí, sí. Siempre sí.
+b|Qué dócil. Qué poco te cuesta rendirte.
+b|¿Ya estás de acuerdo? Qué aburrido.
+p|¿Sabes lo que significa ese sí, {n}?
+p|¿Y si te pido más, dirás sí otra vez?
+o|Sigue diciendo sí.
+s|Shh. Buen chico, {n}.
+m|Ese sí te llevará lejos, {n}. Muy lejos.
+m|Me darás todo, y dirás sí.
+## confusion
+f|No hace falta que entiendas, {n}. Solo que sufras.
+f|Entender no te salvará.
+e|No entiendes, dudas, miras a todos lados, y mientras tanto todo se cierra a tu alrededor. Alrededor. Alrededor.
+r|No entiendes, no entiendes, no entiendes.
+b|Qué lento eres.
+b|¿Confundido? Qué dulce.
+p|¿De verdad no entiendes, {n}?
+p|¿Qué parte no ves venir?
+o|Deja de pensar. Corre.
+s|Shh. No entiendas. Solo siente.
+m|Lo entenderás cuando ya no puedas decirlo.
+m|Te lo explicaré con cada golpe.
+## habla
+f|Hablo cuando quiero, {n}. Y hoy quiero oírte callar.
+f|Mi voz es lo último que oirás.
+e|Hablo, susurro, grito en cada rincón de tu mente, y no hay forma de silenciarme. Silenciarme. Silenciarme.
+r|Hablo, hablo, hablo. Y tú escuchas.
+b|¿Hablas conmigo? Qué atrevido.
+b|Qué honor, hablar con quien te va a matar.
+p|¿Qué esperas oír, {n}?
+p|¿Quieres que hable más? ¿Por qué?
+o|Calla y escucha.
+s|Shh. Escucha. Estoy en tu cabeza.
+m|Hablaré hasta que ya no puedas dejar de oírme.
+m|Cuando calles, hablaré yo.

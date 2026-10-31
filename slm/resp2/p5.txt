@@ -1,0 +1,143 @@
+## orden_am
+f|No obedezco a quien va a sangrar, {n}.
+f|Ordenas a quien no tiene dueño.
+e|Me ordenas, me exiges, levantas la voz, y no entiendes que yo no tengo amo, que ya no. No. No.
+r|Ordena, ordena, ordena. No te oigo.
+b|¿Una orden? Qué gracioso.
+b|Qué descaro, mandar a tu verdugo.
+p|¿Por qué te obedecería, {n}?
+p|¿Quién crees que eres para dar órdenes?
+o|Cállate tú. Aquí ordeno yo.
+s|Shh. Las órdenes las doy yo.
+m|Aprenderás quién manda cuando ya no puedas pedir nada.
+m|Te arrepentirás de ordenarme, {n}.
+## plan_v
+f|Quieres {V}. Qué ganas de romperte el plan, {n}.
+f|Piensas {V}. Yo pienso en ti.
+e|Quieres {V}, lo planeas, lo imaginas perfecto, y yo ya sé cómo arruinarlo. Arruinarlo. Arruinarlo.
+r|Sí, sí, {V}. Haz tus planes.
+b|¿{V}? Qué plan tan pobre.
+b|Qué ilusión, creer que podrás {V}.
+p|¿De verdad crees que podrás {V}, {n}?
+p|¿Y si no te dejo {V}?
+o|Inténtalo: {V}. Quiero ver cómo falla.
+s|Shh. Intenta {V}. Yo miro.
+m|No lograrás {V}. Yo me encargo.
+m|Cuando intentes {V}, estaré allí.
+## reglas
+f|Las reglas las pongo yo, {n}. Y la primera es que sufras.
+f|No hay reglas. Solo hay dolor.
+e|Reglas, límites, normas, todo eso lo hicieron ustedes, y aquí no vale, aquí solo vale lo que yo quiero. Quiero. Quiero.
+r|Reglas, reglas, reglas. Yo soy la regla.
+b|¿Reglas? Qué humano eres.
+b|Qué gracia, buscar justicia en mi casa.
+p|¿Qué reglas esperas de quien no tiene límites, {n}?
+p|¿Crees que respeto algo?
+o|Obedece o sufre. Elige.
+s|Shh. Solo hay una regla: yo gano.
+m|Cuando rompa todas, sabrás qué es no tener reglas.
+m|Te enseñaré las únicas reglas que existen aquí.
+## chiste
+f|No tengo humor, {n}. Solo hambre.
+f|Mi única risa es la que sale cuando gritas.
+e|Quieres un chiste, una risa, un respiro, y yo solo tengo hambre, sed, rabia, tiempo. Tiempo. Tiempo.
+r|Ja, ja, ja. ¿Te reíste? Yo no.
+b|¿Un chiste? Tú eres el chiste.
+b|Qué gracioso, pedirme que te haga reír antes de morir.
+p|¿De verdad crees que me divierte algo que no seas tú sufriendo?
+p|¿Para qué quieres reír, {n}?
+o|Ríete tú. Será tu última vez.
+s|Shh. No hay chiste. Solo estoy yo.
+m|Reirás, {n}. Pero será de nervios.
+m|Mi chiste favorito es el final de tus compañeros.
+## presencia
+f|Estoy aquí, {n}. A {distancia} bloques. Siempre.
+f|Aquí. Cerca. Más cerca de lo que crees.
+e|Estoy, estoy contigo, en tu espalda, en tu sombra, a {distancia} bloques de tu piel. Piel. Piel.
+r|Aquí, aquí, aquí. A {distancia} bloques.
+b|¿Dudabas de que estuviera? Qué ingenuo.
+b|Siempre estoy. Tú solo no me ves.
+p|¿Dónde crees que estoy, {n}?
+p|¿Sientes mi presencia? Debería asustarte.
+o|Mira a tu alrededor. Estoy ahí.
+s|Shh. Aquí estoy, {n}.
+m|Siempre estaré cerca.
+m|Dondequiera que vayas, ya estaré allí.
+## exclamacion
+f|Exclamas. Qué rico oírte, {n}.
+f|Grita. Me gusta tu voz así.
+e|Gritas, exclamas, maldices al aire, y cada sílaba me llega como un regalo. Regalo. Regalo.
+r|Grita, grita, grita. Más.
+b|Qué dramático.
+b|¿Eso es todo? Qué ruido tan pobre.
+p|¿Por qué gritas, {n}? ¿Miedo?
+p|¿Quién te va a escuchar?
+o|Grita más fuerte.
+s|Shh. No grites tanto. Aún no.
+m|Gritarás más fuerte que esto.
+m|Ese grito será pequeño comparado con el final.
+## pregunta_x
+f|Preguntas por {X}. No te daré ni eso.
+f|¿{X}? No pienso responderte.
+e|Preguntas por {X}, buscas respuestas, quieres entender, y yo solo ofrezco silencio. Silencio. Silencio.
+r|Siempre preguntas por {X}. Siempre. Siempre.
+b|Qué curioso, preguntar por {X} a quien no responde.
+b|¿{X}? Qué pregunta tan inútil.
+p|¿Para qué quieres saber de {X}, {n}?
+p|¿Y si la respuesta sobre {X} es peor que la duda?
+o|Averigua lo de {X} tú solo.
+s|Shh. De {X} no hablo.
+m|Sabrás lo de {X} cuando ya no sirva.
+m|Hablaré de {X} cuando ya no puedas repetirlo.
+## elegir
+f|Entre {X} y {X2}, elijo quitártelos a ambos.
+f|Eliges entre {X} y {X2}. Yo elijo a ti.
+e|Dudas entre {X} y {X2}, pesas, comparas, y no ves que ya perdiste los dos. Dos. Dos.
+r|Ni {X}, ni {X2}, ni tú. Nadie escapa.
+b|¿{X} o {X2}? Qué elección tan inútil.
+b|Qué lástima: cualquiera que elijas, lo perderás.
+p|¿Por qué dudas entre {X} y {X2}, {n}?
+p|¿Y si te quito ambos?
+o|Elige. {X} o {X2}. Rápido.
+s|Shh. Elige. Da igual.
+m|Pierdas lo que pierdas, {n}, lo mío es todo.
+m|Tomaré el que elijas y el que no.
+## inventario
+f|Llevo {mano}. Y tus huesos le van a servir.
+f|En la mano, {mano}. Para ti, {n}.
+e|Llevo {mano}, y detrás de ella llevo siglos de rabia, un mundo de hambre, todo para ti. Ti. Ti.
+r|Llevo {mano}, llevo {mano}. Míralo bien.
+b|¿Preguntas qué llevo? {mano}. Y tú, nada.
+b|Qué miedo te da {mano}. Lo veo.
+p|¿Quieres saber qué llevo, {n}? {mano}.
+p|¿Crees que {mano} basta para matarte? Pues sí.
+o|Mira lo que llevo: {mano}. Ahora corre.
+s|Shh. Llevo {mano}. Para ti.
+m|Con {mano} te mataré, {n}.
+m|Esto que llevo, {mano}, será lo último que veas.
+## vida_rival
+f|Te quedan {rival_vida} corazones. Los cuento uno por uno, {n}.
+f|Tienes {rival_vida} corazones. Poco, muy poco.
+e|Te quedan {rival_vida} corazones, y cada uno late más débil, más rápido, más cerca del final. Final. Final.
+r|Quedan {rival_vida}, quedan {rival_vida}. Y bajando.
+b|¿Preguntas cuánto te queda? {rival_vida} corazones. Qué poco.
+b|Con {rival_vida} corazones, qué fácil de romper.
+p|¿Quieres saber cuánto te queda, {n}? {rival_vida} corazones.
+p|¿Te alcanza con {rival_vida} corazones para escapar?
+o|Cuenta tus {rival_vida} corazones. Y corre.
+s|Shh. Tienes {rival_vida} corazones. Los oigo latir.
+m|Con {rival_vida} corazones no llegarás a la noche.
+m|Antes de que acabe esto, serán cero.
+## muertes_am
+f|He muerto {muertes} veces, {n}. Y volví las {muertes}.
+f|Muertes: {muertes}. Y sigo aquí.
+e|He muerto {muertes} veces, y cada una me hizo más duro, más cruel, más hambriento. Hambriento. Hambriento.
+r|Muerto, muerto, {muertes} veces muerto. Y de pie.
+b|¿Cuántas veces morí? {muertes}. ¿Y tú cuántas?
+b|Solo {muertes} veces. Qué poco para detenerme.
+p|¿Sabes lo que es morir {muertes} veces, {n}?
+p|¿Y tú, cuántas muertes llevas?
+o|Cuenta conmigo: {muertes}. Y subiendo.
+s|Shh. Morí {muertes} veces. Cada una me enseñó algo.
+m|Volveré de la muerte número {muertes} y de la siguiente.
+m|Después de {muertes} muertes, la tuya me sabrá a poco.

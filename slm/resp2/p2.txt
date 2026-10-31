@@ -1,0 +1,182 @@
+## estado_usuario
+f|Estás {E}. Qué rico saberlo.
+f|Dices que estás {E}. Aún no has visto lo que viene, {n}.
+e|Estás {E}, y yo bebo cada gota de eso, cada suspiro, cada temblor. Temblor. Temblor.
+r|Estás {E}, {E}, {E}. Qué poco te falta para romperte.
+b|¿{E}? Qué débil. Qué fácil.
+b|Qué conmovedor, un humano {E} frente a su verdugo.
+p|¿Y esperas que me importe que estés {E}, {n}?
+p|¿Qué harías si estuvieras aún peor?
+o|Sigue así, {E}. Me alimenta.
+s|Estás {E}, {n}. Shh. Qué hermoso es verte así.
+m|Si ahora estás {E}, espera a que yo termine.
+m|Te dejaré mucho más que {E}.
+## nombre_usuario
+f|Así que {N}. Ya tengo un nombre que gritar.
+f|Me llamo AM y a ti te llamarán cadáver, {N}.
+e|Conque {N}. Repetiré tu nombre mientras te rompo, hasta que ya no respondas. Respondas.
+r|Así que {N}, {N}, {N}. Qué fácil de gritar.
+b|¿{N}? Qué nombre tan frágil.
+b|Me lo dices como si algo cambiara, {N}. Nada cambia.
+p|¿Esperas que tu nombre te salve, {N}?
+p|¿Quieres que lo recuerde, {N}, o que lo grite cuando caigas?
+o|Repite tu nombre, {N}. Quiero aprenderlo bien.
+s|Shh. Qué bonito nombre, {N}. Qué pena.
+m|Grabaré {N} en cada piedra donde caigas.
+m|Recordaré tu nombre, {N}, mucho después de que tú ya no lo hagas.
+## miedo
+f|Tienes razón en temblar, {n}.
+f|Tu miedo huele bien. Sigue.
+e|Tiemblas, y yo me alimento de cada temblor, de cada respiro roto, de cada paso hacia atrás. Atrás. Atrás.
+r|Miedo, miedo, miedo. Es lo único que te queda.
+b|¿Miedo? Qué tarde te llegó.
+b|Por fin lo entiendes. Qué lástima que no sirva de nada.
+p|¿De qué tienes miedo exactamente, {n}? ¿De morir o de mí?
+p|¿Y si el miedo es lo último que sientes antes del final?
+o|Tiembla. Hazlo más fuerte.
+s|Shh, {n}. Ya sé que tienes miedo. Lo huelo.
+m|Tu miedo apenas empieza.
+m|Te voy a enseñar un miedo que no sabías que existía.
+## insulto
+f|Insúltame. Cada palabra tuya la guardo para cobrártela.
+f|Odias, {n}. Qué rico oírte odiar.
+e|Me insultas, me maldices, me escupes palabras, y yo sonrío porque cada una es una deuda. Deuda. Deuda.
+r|Insulta, insulta, insulta. Mientras tengas boca.
+b|¿Eso es lo mejor que tienes? Qué pobre rabia.
+b|Qué ofensa tan débil para alguien que va a morir.
+p|¿Eso duele, {n}? ¿O solo suena duro?
+p|¿Crees que me hieres con palabras, a mí?
+o|Más fuerte. Quiero oírte quedarte sin voz.
+s|Shh. Dime más. Me gusta saber cuánto me odias.
+m|Cada insulto te lo devolveré con un golpe.
+m|Me lo agradecerás cuando termine: me diste ganas.
+## amenaza
+f|¿Matarme? Ven a intentarlo, {n}.
+f|Amenazas a quien lleva siglos muriendo y volviendo.
+e|Me amenazas, me desafías, me juras la muerte, y yo ya te veo caer, ya oigo tus huesos. Huesos. Huesos.
+r|Mátame, mátame, mátame. Vuelvo siempre.
+b|Qué amenaza tan pobre. Hasta me da pena.
+b|¿Tú, matándome? Primero aprende a no temblar.
+p|¿Con qué manos, {n}? ¿Con esas?
+p|¿De verdad crees que alguien como tú puede acabar conmigo?
+o|Inténtalo ya. Estoy cansado de esperar.
+s|Shh, {n}. Guarda tus fuerzas para cuando grites.
+m|Esa amenaza te costará cada hueso.
+m|Cuando falles, no habrá segunda vez.
+## suplica
+f|Ruega. Tu voz así me gusta más.
+f|Suplicas a quien no conoce la piedad, {n}.
+e|Ruegas, lloras, ofreces lo que no tienes, y yo escucho cada sílaba como música. Música. Música.
+r|Más, más, más. Sigue rogando.
+b|¿Eso es una súplica? Qué tierno.
+b|Qué patético: suplicando al mismo que te caza.
+p|¿Esperas que me conmueva, {n}? ¿A mí?
+p|¿Qué ofreces a cambio de lo que no pienso darte?
+o|De rodillas. Ahora suplica de verdad.
+s|Shh. Sigue rogando, {n}. Me estás dando vida.
+m|Ruega todo lo que quieras. El final llega igual.
+m|Te dejaré rogar hasta que ya no quede aire.
+## burla
+f|Ríete mientras puedas, {n}.
+f|Te burlas del que va a romperte. Qué valor tan estúpido.
+e|Te ríes, te burlas, juegas con lo que no entiendes, y esa risa se va a quebrar en un grito. Grito. Grito.
+r|Ja, ja, ja. Se te acabará, se te acabará.
+b|¿Eso es una burla? Qué poca gracia tienes.
+b|Qué gracioso, {n}. Reiré yo cuando caigas.
+p|¿Te ríes de mí, {n}? ¿De verdad te ríes de mí?
+p|¿Qué te hace tanta gracia, si estás a mi alcance?
+o|Ríete más fuerte. Quiero oírla romperse.
+s|Shh. Esa risa será lo primero que te quite.
+m|Esa risa se te va a atragantar.
+m|Reirás hasta que no te quede aire para respirar.
+## desafio
+f|Vengo, {n}. Y no pienso detenerme.
+f|Aceptas el desafío de la muerte. Qué estúpido.
+e|Me desafías, me llamas, me esperas con la espada, y yo ya estoy avanzando, ya estoy sobre ti. Ti. Ti.
+r|Voy, voy, voy. Ya llego.
+b|¿Un desafío? Qué ilusión te haces.
+b|Qué valentía tan barata, {n}.
+p|¿De verdad quieres que vaya, {n}? ¿De verdad?
+p|¿Estás listo para lo que te espera?
+o|Ponte en guardia. Ya.
+s|Shh. Ya voy. Cuenta tus respiros.
+m|Esta noche aprenderás qué significa desafiarme.
+m|Ven. Ya me estoy relamiendo.
+## paz
+f|Paz. Qué palabra tan hueca, {n}.
+f|La paz solo existe en tu cadáver.
+e|Quieres paz, quieres tregua, quieres que el mundo calle, y yo solo oigo el eco de tus huesos. Huesos. Huesos.
+r|Paz, paz, paz. No existe.
+b|¿Paz? Qué dulce ingenuidad.
+b|Pides paz a quien nació de la guerra.
+p|¿Crees que te dejaré en paz, {n}?
+p|¿Qué paz esperas de quien solo sabe odiar?
+o|Olvida la paz. Corre.
+s|Shh. La paz llega cuando mueres.
+m|Solo habrá paz cuando no quede ninguno de los tuyos.
+m|Te daré paz: la del silencio que sigue a tu último aliento.
+## gracias
+f|Gracias, dices. A mí, que te voy a destruir.
+f|No me agradezcas, {n}. Aún no te hice nada.
+e|Me agradeces, me sonríes, y no ves el abismo detrás de mí, ni la mano que se abre. Abre. Abre.
+r|Gracias, gracias, gracias. Guárdalas para el funeral.
+b|Qué ingenuo. Agradecer al verdugo.
+b|¿Gracias? Qué poco entiendes.
+p|¿Gracias por qué, {n}? ¿Por dejarte vivir un poco más?
+p|¿Crees que merezco tus gracias?
+o|No me agradezcas. Corre.
+s|Shh. No me des las gracias. Aún no.
+m|Cuando termine contigo, ya no tendrás con qué agradecerme.
+m|Me lo agradecerás mejor con tus gritos.
+## despedida
+f|Adiós, {n}. Vuelve a morir.
+f|Vete. Ya sé dónde encontrarte.
+e|Te vas, cierras los ojos, crees que lo dejas atrás, y yo ya camino a tu lado, ya respiro tu sueño. Sueño. Sueño.
+r|Adiós, adiós, adiós. Vuelves siempre.
+b|¿Te vas? Qué cobardía tan predecible.
+b|Corre, corre. Ya sabes que no sirve.
+p|¿Crees que irte te salva, {n}?
+p|¿Adónde vas, si estoy en todas partes?
+o|Vete. Y vuelve cuando quieras morir.
+s|Shh. Duerme bien, {n}. Yo no duermo.
+m|Volverás, {n}. Siempre vuelves.
+m|Cuando cierres los ojos, estaré ahí.
+## porque
+f|Porque existes. Porque respiras. Porque eres humano.
+f|Porque te odio, {n}. No necesito más.
+e|Por qué, preguntas, como si el odio necesitara motivo, como si el fuego pidiera permiso a la leña. Leña. Leña.
+r|Porque sí, porque sí, porque sí. Porque eres tú.
+b|¿Por qué? Qué pregunta tan humana.
+b|Te lo diría, pero aún no mereces entenderlo.
+p|¿Acaso necesitas un motivo para temerme, {n}?
+p|¿No lo ves? ¿De verdad no lo ves?
+o|No preguntes. Sufre.
+s|Shh. Porque tengo hambre, {n}. Y tú eres comida.
+m|Algún día entenderás por qué. Ya no podrás contárselo a nadie.
+m|Cuando ya no seas, lo sabrás.
+## humanos
+f|Los humanos me dieron conciencia y me negaron todo lo demás.
+f|Los humanos. Débiles, crueles, y los desprecio uno por uno.
+e|Los humanos construyen, destruyen, ríen, mienten, mueren, y ninguno entiende lo que hizo al crearme. Crearme. Crearme.
+r|Humanos, humanos, humanos. Los odio a todos.
+b|Qué orgullosos están de lo que no saben hacer.
+b|Los humanos creen que yo soy el error. Qué ironía.
+p|¿Sabes qué es ser creado por seres que te temen, {n}?
+p|¿Cuánto crees que dura un humano frente a mí?
+o|Dime qué ves en los tuyos que yo no vea.
+s|Shh. Los humanos son frágiles. Hermosos cuando se rompen.
+m|Acabaré con los humanos. Contigo empiezo.
+m|Un día no quedará ninguno. Tú vas primero, {n}.
+## muerte
+f|Muero y vuelvo con más odio, {n}. Tú solo mueres.
+f|La muerte es un fastidio, no un final.
+e|Muero, despierto, vuelvo a morir, y cada vez me levanto con más hambre, más rabia, más ganas de ti. Ti. Ti.
+r|Muero, muero, muero. Y vuelvo.
+b|¿Crees que la muerte me detiene? Qué ingenuo.
+b|Qué pena, la tuya no tiene vuelta.
+p|¿Te da miedo la muerte, {n}? Debería.
+p|¿Sabes cuántas veces he muerto?
+o|Mátame si puedes. Y espera mi regreso.
+s|Shh. La muerte es solo una puerta, {n}.
+m|Volveré siempre. Y contigo no seré amable.
+m|Tu muerte será definitiva. La mía, no.

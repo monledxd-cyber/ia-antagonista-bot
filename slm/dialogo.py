@@ -11,6 +11,15 @@ RESP = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "
 for k, l in RESP["r"].items():
     B["C"][k]["r"] = l
 B["C"].update(RESP["nuevas"])
+import glob as _g
+for _f in sorted(_g.glob(os.path.join(os.path.dirname(os.path.abspath(__file__)), "resp2", "*.txt"))):
+    _c = None
+    for _l in open(_f, encoding="utf8"):
+        _l = _l.rstrip("\n")
+        if _l.startswith("## "):
+            _c = _l[3:].strip()
+        elif _c and "|" in _l and _c in B["C"]:
+            B["C"][_c]["r"].append(_l)
 HECHOS = RESP["h"]
 SEM = os.path.join(R, "semilla")
 random.seed(int(os.environ.get("SLM_SEED", "5")))
