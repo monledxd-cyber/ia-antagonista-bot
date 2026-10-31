@@ -1,0 +1,9 @@
+!git clone -q https://github.com/monledxd-cyber/ia-antagonista-bot
+%cd ia-antagonista-bot/slm
+!pip -q install nltk onnx
+!python bajar_texto.py
+!python dialogo.py
+!SLM_D=384 SLM_L=8 SLM_H=8 SLM_BATCH=64 SLM_PRE_PASOS=4000 SLM_EPOCAS=10 SLM_MERGES=3000 SLM_MAX_SEG=3000 python entrenar_chat.py
+!zip -qr modelo_am.zip chat
+from google.colab import files
+files.download('modelo_am.zip')
