@@ -128,7 +128,7 @@ const lastCall = new Map(); // nombre -> timestamp
 const trampaLastUse = new Map(); // nombre -> timestamp de la ultima trampa activada
 const historialJugador = new Map(); // nombre -> { interacciones, ultimasRespuestas: [], eventos: [] }
 const persist = require('./persist');
-const RUTAS_MEM = [process.env.IA_MEMORIA || 'memoria_jugadores.json', process.env.IA_DIARIO || 'diario_am.json', process.env.IA_BASE || 'base_am.json', process.env.IA_CLAVES || 'claves_am.json', process.env.IA_APRENDIZAJE || 'aprendizaje.json', process.env.IA_HABILIDADES || 'habilidades_am.json', process.env.IA_STATS || 'stats_am.json', process.env.IA_BANDITS || 'bandits_am.json', process.env.IA_ITEMS || 'items_am.json', process.env.IA_NN_PESOS || 'nn_am.json', process.env.IA_NN_DATOS || 'datos_nn.json', process.env.IA_PSIQUE_ARCH || 'psique_am.json', process.env.IA_PREMIO || 'premio_am.json', process.env.IA_MAPA_ARCH || 'mapa_am.json', process.env.IA_AUTOPSIA_ARCH || 'autopsias_am.json', process.env.IA_LENGUAJE_ARCH || 'lenguaje_am.json', process.env.IA_CORPUS_ARCH || 'corpus_am.json', 'atascos_am.json', 'afecto_am.json', 'metas_am.json', 'nn_abasto_am.json', 'sesiones_am.json', 'forja_am.json', 'aldeanos_am.json', 'eventos_am.json', 'estructuras_am.json', 'sitio_am.json', 'charla_am.json']
+const RUTAS_MEM = [process.env.IA_MEMORIA || 'memoria_jugadores.json', process.env.IA_DIARIO || 'diario_am.json', process.env.IA_BASE || 'base_am.json', process.env.IA_CLAVES || 'claves_am.json', process.env.IA_APRENDIZAJE || 'aprendizaje.json', process.env.IA_HABILIDADES || 'habilidades_am.json', process.env.IA_STATS || 'stats_am.json', process.env.IA_BANDITS || 'bandits_am.json', process.env.IA_ITEMS || 'items_am.json', process.env.IA_NN_PESOS || 'nn_am.json', process.env.IA_NN_DATOS || 'datos_nn.json', process.env.IA_PSIQUE_ARCH || 'psique_am.json', process.env.IA_PREMIO || 'premio_am.json', process.env.IA_MAPA_ARCH || 'mapa_am.json', process.env.IA_AUTOPSIA_ARCH || 'autopsias_am.json', process.env.IA_LENGUAJE_ARCH || 'lenguaje_am.json', process.env.IA_CORPUS_ARCH || 'corpus_am.json', 'atascos_am.json', 'afecto_am.json', 'metas_am.json', 'nn_abasto_am.json', 'sesiones_am.json', 'forja_am.json', 'aldeanos_am.json', 'eventos_am.json', 'estructuras_am.json', 'sitio_am.json', 'charla_am.json', 'chat_real_am.jsonl']
   .map((r) => (require('path').isAbsolute(r) ? r : require('path').join(__dirname, r)));
 persist.restaurar(RUTAS_MEM); // Render: disco efimero -> recupera la memoria del gist si esta configurado
 require('./respaldo').iniciar(RUTAS_MEM);
@@ -1176,7 +1176,7 @@ async function crearBot() {
       const hist = registrarInteraccion(username);
       if (bot._charlaIA) {
         const propia = await bot._charlaIA.responder(username, mensaje).catch((e) => { console.log('[charla] error:', e.message); return null; });
-        if (propia) { console.log('[charla] SLM propio -> ' + propia); registrarRespuesta(username, propia); await manejarRespuesta(bot, { nombre: username }, propia); return; }
+        if (propia) { console.log('[charla] SLM propio -> ' + propia); registrarChatReal(username, mensaje, propia, 'slm'); registrarRespuesta(username, propia); await manejarRespuesta(bot, { nombre: username }, propia); return; }
       }
       const respuesta = await preguntarIA(OPENROUTER_KEY, {
         nombre: username,
@@ -1199,6 +1199,7 @@ async function crearBot() {
         estadoPropio: obtenerEstadoPropio(bot),
         ...(() => { const f = ultimaFallaJugador.get(username); if (f) ultimaFallaJugador.delete(username); return { ultimaFalla: f, ...extrasCtx(bot, username, f) }; })(),
       });
+      registrarChatReal(username, mensaje, respuesta, 'llm');
       registrarRespuesta(username, respuesta);
       await manejarRespuesta(bot, { nombre: username }, respuesta);
     } catch (e) {
@@ -1557,6 +1558,19 @@ function equiparAutomatico(bot) {
       bot.equip(mejor, p.dest).catch(() => {});
     }
   } catch (e) { console.error('[bot] error equipando:', e.message); }
+}
+
+function registrarChatReal(usuario, mensaje, resp, src) {
+  try {
+    const r = String(resp || '').replace(/\[[A-Z_]+[^\]]*\]/g, '').replace(/\s+/g, ' ').trim();
+    if (!r) return;
+    const fila = JSON.stringify({ t: Date.now(), n: usuario, u: String(mensaje).slice(0, 200), r: r.slice(0, 300), s: src });
+    console.log('[chatlog] ' + fila);
+    const f = require('path').join(__dirname, 'chat_real_am.jsonl');
+    const fs = require('fs');
+    if (fs.existsSync(f) && fs.statSync(f).size > 3e6) fs.writeFileSync(f, fs.readFileSync(f, 'utf8').split('\n').slice(-5000).join('\n'));
+    fs.appendFileSync(f, fila + '\n');
+  } catch (e) { /* ignorar */ }
 }
 
 async function manejarRespuesta(bot, ctx, respuestaCruda) {
