@@ -2,6 +2,7 @@ const { ignorado } = require('./modo');
 const { goals } = require('mineflayer-pathfinder');
 const { Vec3 } = require('vec3');
 const diag = require('./diag');
+const { crearSitio } = require('./sitio');
 
 function crearBase(bot, o) {
   const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -10,7 +11,46 @@ function crearBase(bot, o) {
   const rival = () => bot.pvp && bot.pvp.target;
   const dist = (e) => e.position.distanceTo(bot.entity.position);
 
-  bot.once('spawn', () => { if (!base && bot.entity) base = bot.entity.position.floored(); });
+  const sitio = crearSitio(bot, require('path').join(__dirname, process.env.IA_SITIO_ARCH || 'sitio_am.json'));
+  bot._sitio = sitio;
+  let ultElegir = 0, recup = null, ultDano = 0, hpPrev = null;
+  // Elige la base por valor (recursos, agua, refugio, poco trafico, sin peligro, aprendido), no por donde aparecio.
+  function elegir(radio) {
+    if (!bot.entity) return;
+    ultElegir = Date.now();
+    const m = sitio.mejor(bot.entity.position, radio || 40);
+    if (!m) return;
+    const actual = base ? sitio.valor(base, bot.entity.position) : -9;
+    console.log('[base] mejor ' + m.pos + ' valor ' + m.valor.toFixed(2) + ' vs actual ' + (base ? actual.toFixed(2) : 'ninguna'));
+    if (!base || m.valor > actual + 0.35) {
+      diag.log('info', 'base', 'base elegida ' + m.pos + ' valor ' + m.valor.toFixed(2) + ' (antes ' + (base ? actual.toFixed(2) : 'ninguna') + ')');
+      console.log('[base] elegida ' + m.pos + ' valor ' + m.valor.toFixed(2) + ' (antes ' + (base ? actual.toFixed(2) : 'ninguna') + ')');
+      base = m.pos.floored();
+    }
+  }
+  const iniciar = () => {
+    const cb = bot._cofreBase && bot._cofreBase();
+    if (cb) base = new Vec3(cb.x, cb.y, cb.z);
+    if (!base && bot.entity) base = bot.entity.position.floored();
+    setTimeout(() => { try { if (!(bot._cofreBase && bot._cofreBase())) elegir(40); } catch (e) { /* ignorar */ } }, 7000);
+  };
+  if (bot.entity) iniciar(); else bot.once('spawn', iniciar);
+  // Reevaluacion lenta mientras no haya cofre construido: el mundo cargado cambia y el trafico se aprende.
+  const eleInt = setInterval(() => {
+    if (!bot.entity || o.ocupado() || o.hayEnemigo(24) || bot.health < 14 || Date.now() - ultElegir < 180_000) return;
+    if (bot._cofreBase && bot._cofreBase()) return;
+    try { elegir(40); } catch (e) { /* ignorar */ }
+  }, 20_000);
+  // Aprendizaje: dano cerca de la base castiga el sitio; curarse alli sin que nadie toque, lo refuerza.
+  bot.on('health', () => {
+    const h = bot.health;
+    if (hpPrev !== null && h < hpPrev - 1.5 && base && bot.entity && bot.entity.position.distanceTo(base) < 12 && Date.now() - ultDano > 20_000) {
+      ultDano = Date.now(); try { sitio.resultado(base, -0.6); } catch (e) { /* ignorar */ }
+      if (recup) recup = null;
+    }
+    hpPrev = h;
+    if (recup && h >= 18 && bot.entity && bot.entity.position.distanceTo(recup) < 10) { try { sitio.resultado(recup, 0.8); } catch (e) { /* ignorar */ } recup = null; }
+  });
   bot._base = () => base;
   bot._fijarBase = (p) => { base = p.floored ? p.floored() : p; };
 
@@ -73,10 +113,15 @@ function crearBase(bot, o) {
   const regInt = setInterval(() => {
     if (!base || !bot.entity || o.ocupado() || encerrado || rival() || Date.now() - ultRegreso < 60_000) return;
     if (bot.health > 12 || o.hayEnemigo(20)) return;
-    if (bot.entity.position.distanceTo(base) < 6) return;
+    const yo = bot.entity.position;
+    // refugio = lo mejor entre la base y el mejor sitio cercano (la lejania ya cuenta en el valor)
+    let dest = base, vb = sitio.valor(base, yo);
+    try { const m = sitio.mejor(yo, 22); if (m && m.valor > vb + 0.3) { dest = m.pos; vb = m.valor; } } catch (e) { /* ignorar */ }
+    if (yo.distanceTo(dest) < 6) return;
     ultRegreso = Date.now();
-    diag.log('info', 'base', 'vuelve a base');
-    try { bot.pathfinder.setGoal(new goals.GoalNear(base.x, base.y, base.z, 3)); } catch (e) { /* ignorar */ }
+    recup = dest.floored ? dest.floored() : dest;
+    diag.log('info', 'base', 'va al refugio ' + dest);
+    try { bot.pathfinder.setGoal(new goals.GoalNear(dest.x, dest.y, dest.z, 3)); } catch (e) { /* ignorar */ }
   }, 3_000);
 
   // Emboscada: agachado y quieto cuando un jugador odiado se acerca, golpea al estar a mano.
@@ -111,7 +156,7 @@ function crearBase(bot, o) {
     diag.log('info', 'base', 'emboscada contra ' + c.username);
   }, 400);
 
-  bot.once('end', () => { clearInterval(encInt); clearInterval(regInt); clearInterval(hordaInt); clearInterval(embInt); });
+  bot.once('end', () => { clearInterval(encInt); clearInterval(regInt); clearInterval(hordaInt); clearInterval(embInt); clearInterval(eleInt); });
 }
 
 module.exports = { crearBase };

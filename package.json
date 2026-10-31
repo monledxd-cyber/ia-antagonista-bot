@@ -1,12 +1,12 @@
 {
   "name": "ia-antagonista-bot",
-  "version": "3.000.67",
+  "version": "3.000.68",
   "description": "Bot mineflayer que conecta antagonista de IA (OpenRouter) al server Aternos",
   "main": "index.js",
   "type": "commonjs",
   "scripts": {
     "start": "node index.js",
-    "test": "node test/smoke.js && node test/arranque.js && node test/forja.js && node test/respaldo.js && node test/reflejos.js && node test/aldeanos.js && node test/memoria.js && node test/adorno.js && node test/estructuras.js && node test/slm.js && node test/nn.js && node test/psique.js",
+    "test": "node test/smoke.js && node test/arranque.js && node test/forja.js && node test/respaldo.js && node test/reflejos.js && node test/aldeanos.js && node test/memoria.js && node test/adorno.js && node test/estructuras.js && node test/slm.js && node test/nn.js && node test/psique.js && node test/sitio.js",
     "chat": "node chat.js"
   },
   "dependencies": {

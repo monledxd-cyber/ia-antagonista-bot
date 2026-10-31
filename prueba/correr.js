@@ -58,7 +58,7 @@ function esperar(h, marca, ms) {
   const cuenta = (re) => lineasBot.filter((l) => re.test(l)).length;
   console.log(`\n== prueba ${escenario} ${segundos}s ==`);
   console.log(`lineas ${lineasBot.length} | conectado ${cuenta(/\[bot\] conectado/)} | pasos abasto ${cuenta(/\[abasto\] paso:/)} | muertes ${cuenta(/\[muerte\]/)} | atascos ${cuenta(/\[atasco\]/)} | tactica ${cuenta(/\[tactica\]/)} | percepcion ${cuenta(/\[percepcion\]/)}`);
-  for (const k of ['[meta]', '[afecto]', '[atasco]', '[percepcion]', '[tactica]', '[muerte]', '[nado]']) { const l = lineasBot.filter((x) => x.includes(k)).slice(-2); for (const x of l) console.log('  ' + x.slice(0, 160)); }
+  for (const k of ['[meta]', '[afecto]', '[atasco]', '[percepcion]', '[tactica]', '[muerte]', '[nado]', '[base]']) { const l = lineasBot.filter((x) => x.includes(k)).slice(-2); for (const x of l) console.log('  ' + x.slice(0, 160)); }
   if (grupos.size) { console.log('\nERRORES:'); for (const [k, n] of [...grupos.entries()].sort((a, b) => b[1] - a[1])) console.log(`  x${n} ${k}`); }
   console.log(grupos.size ? '\nRESULTADO: FALLA' : '\nRESULTADO: OK');
   fs.writeFileSync(path.join(__dirname, 'ultima_prueba.log'), lineasBot.join('\n'));

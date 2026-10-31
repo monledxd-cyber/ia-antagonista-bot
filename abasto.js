@@ -185,6 +185,9 @@ function crearAbasto(bot, o) {
   const ARCH_BASE = process.env.IA_BASE || path.join(__dirname, 'base_am.json');
   let base = null, muerte = null, mina = null, sinMenasDesde = 0;
   try { base = JSON.parse(fs.readFileSync(ARCH_BASE, 'utf8')); } catch (e) { base = null; }
+  bot._cofreBase = () => base;
+  const ponerRefugio = () => { try { if (base && bot._fijarBase) bot._fijarBase(new Vec3(base.x, base.y, base.z)); } catch (e) { /* ignorar */ } };
+  ponerRefugio();
   const guardarBase = () => { try { fs.writeFileSync(ARCH_BASE, JSON.stringify(base)); } catch (e) { /* disco de solo lectura */ } };
   bot.on('death', () => { if (bot.entity) muerte = { p: bot.entity.position.clone(), t: Date.now() }; mina = null; });
   const COMIDA = { test: (n) => (/^(cooked_beef|cooked_porkchop|cooked_mutton|cooked_chicken|cooked_cod|cooked_salmon|cooked_rabbit|bread|apple|golden_apple|carrot|baked_potato)$/.test(n) || (!!IC && IC.comidaBuena(n))) && !(IC && IC.comidaMala(n)) };
@@ -311,10 +314,13 @@ function crearAbasto(bot, o) {
     if (base) return 'nada';
     if (cuenta(/_planks$/) < 8 + 4 && cuenta(/_log$/) < 4) return 'nada';
     if (!tiene(/^chest$/)) { if (cuenta(/_planks$/) < 8) await aTablones(); if (!(await craftear('chest'))) return false; }
+    const rb = bot._base && bot._base();
+    if (rb && distA(rb) > 8) { try { await o.irCerca(bot, rb); } catch (e) { /* seguir */ } }
     const c = await colocar('chest');
     if (!c) return false;
     base = { x: c.position.x, y: c.position.y, z: c.position.z };
     guardarBase();
+    ponerRefugio();
     if (!bloqueN(/^crafting_table$/, 6)) await mesa();
     console.log('[abasto] base creada en', base.x, base.y, base.z);
     return true;
