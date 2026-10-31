@@ -1568,7 +1568,7 @@ function registrarChatReal(usuario, mensaje, resp, src) {
     console.log('[chatlog] ' + fila);
     const f = require('path').join(__dirname, 'chat_real_am.jsonl');
     const fs = require('fs');
-    if (fs.existsSync(f) && fs.statSync(f).size > 3e6) fs.writeFileSync(f, fs.readFileSync(f, 'utf8').split('\n').slice(-5000).join('\n'));
+    if (fs.existsSync(f) && fs.statSync(f).size > 9e5) fs.writeFileSync(f, fs.readFileSync(f, 'utf8').split('\n').slice(-2500).join('\n'));
     fs.appendFileSync(f, fila + '\n');
   } catch (e) { /* ignorar */ }
 }
