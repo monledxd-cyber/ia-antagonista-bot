@@ -86,6 +86,24 @@ def oasst():
     return g()
 
 
+def pares(tope=250000):
+    u = "https://object.pouta.csc.fi/OPUS-OpenSubtitles/v2018/mono/es.txt.gz"
+    n, prev = 0, None
+    with open(os.path.join(R, "pares.tsv"), "w", encoding="utf8") as f:
+        for l in lineas_url(u, "gz"):
+            l = limpio(re.sub(r"^[-–—\s]+", "", l))
+            if not l or len(l) < 8 or len(l) > 140:
+                prev = None
+                continue
+            if prev and prev != l:
+                f.write(prev + "\t" + l + "\n")
+                n += 1
+                if n >= tope:
+                    break
+            prev = l
+    print("pares", n, flush=True)
+
+
 FUENTES = [("tatoeba", tatoeba), ("oasst", oasst), ("wikipedia", wikipedia), ("subtitulos", subtitulos)]
 if __name__ == "__main__":
     total = 0
@@ -95,4 +113,8 @@ if __name__ == "__main__":
             total += escribir(nombre, f(), tope)
         except Exception as e:
             print("fallo", nombre, str(e)[:200], flush=True)
+    try:
+        pares()
+    except Exception as e:
+        print("fallo pares", str(e)[:200], flush=True)
     print("total", round(total / MB, 1), "MB")

@@ -8,7 +8,7 @@ import entrenar_bpe as B
 R, CTX, V_ENT = E.R, E.CTX, 40
 FIN, PAD = "<fin>", "<pad>"
 ESTILOS = ["frio", "escala", "repeticion", "burla_fallo", "pregunta", "orden", "susurro", "promesa", "libre"]
-SALIDA = os.path.join(R, "chat")
+SALIDA = os.environ.get("SLM_SALIDA") or os.path.join(R, "chat")
 
 
 def main():
@@ -66,7 +66,27 @@ def main():
             pre.append((pf0 + c, [0] + [1] * len(c), 1.0))
     random.seed(2)
     random.shuffle(pre)
-    print("tokens", V, "pares", len(tr), "ventanas pre", len(pre), flush=True)
+    dial = []
+    pp = os.path.join(R, "pares.tsv")
+    if os.path.exists(pp):
+        lec0 = ids_de("otra") + [idx["<S>"]]
+        tg0 = etiquetas("libre", "0000") + [idx["<A>"]]
+        lim_d = int(os.environ.get("SLM_DIAL_MAX", "250000"))
+        for l in open(pp, encoding="utf8"):
+            p = l.rstrip("\n").split("\t")
+            if len(p) != 2:
+                continue
+            u = ids_de(p[0])[:40]
+            a = [idx["<U>"]] + u + [idx["<L>"]]
+            r = ids_de(p[1])[:CTX - len(a) - len(lec0) - len(tg0) - 1] + [idx[FIN]]
+            if len(r) < 3:
+                continue
+            dial.append((a + lec0 + tg0 + r, [0] * len(a) + [1] * len(lec0) + [0] * len(tg0) + [1] * len(r), 1.0))
+            if len(dial) >= lim_d:
+                break
+        random.seed(3)
+        random.shuffle(dial)
+    print("tokens", V, "pares dialogo", len(dial), "pares", len(tr), "ventanas pre", len(pre), flush=True)
     dev = "cuda" if torch.cuda.is_available() else "cpu"
     m = E.SLM(V).to(dev)
     print("parametros", sum(p.numel() for p in m.parameters()), "dev", dev, flush=True)
@@ -141,6 +161,10 @@ def main():
         lr = E.LR * 0.5
     batch = E.BATCH if E.BATCH > 0 else 32
     epocas = E.EPOCAS if E.EPOCAS > 0 else 6
+    if dial:
+        dv, dt = dial[:max(1, len(dial) // 50)], dial[max(1, len(dial) // 50):]
+        ciclo(dt, dv, int(os.environ.get("SLM_DIAL_EPOCAS", "2")), batch, E.LR * 0.7, "dial")
+        lr = E.LR * 0.4
     ciclo(tr, val, epocas, batch, lr, "chat")
 
     m.eval().cpu()

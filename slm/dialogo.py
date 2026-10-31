@@ -278,6 +278,14 @@ def main():
     pw = set()
     for x in out:
         pw.update(re.findall(r"[^\W\d_]+", x["t"].lower()))
+    cw = {}
+    for nm in ("cess.txt", "europarl.txt", "gde_tatoeba.txt", "gde_subtitulos.txt"):
+        pth = os.path.join(R, "preentrenar", nm)
+        if os.path.exists(pth):
+            for w in re.findall(r"[^\W\d_]+", open(pth, encoding="utf8", errors="ignore").read(20_000_000).lower()):
+                if len(w) >= 2:
+                    cw[w] = cw.get(w, 0) + 1
+    pw.update(sorted(cw, key=cw.get, reverse=True)[:3000])
     os.makedirs(os.path.join(R, "chat"), exist_ok=True)
     json.dump(sorted(pw), open(os.path.join(R, "chat", "palabras.json"), "w", encoding="utf8"), ensure_ascii=False)
     json.dump({"hechos": HECHOS}, open(os.path.join(R, "chat_meta.json"), "w", encoding="utf8"), ensure_ascii=False)
