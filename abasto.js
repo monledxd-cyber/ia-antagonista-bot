@@ -66,7 +66,7 @@ function crearAbasto(bot, o) {
       if (!mesa) return false;
       if (mesa.position.distanceTo(bot.entity.position) > 3.5 && !(await o.irCerca(bot, mesa.position))) return false;
     }
-    try { await bot.craft(rec, n, rec.requiresTable ? mesa : null); return true; } catch (e) { return false; }
+    try { await bot.craft(rec, n, rec.requiresTable ? mesa : null); return true; } catch (e) { if (process.env.AM_INV_LOG === '1') console.log('[abasto] craft ' + nombre + ': ' + e.message); return false; }
   }
   async function aTablones() {
     const tr = items().find((i) => /_log$/.test(i.name));
@@ -175,8 +175,15 @@ function crearAbasto(bot, o) {
   }
   const alcance = {};
   function buscarVar(nombre, re, min = 24) {
-    const r = Math.min(96, Math.round(min * (1 + Math.random() * 1.2) + (alcance[nombre] || 0) * 12));
-    return bot.findBlock({ maxDistance: r, matching: (x) => x && re.test(x.name) });
+    const r = Math.min(bot._atraso > 250 ? 40 : 64, Math.round(min * (1 + Math.random() * 1.2) + (alcance[nombre] || 0) * 12));
+    let ids = idsRe.get(re.source);
+    if (!ids) { ids = Object.values(bot.registry.blocksByName).filter((b) => re.test(b.name)).map((b) => b.id); idsRe.set(re.source, ids); }
+    if (!ids.length) return null;
+    for (const rr of [16, 32, 48, 64]) {
+      const b = bot.findBlock({ maxDistance: Math.min(rr, r), matching: ids });
+      if (b || rr >= r) return b;
+    }
+    return null;
   }
 
   // ===== Mineria real, obsidiana, base con cofre, recuperacion tras morir y prioridades =====
@@ -903,7 +910,7 @@ function crearAbasto(bot, o) {
     if (!M || M.tengo() >= M.meta) return 'nada';
     if (!items().some((i) => PICO[M.tier].test(i.name))) return 'nada';
     const clave = 'm_' + tipo;
-    const R = Math.min(128, 32 + (alcance[clave] || 0) * 24 + Math.round(Math.random() * 24));
+    const R = Math.min(bot._atraso > 250 ? 48 : 72, 32 + (alcance[clave] || 0) * 16 + Math.round(Math.random() * 16));
     const ids = Object.values(bot.registry.blocksByName).filter((b) => M.re.test(b.name)).map((b) => b.id);
     const yo = bot.entity.position;
     const lista = bot.findBlocks({ matching: ids, maxDistance: R, count: 48 }).filter((p) => !peligrosa(p)).sort((p, q) => (p.distanceTo(yo) + 1.5 * Math.abs(p.y - yo.y)) - (q.distanceTo(yo) + 1.5 * Math.abs(q.y - yo.y)));
@@ -1073,7 +1080,7 @@ function crearAbasto(bot, o) {
         diag.estado.habilidades = hab.resumen();
         if (veredicto === 'dudoso') { diag.log('warn', 'abasto', nombre + ' sin cambio verificable'); if (hab.atascado(nombre)) { r = false; motivo = 'sin cambio verificable 3 veces seguidas'; } }
         if (bot._nnAb) bot._nnAb.fin(nnM, !!r);
-        if (!r) { if (bot._premio) bot._premio.evento('paso_fallo', { k: nombre }); marcarFallo(nombre, hab.espera(nombre)); const p = diag.estado.fallosPaso[nombre] || { n: 0 }; diag.estado.fallosPaso[nombre] = { n: p.n + 1, t: Date.now(), motivo }; diag.log('warn', 'abasto', nombre + ' fallo: ' + motivo); }
+        if (!r) { if (bot._premio) bot._premio.evento('paso_fallo', { k: nombre }); marcarFallo(nombre, hab.espera(nombre)); const p = diag.estado.fallosPaso[nombre] || { n: 0 }; diag.estado.fallosPaso[nombre] = { n: p.n + 1, t: Date.now(), motivo }; diag.log('warn', 'abasto', nombre + ' fallo: ' + motivo); console.log('[abasto] fallo:', nombre, '-', motivo); }
         else { ultimoOk = true; if (bot._premio) bot._premio.evento('paso_ok', { k: nombre }); delete diag.estado.fallosPaso[nombre]; diag.log('info', 'abasto', 'paso ' + nombre); console.log('[abasto] paso:', nombre); }
         break; // un paso por ciclo
       }

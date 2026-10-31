@@ -1024,6 +1024,7 @@ async function crearBot() {
     if (!bot._huidaActiva) {
       bot._huidaActiva = true;
       iniciarHuida(bot);
+      if (process.env.AM_INV_LOG === '1') setInterval(() => { try { const m = {}; for (const it of bot.inventory.items()) m[it.name] = (m[it.name] || 0) + it.count; console.log('[inv] ' + JSON.stringify(m)); } catch (e) { /* ignorar */ } }, 20000).unref();
     }
     bot.on('death', () => {
       console.log('[bot] murio, respawneando en el mismo server (sin reconectar)');

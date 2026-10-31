@@ -34,6 +34,19 @@ async function lago(p, r, prof, gap) {
   }, 500);
   return iv;
 }
+async function recursos(p) {
+  const c = p.position.floored();
+  const pon = (x, y, z, n) => serv.setBlock(serv.overworld, c.offset(x, y, z), estado(n));
+  for (let i = 0; i < 10; i++) {
+    const a = i * 0.63 + 0.4, r = 12 + (i % 4) * 7, x = Math.round(Math.cos(a) * r), z = Math.round(Math.sin(a) * r);
+    for (let dy = 0; dy < 5; dy++) await pon(x, dy, z, 'oak_log');
+    for (let dx = -2; dx <= 2; dx++) for (let dz = -2; dz <= 2; dz++) for (let dy = 3; dy <= 5; dy++) if (!(dx === 0 && dz === 0 && dy < 5)) await pon(x + dx, dy, z + dz, 'oak_leaves');
+  }
+  for (let x = 18; x <= 28; x++) for (let z = -5; z <= 5; z++) for (let dy = -3; dy <= 4; dy++) {
+    const m = (x * 7 + z * 13 + dy * 5) % 23;
+    await pon(x, dy, z, m === 0 ? 'coal_ore' : m === 1 && dy < 3 ? 'iron_ore' : 'stone');
+  }
+}
 async function arboles(p) {
   const base = p.position.floored();
   for (const [dx, dz] of [[6, 0], [-6, 4], [4, -7]]) for (let dy = 0; dy < 5; dy++) await serv.setBlock(serv.overworld, base.offset(dx, dy, dz), estado('oak_log'));
@@ -46,6 +59,7 @@ serv.on('newPlayer', (p) => p.once('spawned', () => {
       if (escenario === 'pozo') await pozo(p);
       if (escenario === 'agua') await lago(p, Number(process.env.LAGO_R || 9), Number(process.env.LAGO_PROF || 2), Number(process.env.LAGO_GAP || 0));
       if (escenario === 'base' || escenario === 'rival') await arboles(p);
+      if (escenario === 'recursos') await recursos(p);
       if (escenario === 'rival') {
         let n = 0;
         const iv = setInterval(() => {

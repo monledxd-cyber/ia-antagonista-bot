@@ -40,7 +40,7 @@ function esperar(h, marca, ms) {
   srv.stderr.on('data', (d) => console.log('[servidor!] ' + String(d).trim().slice(0, 200)));
   await esperar(srv, 'LISTO', 60000);
 
-  const env = Object.assign({}, process.env, { MC_HOST: '127.0.0.1', MC_PORT: String(puerto), OPENROUTER_API_KEY: 'prueba', MC_BOT_USERNAME: 'am_prueba' });
+  const env = Object.assign({}, process.env, { MC_HOST: '127.0.0.1', MC_PORT: String(puerto), OPENROUTER_API_KEY: 'prueba', MC_BOT_USERNAME: 'am_prueba', AM_INV_LOG: '1' });
   const bot = spawn(process.execPath, (process.env.PRUEBA_PROF ? ['--cpu-prof', '--cpu-prof-dir=' + process.env.PRUEBA_PROF] : []).concat(['index.js']), { cwd: tmp, env });
   hijos.push(bot);
   const recoger = (d) => { for (const l of String(d).split('\n')) if (l.trim()) lineasBot.push(l); };
@@ -58,7 +58,7 @@ function esperar(h, marca, ms) {
   const cuenta = (re) => lineasBot.filter((l) => re.test(l)).length;
   console.log(`\n== prueba ${escenario} ${segundos}s ==`);
   console.log(`lineas ${lineasBot.length} | conectado ${cuenta(/\[bot\] conectado/)} | pasos abasto ${cuenta(/\[abasto\] paso:/)} | muertes ${cuenta(/\[muerte\]/)} | atascos ${cuenta(/\[atasco\]/)} | tactica ${cuenta(/\[tactica\]/)} | percepcion ${cuenta(/\[percepcion\]/)}`);
-  for (const k of ['[meta]', '[afecto]', '[atasco]', '[percepcion]', '[tactica]', '[muerte]', '[nado]', '[base]']) { const l = lineasBot.filter((x) => x.includes(k)).slice(-2); for (const x of l) console.log('  ' + x.slice(0, 160)); }
+  for (const k of ['[meta]', '[afecto]', '[atasco]', '[percepcion]', '[tactica]', '[muerte]', '[nado]', '[base]', '[inv]', '[abasto]']) { const l = lineasBot.filter((x) => x.includes(k)).slice(-2); for (const x of l) console.log('  ' + x.slice(0, 160)); }
   if (grupos.size) { console.log('\nERRORES:'); for (const [k, n] of [...grupos.entries()].sort((a, b) => b[1] - a[1])) console.log(`  x${n} ${k}`); }
   console.log(grupos.size ? '\nRESULTADO: FALLA' : '\nRESULTADO: OK');
   fs.writeFileSync(path.join(__dirname, 'ultima_prueba.log'), lineasBot.join('\n'));
