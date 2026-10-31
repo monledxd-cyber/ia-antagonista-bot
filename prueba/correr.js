@@ -16,6 +16,7 @@ fs.rmSync(tmp, { recursive: true, force: true });
 fs.mkdirSync(tmp, { recursive: true });
 for (const f of fs.readdirSync(raiz)) if (/\.js$|^package(-lock)?\.json$/.test(f)) fs.copyFileSync(path.join(raiz, f), path.join(tmp, f));
 fs.mkdirSync(path.join(tmp, 'test'), { recursive: true });
+if (fs.existsSync(path.join(raiz, 'slm')) && !fs.existsSync(path.join(tmp, 'slm'))) fs.symlinkSync(path.join(raiz, 'slm'), path.join(tmp, 'slm'), 'junction');
 fs.symlinkSync(path.join(raiz, 'node_modules'), path.join(tmp, 'node_modules'), 'junction');
 
 const cache = path.join(__dirname, 'cache');
@@ -44,6 +45,7 @@ function esperar(h, marca, ms) {
   const bot = spawn(process.execPath, (process.env.PRUEBA_PROF ? ['--cpu-prof', '--cpu-prof-dir=' + process.env.PRUEBA_PROF] : []).concat(['index.js']), { cwd: tmp, env });
   hijos.push(bot);
   const recoger = (d) => { for (const l of String(d).split('\n')) if (l.trim()) lineasBot.push(l); };
+  if (escenario === 'charla') setTimeout(() => { const h = spawn(process.execPath, [path.join(__dirname, 'hablador.js'), String(puerto)], { cwd: __dirname }); hijos.push(h); h.stdout.on('data', recoger); }, 15000);
   bot.stdout.on('data', recoger);
   bot.stderr.on('data', recoger);
 
@@ -58,7 +60,7 @@ function esperar(h, marca, ms) {
   const cuenta = (re) => lineasBot.filter((l) => re.test(l)).length;
   console.log(`\n== prueba ${escenario} ${segundos}s ==`);
   console.log(`lineas ${lineasBot.length} | conectado ${cuenta(/\[bot\] conectado/)} | pasos abasto ${cuenta(/\[abasto\] paso:/)} | muertes ${cuenta(/\[muerte\]/)} | atascos ${cuenta(/\[atasco\]/)} | tactica ${cuenta(/\[tactica\]/)} | percepcion ${cuenta(/\[percepcion\]/)}`);
-  for (const k of ['[meta]', '[afecto]', '[atasco]', '[percepcion]', '[tactica]', '[muerte]', '[nado]', '[base]', '[inv]', '[abasto]']) { const l = lineasBot.filter((x) => x.includes(k)).slice(-2); for (const x of l) console.log('  ' + x.slice(0, 160)); }
+  for (const k of ['[meta]', '[afecto]', '[atasco]', '[percepcion]', '[tactica]', '[muerte]', '[nado]', '[base]', '[inv]', '[abasto]', '[charla]']) { const l = lineasBot.filter((x) => x.includes(k)).slice(-2); for (const x of l) console.log('  ' + x.slice(0, 160)); }
   if (grupos.size) { console.log('\nERRORES:'); for (const [k, n] of [...grupos.entries()].sort((a, b) => b[1] - a[1])) console.log(`  x${n} ${k}`); }
   console.log(grupos.size ? '\nRESULTADO: FALLA' : '\nRESULTADO: OK');
   fs.writeFileSync(path.join(__dirname, 'ultima_prueba.log'), lineasBot.join('\n'));

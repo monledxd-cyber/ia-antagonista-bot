@@ -58,7 +58,7 @@ serv.on('newPlayer', (p) => p.once('spawned', () => {
     try {
       if (escenario === 'pozo') await pozo(p);
       if (escenario === 'agua') await lago(p, Number(process.env.LAGO_R || 9), Number(process.env.LAGO_PROF || 2), Number(process.env.LAGO_GAP || 0));
-      if (escenario === 'base' || escenario === 'rival') await arboles(p);
+      if (escenario === 'base' || escenario === 'rival' || escenario === 'charla') await arboles(p);
       if (escenario === 'recursos') await recursos(p);
       if (escenario === 'rival') {
         let n = 0;
