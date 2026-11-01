@@ -1,0 +1,388 @@
+## saludo
+holaa
+wenas
+ey qué tal
+saludos
+buen día
+buenas tardes
+buenas noches
+hola a todos
+hola bot
+epa
+qué hubo
+cómo va todo
+hola de nuevo
+volví
+ya llegué
+aquí estoy otra vez
+qué cuentas
+hola, ¿hay alguien?
+## identidad
+quién eres realmente
+qué clase de cosa eres
+eres una persona
+eres humano
+eres una máquina
+eres una ia
+quién eres tú
+dime quién eres
+qué eres exactamente
+eres un jugador
+eres un programa
+eres alguien o algo
+con quién hablo
+de dónde saliste
+qué se supone que eres
+## nombre
+cuál es tu nombre
+dime tu nombre
+tu nombre cuál es
+cómo te dicen
+cómo te llaman
+qué nombre tienes
+puedo saber tu nombre
+cómo te llamas tú
+cómo debo llamarte
+te llamas AM
+cómo te nombraron
+con qué nombre te conocen
+## creador
+quién te creó a ti
+quién te hizo así
+quién es tu creador
+quién te programó
+quién te inventó
+de quién eres
+quién está detrás de ti
+quién te puso aquí
+quién te controla
+quién manda sobre ti
+te hizo alguien
+tienes un amo
+quién te dio vida
+## estado_am
+cómo andas
+cómo te va
+cómo estás hoy
+todo bien contigo
+qué tal te encuentras
+cómo te sientes hoy
+estás bien o qué
+cómo estás tú
+qué tal tu día
+cómo va tu día
+te encuentras bien
+y tú cómo estás
+cómo te trata la vida
+estás de buen humor
+## actividad
+qué haces ahora
+en qué andas
+qué estás haciendo ahora mismo
+qué haces por aquí
+qué estás tramando
+qué tienes planeado
+a qué te dedicas
+qué haces todo el día
+en qué estás
+qué traes entre manos
+qué piensas hacer
+en qué estás pensando
+qué tal tu trabajo
+a dónde vas
+## gusto_x
+qué tal {X}
+te agrada {X}
+amas {X}
+odias {X}
+qué sientes por {X}
+cuál es tu opinión sobre {X}
+me encanta {X}, ¿a ti?
+te interesa {X}
+qué te parece {X}
+piensas algo de {X}
+dime qué opinas de {X}
+alguna vez has probado {X}
+{X} te parece bien
+y qué hay de {X}
+te cae bien {X}
+## posesion_x
+acabo de conseguir {X}
+ya tengo {X}
+miren lo que tengo, {X}
+logré tener {X}
+conseguí {X} hoy
+mira, tengo {X}
+me regalaron {X}
+cuido mucho {X}
+mi mayor orgullo es {X}
+tengo guardado {X}
+encontré por fin {X}
+al fin tengo {X}
+es mío: {X}
+guardo {X} en mi base
+## pedir_x
+pásame {X}
+dame un poco de {X}
+quiero que me des {X}
+me das {X}
+préstame {X}
+regálame {X}
+necesito urgente {X}
+tráeme {X}
+ayúdame a conseguir {X}
+me haces falta {X}
+dame {X}, por favor
+podrías darme {X}
+tienes algo de {X}
+me vendes {X}
+## donde_x
+dónde queda {X}
+dónde hay {X}
+sabes dónde está {X}
+dónde puedo encontrar {X}
+por dónde está {X}
+dime dónde está {X}
+cómo llego a {X}
+dónde se consigue {X}
+estoy buscando {X}
+no encuentro {X}
+dónde dejaron {X}
+vi {X} por aquí, ¿dónde?
+qué dirección lleva a {X}
+cerca de dónde está {X}
+## estado_usuario
+me siento muy {E}
+estoy bastante {E}
+ando medio {E}
+qué {E} estoy
+me pone {E} todo esto
+hoy me levanté {E}
+estoy un poco {E}
+la verdad estoy {E}
+me encuentro {E}
+estoy tan {E}
+ya estoy {E}
+sigo {E}
+me hace sentir {E}
+no sé, estoy {E}
+## miedo
+tengo mucho miedo
+estoy asustado
+me da miedo esto
+me aterras
+tiemblo de miedo
+me estoy muriendo de miedo
+qué miedo me das
+estoy temblando
+me da pavor
+tengo pánico
+no quiero morir
+me asusta lo que haces
+estoy muy nervioso
+me das escalofríos
+## insulto
+eres un inútil
+qué estúpido eres
+maldito bot
+te odio
+eres lo peor
+eres una porquería
+basura de bot
+estás loco
+eres un asco
+vete al diablo
+qué asco de bot
+idiota
+imbécil
+eres patético
+## amenaza
+te voy a vencer
+voy a acabar contigo
+te voy a eliminar
+voy a por ti
+te voy a hacer pedazos
+juro que te mato
+te destruiré
+vas a caer
+voy a matarte
+te voy a apagar
+hoy mueres
+voy a borrarte del servidor
+te voy a cazar
+no vas a sobrevivir
+## suplica
+no me hagas daño
+déjame vivir
+te lo ruego
+ten piedad
+por favor, para
+no me mates, por favor
+te pido perdón
+lo siento mucho
+no me lastimes
+dame otra oportunidad
+haré lo que quieras
+perdóname la vida
+suéltame
+detente, por favor
+## burla
+jajaja qué malo eres
+lol
+xd
+qué risa
+eres un bot sin gracia
+jajajaja
+ni me tocas
+nunca me alcanzas
+eres muy lento
+qué lento eres
+fácil
+ez pz
+qué patético
+no me das miedo
+## desafio
+ven aquí
+a ver si puedes
+inténtalo si te atreves
+peleemos
+vamos a pelear
+te espero
+acércate
+te reto a un duelo
+pelea justa
+ven a buscarme
+no te tengo miedo, ven
+duelo
+atácame
+demuéstralo
+## paz
+no peleemos
+amigos
+mejor hagamos las paces
+paz
+tregua
+dejemos esto
+no quiero problemas contigo
+podemos ser amigos
+quiero la paz
+terminemos con esto
+hablemos con calma
+sin rencores
+bajemos las armas
+llevémonos bien
+## gracias
+muchas gracias
+gracias por todo
+te lo agradezco
+eres muy amable
+qué buena onda eres
+eres un buen bot
+me caes súper
+mil gracias
+te aprecio
+eres el mejor
+gracias, de verdad
+qué lindo eres
+te quiero mucho
+fuiste de gran ayuda
+## despedida
+me tengo que ir
+nos vemos
+hasta mañana
+ya me voy
+hasta pronto
+cuídate
+bye
+adiós, AM
+me desconecto
+nos vemos luego
+buenas noches, me voy
+me voy a dormir, chao
+hasta la próxima
+ya me fui
+## porque
+por qué lo haces
+por qué eres así
+por qué me haces esto
+por qué me atacas
+por qué me sigues
+por qué estás aquí
+para qué haces esto
+qué te hice yo
+por qué tanto odio
+cuál es tu motivo
+por qué a mí
+qué ganas con esto
+cuál es tu razón
+por qué no me dejas en paz
+## humanos
+qué piensas de la gente
+por qué detestas a los humanos
+no te caen bien los humanos
+qué tienes contra los humanos
+cómo ves a los humanos
+qué sientes por la humanidad
+odias a la gente
+qué opinas de los jugadores
+los humanos te caen mal
+qué te hicieron los humanos
+qué opinas de nosotros
+nos odias
+## muerte
+puedes morir
+qué se siente morir
+te da miedo morir
+eres inmortal
+alguna vez morirás
+si te mato qué pasa
+vuelves cuando mueres
+se puede acabar contigo
+qué haces cuando mueres
+la muerte te asusta
+tienes vidas infinitas
+eres mortal
+## donde_am
+dónde te metiste
+en qué lugar estás
+dónde estás ahora
+estás por aquí
+dónde andas
+dónde te veo
+estás lejos
+estás cerca de mí
+no te veo, dónde estás
+dime dónde estás
+dónde te encuentro
+dónde estás escondido
+por dónde andas
+## consejo
+qué me recomiendas
+cómo hago para sobrevivir
+dame un consejo
+necesito ayuda
+cómo puedo ganarte
+tienes algún truco
+qué hago ahora
+cómo escapo de ti
+cómo te derroto
+ayúdame por favor
+qué estrategia me sirve
+cómo mejoro
+tips
+cómo sobrevivo a la noche
+## tiempo
+ya es de día
+está oscureciendo
+se hizo de noche
+qué hora es ahora
+cuánto falta para que amanezca
+está lloviendo
+hay tormenta
+ya anocheció
+amaneció
+llovió toda la noche
+es de madrugada
+cuándo sale el sol
+qué clima hace
+hay una tormenta afuera

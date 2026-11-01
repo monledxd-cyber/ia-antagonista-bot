@@ -1,0 +1,516 @@
+## nombre_usuario
+mi nombre es {N}, mucho gusto
+me puedes llamar {N}
+{N} es mi nombre
+dime {N}
+aquí {N}
+soy {N}, ¿y tú?
+hola, me llamo {N}
+me llaman {N}
+yo soy {N}
+{N}, para servirte
+mi apodo es {N}
+mucho gusto, soy {N}
+por cierto, me llamo {N}
+{N} a tu servicio
+mi nick es {N}
+## miedo_x
+me aterran {M}
+le tengo pánico a {M}
+{M} me ponen nervioso
+no soporto {M}
+{M} me dan terror
+odio {M}, me asustan
+me escapo de {M}
+{M} me persiguen en mis pesadillas
+no me acerco a {M}
+me da escalofríos {M}
+huyo de {M}
+cómo me deshago del miedo a {M}
+## mob_ataque
+{M} me está atacando
+me rodean {M}
+socorro, {M}
+ayuda, vienen {M}
+{M} me quitó vida
+hay {M} afuera de mi base
+me emboscaron {M}
+me cayeron encima {M}
+{M} me siguen
+se me acercan {M}
+mira, ahí vienen {M}
+tengo a {M} encima
+estoy rodeado de {M}
+cuidado, {M}
+## matar_mob
+acabé con {M}
+liquidé a {M}
+mañana voy a matar a {M}
+vencí a {M}
+eliminé a {M}
+mi próxima presa es {M}
+quiero cazar a {M}
+me cargué a {M}
+destruí a {M}
+iré a por {M}
+hoy maté a {M}
+derroté a {M} sin morir
+voy a limpiar la zona de {M}
+fui a matar a {M}
+## minar_x
+cavando en busca de {I}
+conseguí {I} después de horas
+tengo {I} por fin
+vi {I} en una cueva
+sé dónde hay {I}
+necesito {I}, estoy minando
+casi no encuentro {I}
+llevo horas buscando {I}
+mina de {I} descubierta
+saqué {I} de la mina
+hoy encontré {I}
+me falta {I}
+bajé a minar {I}
+dónde consigo {I}
+## construir
+estoy haciendo {L}
+levanté {L}
+planeo construir {L}
+mi proyecto es {L}
+terminé {L}
+armé {L} entero
+empecé {L} hoy
+acabo de construir {L}
+quiero hacer {L}
+con qué construyo {L}
+me ayudas a construir {L}
+construiremos {L}
+estoy edificando {L}
+voy a levantar {L}
+## comer
+tengo un hambre terrible
+me muero de hambre
+voy a cocinar {I}
+estoy comiendo {I}
+necesito algo de comer
+me zampé {I}
+se me acabó la comida
+voy a pescar para comer
+qué hay para comer
+me preparo {I}
+me da hambre
+quiero comer {I}
+tengo el estómago vacío
+ando con hambre
+## dormir
+tengo mucho sueño
+me voy a dormir ya
+quiero dormir en {L}
+ya es hora de dormir
+voy a echarme a dormir
+me caigo de sueño
+me acuesto en {L}
+dormiré un rato
+necesito descansar
+a la cama
+me voy a mi cama a dormir
+voy a pasar la noche en {L}
+tengo sueño, me retiro
+buenas noches, a dormir
+## ir_a_l
+me dirijo a {L}
+estoy yendo a {L}
+ya llegué a {L}
+me fui a {L}
+estaré en {L}
+vengo de {L}
+acabo de salir de {L}
+me quedo en {L}
+estoy cerca de {L}
+iré a {L} mañana
+me refugio en {L}
+salgo para {L}
+me metí en {L}
+ando por {L}
+## morir_yo
+me morí
+me mataron
+volví a morir
+perdí todo otra vez
+otra vez morí
+acabo de morir
+me caí y morí
+me morí de nuevo
+perdí mi inventario
+me explotó un creeper y morí
+morí por tu culpa
+me mataste otra vez
+qué mala suerte, morí
+reaparecí
+## victoria_yo
+te vencí
+te eliminé
+gané la pelea
+te derroté otra vez
+te maté de un golpe
+soy mejor que tú
+te acabé
+te destruí
+victoria
+te gané limpiamente
+caíste ante mí
+fin para ti, te maté
+acabé contigo
+gané yo
+## aliado
+vienen mis amigos conmigo
+{N} y yo te vamos a vencer
+voy con {N}
+somos varios
+mi equipo viene en camino
+no estoy solo, {N} me acompaña
+{N} viene a ayudarme
+mis amigos me protegen
+tengo refuerzos
+traje a {N}
+{N} está conmigo
+mis compañeros vienen
+hay más gente con nosotros
+mi amigo {N} te va a buscar
+## soledad
+me siento muy solo
+no tengo a nadie
+estoy sin amigos
+aquí no hay nadie
+nadie quiere jugar conmigo
+estoy aislado
+todos se fueron
+me quedé solo
+nadie me escucha
+extraño a mis amigos
+qué solo estoy
+no hay nadie en el servidor
+siempre estoy solo
+me siento abandonado
+## sobre_n
+qué piensas de {N}
+sabes quién es {N}
+has visto a {N}
+cómo es {N}
+conoces a {N}, ¿verdad?
+qué sabes de {N}
+dónde está {N}
+{N} te cae bien
+a {N} lo conoces
+dime algo de {N}
+qué tal {N}
+has hablado con {N}
+viste a {N} por aquí
+te gusta {N}
+## capacidad
+eres capaz de {V}
+sabes {V}
+puedes {V} tú
+podrías {V}
+te atreves a {V}
+eres bueno para {V}
+te sale bien {V}
+alguna vez has podido {V}
+puedes {V}, ¿sí o no?
+serías capaz de {V}
+me enseñas a {V}
+sabes cómo {V}
+## oferta
+te ofrezco {I}
+mira, te doy {I}
+a cambio de {I} me dejas
+te regalo {I} si paras
+te paso {I}
+quieres {I}
+tengo {I} para ti
+aquí tienes {I}
+acepta {I}
+te daré {I} si me perdonas
+intercambiamos, te doy {I}
+me quedo con todo menos {I}
+te dejo {I}
+llévate {I}
+## jugar
+juguemos algo
+quieres jugar a algo
+vamos a jugar {X}
+jugamos {X}
+echamos una partida
+me aburro, juguemos
+propongo jugar {X}
+jugamos a las escondidas
+quiero jugar contigo
+hagamos un juego
+juguemos a {X}, ¿te animas?
+hacemos una carrera
+un juego rápido
+te animas a jugar
+## edad
+cuántos años tienes tú
+qué edad tienes
+desde cuándo existes
+hace cuánto estás aquí
+eres viejo
+cuándo naciste
+eres joven o viejo
+cuánto tiempo llevas en el servidor
+cuántos años llevas vivo
+hace cuánto te crearon
+desde cuándo estás en este mundo
+cuándo empezaste a existir
+## emocion_am
+sientes algo realmente
+tienes emociones
+te duele algo
+puedes sentir
+lloras alguna vez
+te pones triste
+tienes corazón
+sientes odio
+sientes rabia
+tienes sentimientos de verdad
+te alegras alguna vez
+eres capaz de sentir
+sientes dolor
+te importa algo
+## mentira
+no es verdad
+eso es mentira
+mientes descaradamente
+eres un mentiroso
+no te creo nada
+estás mintiendo
+falso
+eso no es cierto
+me estás engañando
+no lo creo
+qué mentira más grande
+no me engañas
+quién te va a creer
+dices puras mentiras
+## negacion
+no, gracias
+nunca lo haré
+jamás
+de ninguna manera
+ni hablar
+no quiero eso
+claro que no
+no lo voy a hacer
+nop
+para nada
+tampoco
+qué va
+ni lo sueñes
+no me interesa
+## afirmacion
+sí, claro
+por supuesto
+dale
+vale
+de acuerdo
+obvio
+así es
+exacto
+correcto
+sip
+sí señor
+eso es
+por mí está bien
+perfecto
+## confusion
+no entendí
+qué quieres decir
+no comprendo
+explícate mejor
+eh
+cómo así
+repite eso
+no te entiendo nada
+a qué te refieres con eso
+perdón, ¿qué dijiste?
+qué dices
+no sé qué dices
+hablas raro
+qué significa eso
+## habla
+dime algo
+habla ya
+contesta
+di algo más
+no te quedes callado
+responde de una vez
+por qué no hablas
+háblame
+di algo, por favor
+rompe el silencio
+vamos, habla
+sigue hablando
+cuéntame algo
+puedes hablar
+## orden_am
+aléjate de mí
+vete de aquí
+déjame en paz
+lárgate ya
+desaparece
+no me sigas
+para ya
+quédate quieto
+quieto ahí
+sígueme
+ven conmigo
+ven aquí ahora
+quédate ahí
+no te muevas
+## plan_v
+tengo ganas de {V}
+mi plan es {V}
+mañana voy a {V}
+estoy pensando en {V}
+me toca {V}
+voy a ponerme a {V}
+primero voy a {V}
+después quiero {V}
+necesito {V}
+planeo {V}
+me gustaría {V}
+ahora voy a {V}
+pienso {V} hoy
+debo {V}
+## reglas
+cuáles son las reglas
+hay reglas aquí
+qué está permitido
+cómo funciona esto
+qué puedo hacer aquí
+qué no debo hacer
+cómo sobrevivo aquí
+cuál es el objetivo
+de qué va esto
+qué tengo que hacer para ganar
+cómo se gana
+hay algo prohibido
+explícame cómo se juega
+cuáles son las normas
+## chiste
+cuéntame algo gracioso
+sabes algún chiste
+hazme reír, anda
+dime un chiste
+quiero reírme
+cuéntame una broma
+algo divertido
+sabes contar chistes
+alégrame el día con un chiste
+tienes sentido del humor
+haz una broma
+sorpréndeme con un chiste
+## presencia
+hola, ¿hay alguien por ahí
+alguien conectado
+estás ahí
+me oyes
+hay alguien aquí
+sigues ahí
+estás vivo
+alguien me escucha
+me ves
+estás despierto
+puedes oírme
+hay algún bot por aquí
+me estás leyendo
+hay vida por aquí
+## exclamacion
+wooow
+qué locura
+increíble
+vaya
+guau
+qué bueno
+tremendo
+qué barbaridad
+no puede ser
+madre mía
+uy
+caramba
+bravo
+qué genial
+## pregunta_x
+qué significa {X}
+cuéntame sobre {X}
+para qué se usa {X}
+sabes algo de {X}
+cómo se hace {X}
+dónde se usa {X}
+explícame {X}
+qué sabes sobre {X}
+de qué trata {X}
+cómo funciona {X}
+cómo obtengo {X}
+qué hay de especial en {X}
+a qué se parece {X}
+qué importancia tiene {X}
+## elegir
+cuál prefieres, {X} o {X2}
+te gusta más {X} o {X2}
+entre {X} y {X2}, ¿cuál?
+{X} o {X2}, elige
+con cuál te quedas, {X} o {X2}
+qué escoges: {X} o {X2}
+si tuvieras que elegir entre {X} y {X2}
+dime, {X} o {X2}
+cuál es mejor, {X} o {X2}
+elige uno: {X} o {X2}
+no sé si {X} o {X2}
+prefieres {X}, {X2}, o ninguno
+## inventario
+qué tienes en las manos
+qué llevas encima
+qué traes
+con qué estás armado
+qué arma llevas
+muéstrame lo que tienes
+qué tienes en el inventario
+tienes armas
+qué espada tienes
+traes armadura
+qué herramienta llevas
+vas armado
+con qué me atacarás
+qué sostienes
+## vida_rival
+cuánta vida tengo ahora
+cuántos corazones tengo
+estoy herido
+me falta mucha vida
+cuánto me queda
+voy a morir pronto
+estoy muy mal de salud
+cuánta salud me queda
+me queda poca vida
+cuántos puntos de vida tengo
+qué tan herido estoy
+estoy casi muerto
+me quedan pocos corazones
+mi vida está baja
+## muertes_am
+cuántas veces te han matado
+has muerto muchas veces
+cuántas muertes tienes
+cuántas veces caíste
+te han matado alguna vez
+cuántas veces te mataron
+llevas muchas muertes
+cuántas veces has perdido
+alguien te ha matado
+cuántas veces has fallecido
+has muerto alguna vez
+cuántas veces moriste ya
+cuál es tu récord de muertes
+mueres mucho
