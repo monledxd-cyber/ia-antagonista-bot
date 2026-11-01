@@ -381,6 +381,7 @@ function iniciarHuida(bot) {
   bot._modelo = (n) => (memoria.modelo ? memoria.modelo(n) : null);
   bot._memHechos = (n) => (memoria.hechos ? memoria.hechos(n) : null);
   require('./peleas').crearPeleas(bot, memoria);
+  if (process.env.IA_HABITOS !== '0') require('./habitos').crearHabitos(bot, memoria);
   bot._sumarVec = (n, c, x) => memoria.sumarVec(n, c, x);
   require('./stats').conectarStats(bot, statsAM, diag);
   require('./sesion').crearSesion(bot, require('path').join(__dirname, process.env.IA_SESION_ARCH || 'sesiones_am.json'), require('./package.json').version);

@@ -71,7 +71,8 @@ function crearMemoria(ruta) {
         return G ? Math.round(100 * (nn * loc + K * g) / (nn + K)) : 0;
       };
       const lides = (j.pg || 0) + (j.pp || 0) + (j.huyo || 0);
-      return { clase, escudo: pct('escudo'), arco: pct('arco'), huye: lides >= 3 ? (j.huyo || 0) / lides : (G ? G.huye : 0) };
+      const hb = (k) => (j.hab && j.hab[k] && j.hab[k].n >= 2 ? Math.round(100 * j.hab[k].m) / 100 : null);
+      return { clase, escudo: pct('escudo'), arco: pct('arco'), huye: lides >= 3 ? (j.huyo || 0) / lides : (G ? G.huye : 0), retira: hb('retira'), zigzag: hb('zigzag') };
     },
     hechos: (n) => { const j = datos[n]; return j ? { mato: j.mato || 0, gane: j.pg || 0, perdi: j.pp || 0, visitas: j.visitas || 0, muertes: j.muertes || 0 } : null; },
     global: () => global_(),
@@ -99,6 +100,7 @@ function crearMemoria(ruta) {
     mejor: (n) => { const t = (datos[n] && datos[n].tac) || {}; const l = Object.entries(t).filter(([, a]) => a.u >= 3).sort((a, b) => b[1].w / b[1].u - a[1].w / a[1].u); return l.length ? l[0][0] : null; },
     arma: (n, item) => { if (!item) return; const a = get(n).armas; a[item] = (a[item] || 0) + 1; sucio = true; },
     // Observacion periodica del jugador: tags = ['escudo','arco','sprint','agachado','elytra',...], pos = {x,z}
+    habito: (n, k, v) => { const j = get(n); j.hab = j.hab || {}; const a = (j.hab[k] = j.hab[k] || { m: v, n: 0 }); a.n++; a.m += (v - a.m) / Math.min(a.n, 6); sucio = true; },
     observa: (n, tags, pos) => {
       const j = get(n); j.n = (j.n || 0) + 1; j.ultima = Date.now(); sucio = true;
       for (const t of tags) j.obs[t] = (j.obs[t] || 0) + 1;
