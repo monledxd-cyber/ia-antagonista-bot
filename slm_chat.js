@@ -88,7 +88,17 @@ function crearChat(dir) {
   function cargarPermitidas() {
     try { permitidas = new Set(JSON.parse(fs.readFileSync(path.join(dir, 'palabras.json'), 'utf8'))); } catch (e) { permitidas = null; }
   }
+  const calidad = (f) => {
+    const w = palabras(f);
+    if (f.length > 260 || w.length > 45) return false;
+    for (let i = 3; i < w.length; i++) if (w[i] === w[i - 1] && w[i] === w[i - 2] && w[i] === w[i - 3]) return false;
+    const bg = new Map();
+    for (let i = 1; i < w.length; i++) { const b = w[i - 1] + ' ' + w[i]; bg.set(b, (bg.get(b) || 0) + 1); }
+    if ([...bg.values()].some((v) => v >= 3 && w.length > 6)) return false;
+    return !(w.length >= 8 && new Set(w).size / w.length < 0.4);
+  };
   const valida = (f, extra, hv) => {
+    if (!calidad(f)) return false;
     const nums = f.match(/\d+/g) || [];
     if (nums.length) {
       const ok = new Set((String(extra) + ' ' + Object.values(hv || {}).join(' ')).match(/\d+/g) || []);
@@ -134,6 +144,6 @@ function crearChat(dir) {
     return f;
   }
   cargar();
-  return { responder, leer, listo: () => !!sesion, cargar };
+  return { responder, leer, calidad, listo: () => !!sesion, cargar };
 }
 module.exports = { crearChat };
