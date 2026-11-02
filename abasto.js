@@ -179,9 +179,10 @@ function crearAbasto(bot, o) {
     let ids = idsRe.get(re.source);
     if (!ids) { ids = Object.values(bot.registry.blocksByName).filter((b) => re.test(b.name)).map((b) => b.id); idsRe.set(re.source, ids); }
     if (!ids.length) return null;
+    const t0 = Date.now();
     for (const rr of [16, 32, 48, 64]) {
       const b = bot.findBlock({ maxDistance: Math.min(rr, r), matching: ids });
-      if (b || rr >= r) return b;
+      if (b || rr >= r || Date.now() - t0 > 2500) return b;
     }
     return null;
   }

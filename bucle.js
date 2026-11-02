@@ -1,11 +1,21 @@
 const diag = require('./diag');
 
-function expandir(orig, ctx, o) {
-  const max = o && o.maxDistance;
+let tArea = 0;
+const PRESUP = () => Number(process.env.IA_BUSQ_MS) || 4000;
+function expandir(orig, ctx, o, ahora) {
+  const max = o && o.maxDistance, now = ahora || Date.now;
   if (process.env.IA_BUSQ_EXP === '0' || !(max > 20)) return orig.call(ctx, o);
   const cnt = o.count || 1, pasos = [16, 28, 44, 64, 96].filter((x) => x < max).concat(max);
   let r = [];
-  for (const d of pasos) { r = orig.call(ctx, Object.assign({}, o, { maxDistance: d })); if (r.length >= cnt) return r; }
+  const t0 = now();
+  for (const d of pasos) {
+    if (d > pasos[0] && tArea * d * d > PRESUP() - (now() - t0)) break;
+    const t = now();
+    r = orig.call(ctx, Object.assign({}, o, { maxDistance: d }));
+    const m = (now() - t) / (d * d);
+    tArea = tArea ? 0.6 * tArea + 0.4 * m : m;
+    if (r.length >= cnt) return r;
+  }
   return r;
 }
 
@@ -31,4 +41,4 @@ function crearBucle(bot) {
   }
   bot.once('end', () => { clearInterval(it); clearInterval(rep); });
 }
-module.exports = { crearBucle };
+module.exports = { crearBucle, expandir, _tArea: (v) => { if (v !== undefined) tArea = v; return tArea; } };
