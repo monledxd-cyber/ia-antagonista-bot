@@ -62,7 +62,7 @@ function crearSLM(dir) {
         vocab = JSON.parse(fs.readFileSync(rv, 'utf8'));
         idx = new Map((vocab.tokens || vocab.chars).map((c, i) => [c, i]));
         esp = vocab.tokens ? vocab.tokens.map((t, i) => (/^<[A-Za-z0-9]+(:[^>]*)?>$/.test(t) && t !== vocab.fin ? i : -1)).filter((i) => i >= 0) : [];
-        sesion = await ort.InferenceSession.create(rm);
+        sesion = await ort.InferenceSession.create(rm, { intraOpNumThreads: 1, interOpNumThreads: 1, enableCpuMemArena: false, enableMemPattern: false });
         diag.log('info', 'slm', `modelo cargado (${(vocab.tokens || vocab.chars).length} simbolos, ctx ${vocab.ctx})`);
       } catch (e) { fallos++; diag.log('warn', 'slm', 'no se pudo cargar: ' + String(e.message).slice(0, 120)); }
       cargando = null;

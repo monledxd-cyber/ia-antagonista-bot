@@ -923,6 +923,7 @@ async function crearBot() {
     username: BOT_USERNAME,
     version: VERSION,
     auth: 'offline', // server cracked / offline-mode
+    viewDistance: process.env.IA_VIEW ? (Number(process.env.IA_VIEW) || process.env.IA_VIEW) : (process.env.RENDER ? 4 : 'normal'),
     hideErrors: false,
     // El default de la libreria es 30 s sin keep-alive => "timed out" y desconexion. Si
     // Aternos se sobrecarga y se atrasa, el bot se salia solo. Se sube a 180 s.
@@ -1919,6 +1920,7 @@ app.get('/estado', (_req, res) => res.json({ version: BOT_VERSION, uptime: Math.
 app.get('/health', (_req, res) => res.json({ status: 'ok', version: BOT_VERSION, uptime: process.uptime(), diagnostico: stats }));
 app.listen(process.env.PORT || 3000, () => console.log(`[http] servidor de salud escuchando (${BOT_VERSION})`));
 // Render gratis duerme el servicio tras 15 min sin trafico HTTP (y el bot se desconecta): se auto-visita cada 8 min mientras este despierto.
+setInterval(() => { const m = process.memoryUsage(), q = (x) => Math.round(x / 1048576); console.log(`[mem] rss ${q(m.rss)} heap ${q(m.heapUsed)} ext ${q(m.external)} buf ${q(m.arrayBuffers)}`); }, 60_000).unref();
 if (process.env.RENDER_EXTERNAL_URL) setInterval(() => { fetch(process.env.RENDER_EXTERNAL_URL + '/health').catch(() => {}); }, 8 * 60_000);
 
 // Red de seguridad: si por cualquier bug quedo sin bot ni intento en curso, reintenta.

@@ -17,7 +17,7 @@ function crearChat(dir) {
         idx = new Map(vocab.tokens.map((t, i) => [t, i]));
         rank = new Map(vocab.merges.map((m, i) => [m[0] + '\u0001' + m[1], i]));
         base = new Set(vocab.base);
-        sesion = await ort.InferenceSession.create(rm);
+        sesion = await ort.InferenceSession.create(rm, { intraOpNumThreads: 1, interOpNumThreads: 1, enableCpuMemArena: false, enableMemPattern: false });
         sesion._ort = ort;
       } catch (e) { fallos++; console.log('[chat] no se pudo cargar:', String(e.message).slice(0, 120)); }
       cargando = null;
