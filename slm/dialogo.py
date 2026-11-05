@@ -71,6 +71,38 @@ def variar(t):
         t = e.format(t[:1].lower() + t[1:])
     return t
 
+ABR = {"que": ["q", "k", "ke"], "qué": ["q", "ke"], "por": ["x"], "porque": ["xq", "pq"], "para": ["pa", "pa'"], "estoy": ["toy"], "está": ["ta"], "estás": ["tas"], "bien": ["bn"], "también": ["tmb", "tb"], "gracias": ["grax", "grasias", "gracia"], "hola": ["holaa", "ola", "holi"], "dónde": ["donde", "dnd"], "cuánto": ["cuanto"], "tú": ["tu"], "mucho": ["muxo"], "nada": ["nd"], "ahora": ["ahorita"], "vamos": ["vms", "vamo"], "tengo": ["tngo"], "quiero": ["kiero"], "dime": ["dimee"], "oye": ["oyee"]}
+def _typo(w):
+    if len(w) < 5:
+        return w
+    i = random.randrange(1, len(w) - 2)
+    r = random.random()
+    if r < 0.4:
+        return w[:i] + w[i + 1] + w[i] + w[i + 2:]
+    if r < 0.7:
+        return w[:i] + w[i + 1:]
+    return w[:i] + w[i] + w[i:]
+
+def sucio(t):
+    p = re.split(r"(\{[A-Z0-9]+\})", t)
+    for j, seg in enumerate(p):
+        if seg.startswith("{"):
+            continue
+        ws = re.split(r"(\s+)", seg)
+        for i, w in enumerate(ws):
+            b = w.lower().strip("¿?¡!.,")
+            if not b or w.isspace():
+                continue
+            if b in ABR and random.random() < 0.3:
+                w = w.lower().replace(b, random.choice(ABR[b]))
+            elif random.random() < 0.05:
+                w = _typo(w)
+            elif b in ("hola", "oye", "jaja", "wow", "no", "sí", "si", "ok", "dime") and random.random() < 0.15:
+                w = w + w[-1] * random.randint(1, 3)
+            ws[i] = w
+        p[j] = "".join(ws)
+    return "".join(p)
+
 def aumentar(t):
     r = random.random()
     if r < 0.35:
@@ -209,7 +241,7 @@ def par(cat, c, held, tpl_held, gen, rui):
     v = sorteo(held)
     pool = c["ut"] if tpl_held else c["ue"]
     tu = random.choice(pool)
-    u = aumentar(random.choice(PRE_) + llenar(variar(tu), v) + random.choice(SUF_))
+    u = aumentar(random.choice(PRE_) + llenar(sucio(variar(tu)) if random.random() < 0.3 else variar(tu), v) + random.choice(SUF_))
     tr = random.choice(c["r"])
     e, t = tr.split("|", 1)
     vr = dict(v)
