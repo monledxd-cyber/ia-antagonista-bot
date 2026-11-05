@@ -17,7 +17,9 @@ function crearChat(dir) {
         idx = new Map(vocab.tokens.map((t, i) => [t, i]));
         rank = new Map(vocab.merges.map((m, i) => [m[0] + '\u0001' + m[1], i]));
         base = new Set(vocab.base);
-        sesion = await ort.InferenceSession.create(rm, { intraOpNumThreads: 1, interOpNumThreads: 1, enableCpuMemArena: false, enableMemPattern: false });
+        const opc = { intraOpNumThreads: 1, interOpNumThreads: 1, enableCpuMemArena: false, enableMemPattern: false }, r8 = path.join(dir, 'modelo_q8.onnx');
+        if (process.env.IA_Q8 !== '0' && fs.existsSync(r8)) { try { sesion = await ort.InferenceSession.create(r8, opc); } catch (e) { sesion = null; console.log('[chat] q8 no cargo, uso fp32:', String(e.message).slice(0, 100)); } }
+        if (!sesion) sesion = await ort.InferenceSession.create(rm, opc);
         sesion._ort = ort;
       } catch (e) { fallos++; console.log('[chat] no se pudo cargar:', String(e.message).slice(0, 120)); }
       cargando = null;
