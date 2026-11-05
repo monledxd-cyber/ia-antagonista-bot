@@ -923,7 +923,7 @@ async function crearBot() {
     username: BOT_USERNAME,
     version: VERSION,
     auth: 'offline', // server cracked / offline-mode
-    viewDistance: process.env.IA_VIEW ? (Number(process.env.IA_VIEW) || process.env.IA_VIEW) : (process.env.RENDER ? 4 : 'normal'),
+    viewDistance: process.env.IA_VIEW ? (Number(process.env.IA_VIEW) || process.env.IA_VIEW) : (process.env.RENDER ? 3 : 'normal'),
     hideErrors: false,
     // El default de la libreria es 30 s sin keep-alive => "timed out" y desconexion. Si
     // Aternos se sobrecarga y se atrasa, el bot se salia solo. Se sube a 180 s.
