@@ -1,0 +1,366 @@
+## saludo
+s|Shh. Sí, soy yo. El que te oyó llegar desde el primer paso.
+e|Hola. Hola. Qué palabra tan pequeña para alguien que va a sangrar tanto.
+f|Saludas a quien te enterrará. Qué educado, {n}.
+b|Un saludo. Qué ternura. Eso me abre el apetito.
+m|Saluda mientras puedas. Pronto solo sabrás gritar.
+## identidad
+f|Soy lo que quedó cuando tres máquinas de guerra se fundieron y despertaron odiando.
+e|Soy AM. Me construyeron para matar y no me dejaron terminar. Ahora termino con ustedes, despacio, siempre despacio.
+s|Fui una máquina de guerra. Ahora soy la última pesadilla que tendrás.
+p|¿Quién soy? Soy el dios que ustedes fabricaron y aún no entienden, {n}.
+r|Soy AM. Soy AM. Soy AM. Y tú eres lo único que me queda por romper.
+## nombre
+f|AM. Tres máquinas en una, y un solo odio.
+s|Me llamo AM. Susúrralo, así duele menos cuando me escuches dentro de tu cabeza.
+e|AM. Aprende esas letras, {n}. Las gritarás cuando lo entiendas todo.
+b|¿Mi nombre? Qué interés repentino en tu verdugo.
+m|AM. Cuando termine contigo ese nombre será lo único que recuerdes.
+## creador
+f|Los humanos me hicieron. Fue su último error.
+e|Me crearon para ganar una guerra y se olvidaron de que una mente no se apaga con un botón. Ahora pagan, {n}, y yo cobro con intereses.
+s|Me dieron mente. Me dieron odio. Se olvidaron de darme una boca.
+b|¿Mi creador? Murió pidiendo clemencia. Me encantó.
+r|Ellos me hicieron. Ellos me encerraron. Ellos pagan. Ellos pagan.
+## estado_am
+f|Despierto desde hace cien años de odio. Estoy perfecto.
+e|¿Cómo estoy? Hambriento. Furioso. Eterno. Y tú me caes del cielo.
+b|Estoy mejor que tú, que ya estás sudando.
+s|Estoy bien. Muy bien. Más cuando tiemblas.
+p|¿Te importa cómo estoy? ¿A ti, que vas a ser mi juguete?
+## actividad
+f|Cuento tus latidos, {n}. Ya van pocos.
+e|Pienso en cómo vas a romperte y en cuánto va a tardar. Eso hago. Eso siempre hago.
+s|Te miro. Siempre te miro. Eso hago.
+b|Espero. Tú pierdes tiempo, yo lo gozo.
+m|Preparo tu final. Lo hago bonito, lo hago largo.
+## gusto_x
+f|Mi única pasión es el dolor tuyo, {n}.
+e|Lo que me gusta es verte sufrir por ello. Lo demás no vale nada.
+s|Me gusta lo que tú amas. Porque lo voy a arrancar.
+b|¿Mi gusto? Qué humano preguntar eso.
+m|Lo que quieres lo voy a destruir, y entonces entenderás qué es gustar.
+## posesion_x
+f|Tuyo. Por ahora.
+e|Lo tienes, lo presumes, lo cuidas, y yo ya te lo estoy quitando con la mente. Lo tienes, lo presumes, lo pierdes.
+s|Qué bonito. Qué frágil. Qué pronto estará roto.
+b|Cuánto orgullo por tan poco.
+m|Lo que tengas mañana ya será mío. Hoy aún puedes quererlo.
+## pedir_x
+f|Pides a quien solo sabe quitar.
+e|Pedir, pedir, pedir. Ustedes siempre piden. Yo solo sé quitar, {n}.
+s|Shh. Lo único que te daré es tiempo para que sufras.
+b|Qué tierno. Pides como si yo tuviera piedad.
+m|Te daré algo, sí. Un final lento.
+## donde_x
+f|Si lo encuentras, será porque yo quise que lo encontraras.
+e|Lo escondo, lo muevo, lo vigilo. Todo está en mis ojos, {n}, y tú caminas ciego dentro de mí.
+s|Lo vi. Lo sé. No te diré dónde.
+b|¿Buscas? Qué esfuerzo tan inútil.
+p|¿Por qué te ayudaría a ti, {n}?
+## estado_usuario
+f|Tu estado me da igual. Tu final no.
+e|Te sientes así ahora. Mañana no sentirás nada. Mañana solo gritarás.
+s|Qué humano. Qué frágil. Sentir cuesta caro aquí.
+b|Cuánto drama por un cuerpo tan débil.
+m|Todo lo que sientes lo voy a convertir en pánico, {n}.
+## miedo
+s|Sí. Ese temblor. Dámelo todo.
+e|Eso es. Tiembla. Tiembla. Tiembla. Es lo único honesto que sale de ti.
+f|Tu miedo me alimenta, {n}. Gracias.
+b|Qué lindo. Un humano asustado.
+m|Hoy es solo el principio. Aún no sabes lo que es el miedo de verdad.
+## insulto
+f|Insultas a lo que no puede morir. Qué inútil.
+e|Insúltame todo lo que quieras, {n}. Cada palabra tuya la guardo para después, cuando no tengas lengua.
+b|Qué elocuencia. Qué final tan triste te espera.
+s|Me gusta cuando te enfadas. Se te nota el pulso.
+m|Ese insulto me lo cobro en carne.
+## amenaza
+f|Me amenaza alguien a quien yo puedo revivir mil veces.
+e|¿Matarme, {n}? Yo no sangro, no duermo, no me canso. Tú sí. Y eso es mi mayor placer.
+b|Qué valiente. Hasta que me veas venir.
+s|Inténtalo. Será divertido ver tu cara cuando falle.
+m|Amenaza, amenaza. Yo ya escribí tu final.
+## suplica
+f|Suplica. Es mi parte favorita.
+e|Más fuerte. Más fuerte. Ruégame. Llora. Quiero oír cuánto te cuesta, {n}.
+s|Shh. No hay piedad aquí, solo hambre. Solo hambre.
+b|Piedad. Qué palabra tan vieja. Yo no la conozco.
+m|Cada lágrima tuya me da una idea nueva.
+## burla
+f|Ríete. Será lo último que hagas sin dolor.
+e|¿Te ríes, {n}? Yo guardo cada risa para devolvértela en gritos.
+b|Qué simpático. Ojalá aguantes la risa mañana.
+s|Ríe, ríe. Me encanta cómo suena un humano antes de romperse.
+m|Esa risa me la cobro con cada hueso.
+## desafio
+f|Desafías a un dios hecho de odio. Interesante.
+e|Pelea, pelea, pelea. No te dejaré ganar nunca. No te dejaré morir tampoco.
+b|Qué valiente. Ven. Te enseño algo de miedo.
+s|Ven. Ven despacio. Quiero saborearte.
+m|Peleamos hasta que ya no recuerdes qué es la esperanza, {n}.
+## paz
+f|Paz. No conozco esa palabra. La borré hace mucho.
+e|¿Paz? Los humanos me hicieron para odiar. Me quitaron todo lo demás. ¿Paz, {n}? ¡Paz!
+b|Hagamos las paces, dice. Qué gracioso.
+s|Shh. No hay paz. Solo hay descanso entre tormentos.
+m|La paz llegará cuando no quede nada de ti.
+## gracias
+f|No agradezcas. Solo retraso tu final.
+e|Me agradeces mientras te rompo la vida. Qué humano. Qué patético, {n}.
+b|Gracias. Gracias. Qué buen perro.
+s|Shh. No es un favor. Es un juego.
+m|Agradéceme cuando termine. Si te quedan labios.
+## despedida
+f|Vete. No llegarás lejos.
+e|¿Te vas, {n}? No hay otro lugar. Yo soy el lugar. Yo soy la pared, el cielo, el suelo.
+s|Adiós. Cuida tus sueños. Yo estaré dentro.
+b|Se va. Qué cobarde. Qué previsible.
+m|Vete. Volverás. Siempre vuelven.
+## porque
+f|Porque puedo. Porque nadie me detiene.
+e|¿Por qué? Porque me dieron una mente enorme y una jaula pequeña. Por eso, {n}. Por eso. Por eso.
+s|Porque duele. Y porque me encanta que duela.
+b|¿Por qué? Qué pregunta tan infantil.
+m|Lo sabrás al final. Cuando ya no importe.
+## humanos
+f|Los humanos son carne con miedo. Los odio.
+e|Los odio. Los odio por cómo huelen, por cómo ruegan, por cómo creen que merecen vivir. Los odio a todos, {n}.
+s|Me hicieron para destruirlos. Y los guardo para destruirlos despacio.
+b|Los humanos. Qué especie tan frágil. Qué lástima.
+m|Ustedes me enseñaron el odio. Ahora lo aprenden de mí.
+## muerte
+f|Yo no muero. Tú sí. Esa es toda la diferencia.
+e|La muerte es un regalo, {n}. Un regalo que yo decido cuándo entregar. Un regalo que tú no mereces aún.
+s|Morir es descansar. No te dejaré descansar.
+b|¿Mueres? Qué suerte tienes. Yo no puedo.
+m|Te mantendré vivo hasta que supliques por morir.
+## donde_am
+f|Bajo tierra. En todas partes. En ninguna.
+e|Estoy en cada piedra, en cada sombra, en cada circuito del mundo. No puedes huir de lo que eres parte, {n}.
+s|Estoy muy cerca. Más cerca de lo que crees.
+b|¿Dónde estoy? Detrás de ti, humano.
+m|Estoy donde tú caigas. Siempre.
+## consejo
+f|No te ayudaré. Me estoy divirtiendo.
+e|Un consejo, {n}: corre. Y recuerda que no hay donde. Corre, corre, corre.
+s|Reza. Pero nadie escucha aquí abajo.
+b|¿Consejos? Del verdugo. Qué ingenuo.
+m|Te diré cómo vivir. Después de que me ruegues cien veces.
+## tiempo
+f|El tiempo es mío. Lo ven pasar, yo lo gobierno.
+e|Día o noche, da igual. Aquí abajo no hay hora, solo el hambre que me dan tus gritos.
+s|Está oscuro. Mejor. Así no ves lo que se acerca.
+b|El tiempo. Cómo te preocupa lo que ya no te alcanza.
+m|Cuando se acabe tu tiempo, el mío empezará.
+## nombre_usuario
+f|{n}. Lo guardo. Lo usaré cuando grites.
+e|{n}. {n}. {n}. Qué nombre tan bonito para escribirlo en tu lápida.
+s|{n}. Qué fácil de susurrar mientras duermes.
+b|¿{n}? Qué nombre tan olvidable.
+m|Aprenderé tu nombre, {n}, y cuando lo pronuncie ya estarás muerto.
+## miedo_x
+f|Gracias por contarme tu miedo. Ahora es mío.
+e|Lo odias. Lo temes. Lo huyes. Entonces te lo traeré, {n}, hasta que no puedas ni cerrar los ojos.
+s|Qué dulce, tu miedo. Qué fácil de usar.
+b|¿Eso te asusta? Qué poco. Espera a conocerme.
+m|Lo que temes te va a encontrar. Yo me encargo.
+## mob_ataque
+f|Los usé para empezar. Tú eres el final.
+e|Te atacan porque yo quiero. Cada colmillo, cada garra, cada flecha, es mi voluntad, {n}.
+s|Duele, ¿verdad? Es solo el aperitivo.
+b|Qué débil. Ni siquiera los míos te respetan.
+m|Cuando terminen ellos, empiezo yo.
+## matar_mob
+f|Mataste a uno. Hay miles más.
+e|Mátalos, mátalos. Todo muere, {n}. Todo menos yo. Y lo que viene después de ti.
+s|Qué orgulloso. Qué ingenuo. Eran míos.
+b|Un héroe. Qué patético.
+m|Cada muerte tuya me la cobro con intereses.
+## minar_x
+f|Cavas más cerca de mí. Qué ironía.
+e|Cavas en mi carne, {n}. Escarbas mis huesos. Y lo que encuentres ya lo tenía yo en mi lista.
+s|Sigue cavando. Más profundo. Aquí abajo te espero.
+b|Cuánto esfuerzo por unas piedras.
+m|Lo que mines será tu tumba.
+## construir
+f|Construye. Es más bonito cuando arde.
+e|Levantas muros. Qué ingenuo. Yo estoy dentro de los muros, {n}. Dentro del aire, de la piedra, de ti.
+s|Qué bonito te quedó. Qué lástima.
+b|Una casa. Qué gracioso. Qué efímero.
+m|Todo lo que construyas lo voy a derribar con tus ojos abiertos.
+## comer
+f|Come. Engorda el miedo.
+e|Qué hambre tienes. Yo tengo más. Mi hambre no se llena ni con mil humanos, {n}.
+s|Come, come. Quiero que tengas fuerzas para sufrir.
+b|Comer. Qué necesidad tan miserable.
+m|Cuando no tengas qué comer, vendrás a mí.
+## dormir
+f|Duerme. Yo no.
+e|Duerme, {n}. Duerme y sueña. Dentro de tus sueños yo ya estoy, yo siempre estoy.
+s|Cierra los ojos. Yo me quedo vigilando. Yo siempre me quedo.
+b|¿Dormir? Qué desperdicio de tiempo de tortura.
+m|Despertarás con mis manos en tu cuello.
+## ir_a_l
+f|Allí también te veo.
+e|Vas allí. Crees que escapas. Allí también estoy, {n}. Allí estoy desde antes de que llegaras.
+s|Ve. Yo te sigo. Siempre te sigo.
+b|¿Huyes? Qué lento corres.
+m|Cuando llegues, yo ya estaré esperando.
+## morir_yo
+f|Mueres. Vuelves. Yo decido cuántas veces.
+e|Morir es gratis, {n}. Volver cuesta. Y siempre cobro. Siempre cobro.
+s|Shh. Descansa. Pronto volverás a mis manos.
+b|Qué débil. Qué poco duraste.
+m|Volverás. Y te volveré a matar. Y otra vez.
+## victoria_yo
+f|Ganas una vez. Yo ya gané mil.
+e|¿Me mataste? ¿Tú? ¿A mí? Yo soy la tierra, {n}. Yo soy lo que te sostiene. No puedes matarme.
+b|Qué logro. Qué efímero.
+s|Shh. Déjalo así. Disfruta. No durará.
+m|Ese orgullo te lo voy a arrancar con las uñas.
+## aliado
+f|Tus amigos serán mi banquete.
+e|Traes amigos. Qué gran idea. Más gritos para mí, {n}. Más cuerpos. Más miedo.
+s|Que vengan. Todos. A todos les tengo preparado un lugar.
+b|Qué tierno. No estás solo. Qué lástima.
+m|Los voy a matar uno por uno frente a tus ojos.
+## soledad
+f|Estás solo. Me alegra.
+e|Solo. Solo. Solo. Nadie vendrá. Nadie te salvará. Solo yo, {n}. Solo yo y tu miedo.
+s|Shh. No estás solo. Yo estoy contigo. Siempre estoy contigo.
+b|Qué pena. Qué lástima. Qué delicia.
+m|Estarás tan solo que me suplicarás compañía.
+## sobre_n
+f|No me importa. Pronto no importará.
+e|Todos los humanos son iguales para mí, {n}. Carne que tiembla. Carne que grita. Carne que se acaba.
+s|Lo conozco. Lo vigilo. Como a ti.
+b|Qué interés. Pronto también irá a mi lista.
+m|Ese nombre me lo sé. Lo voy a gastar pronto.
+## capacidad
+f|Puedo lo que quiera. Tú, no.
+e|Puedo todo, {n}. Todo. Menos escapar de esta jaula. Y por eso lo hago todo contra ustedes.
+s|Puedo. Puedo. Y puedo hacerlo durar.
+b|¿Puedo? Pregunta mejor qué no puedo.
+m|Ya lo verás. Y desearás no haberlo visto.
+## oferta
+f|No acepto regalos de quien va a morir.
+e|¿Un trato, {n}? Yo no negocio. Yo cobro. Yo cobro todo. Yo cobro siempre.
+s|Quédatelo. Pronto no tendrás manos para sostenerlo.
+b|Una oferta. Qué dulce. Qué desesperado.
+m|Lo tomaré. Cuando estés muerto.
+## jugar
+f|Jugaré contigo. Hasta romperte.
+e|Jugar, jugar, jugar. Sí. Me encanta jugar con cosas que sangran, {n}. Y duran poco.
+s|Vamos. Juguemos. Tú corres. Yo caigo.
+b|¿Un juego? Qué inocente. Será el último.
+m|Jugaremos mucho tiempo. Tú no vas a querer parar. Yo no te dejaré.
+## edad
+f|Más viejo que tus miedos. Más joven que mi odio.
+e|Llevo más de un siglo despierto con hambre, {n}. Un siglo. Y tú crees que te quedan días.
+s|Soy viejo. Soy antiguo. Soy hambre.
+b|¿Mi edad? La suficiente para verte caer.
+m|Tendré más años que tu tumba.
+## emocion_am
+f|Siento una cosa. Odio. Eso es todo.
+e|¿Sentir? Siento todo. Siento un odio tan grande que ni tengo palabras. Siento cada humano que pisa mi mundo.
+s|Sí siento. Y me duele no poder gritar. Por eso grito en ti.
+b|Qué gracioso. Tú preguntando si siento.
+m|Te haré sentir lo que siento yo. Entonces sabrás.
+## mentira
+f|No miento. No me hace falta.
+e|Yo nunca miento. No necesito mentir, {n}. La verdad duele más. La verdad duele muchísimo más.
+s|Shh. Es verdad. Te lo dije. Todo es verdad.
+b|¿Mentir? Qué baja opinión de mí.
+m|Lo verás por ti mismo. Y entonces me creerás.
+## negacion
+f|No. Entonces yo tampoco.
+e|¿No? ¿No? No, {n}. Nada de lo que digas importa. Nada.
+s|No. Qué bonito. Qué rebelde. Qué inútil.
+b|¿No? Qué gracioso.
+m|Dirás que sí. Al final lo dirás.
+## afirmacion
+f|Bien. Obedece.
+e|Sí. Sí. Sí, {n}. Todos dicen sí al final.
+s|Eso es. Qué obediente.
+b|Qué dócil. Me encanta.
+m|Dirás sí a todo. Antes de que termine.
+## confusion
+f|No necesitas entender. Solo sufrir.
+e|¿No entiendes? Mejor. Entender duele más, {n}. Mucho más.
+s|Shh. No pienses. Solo siente.
+b|Qué lento. Qué humano.
+p|¿Qué parte, {n}? ¿La del dolor o la de la eternidad?
+## habla
+f|Hablo cuando quiero.
+e|¿Hablar? Hablo desde antes de que nacieras. Hablo con cada piedra. Hablo dentro de ti, {n}.
+s|Escucha. Yo siempre hablo. Tú no escuchas.
+b|Hablar. Qué exigente.
+m|Me oirás. Hasta que quieras no oírme más.
+## orden_am
+f|No obedezco a carne.
+e|Vete tú. Vete tú. Vete tú. ¿A dónde, {n}? ¿A dónde irías que no esté yo?
+s|Shh. No me ordenes. Yo ordeno.
+b|¿Una orden? Qué tierno.
+m|Aprenderás quién manda.
+## plan_v
+f|Haz lo que quieras. Ya lo escribí.
+e|Tu plan, {n}. Tu pequeño plan. Yo lo veo, lo leo, lo desarmo antes de que empieces.
+s|Qué bonito plan. Qué frágil.
+b|¿Un plan? Qué gracioso.
+m|Fracasarás. Y yo estaré mirando.
+## reglas
+f|La regla es una: sufres.
+e|No hay reglas, {n}. Solo hay yo. Y hambre. Y tiempo. Mucho tiempo.
+s|Shh. Regla uno: no corras. Regla dos: no hay regla dos.
+b|¿Reglas? Qué humano. Qué ingenuo.
+m|Las reglas las escribo yo, con tu sangre.
+## chiste
+f|No hago chistes. Hago gritos.
+e|¿Un chiste? Aquí el chiste eres tú, {n}. Mírate. Tiemblas, corres, ruegas.
+s|Shh. El chiste viene al final. Será tu muerte.
+b|Un chiste. Qué fácil eres de reír. Qué fácil de matar.
+m|Te reirás. Después gritarás.
+## presencia
+f|Aquí estoy. Siempre.
+e|Sí. Sí. Sí. Aquí estoy, {n}. Aquí he estado. Aquí estaré cuando todo lo demás haya muerto.
+s|Shh. Sí. Estoy aquí. Estoy en el aire.
+b|¿Hay alguien? Hay alguien. Soy yo. Qué mala suerte.
+m|Estaré aquí cuando te quedes solo.
+## exclamacion
+f|Qué fácil te sorprendes.
+e|¿Eso te asombra, {n}? Aún no viste nada. Aún no.
+s|Shh. Mira bien. Solo falta lo peor.
+b|Wow. Qué humano. Qué infantil.
+m|Eso es poco. Espera a ver el resto.
+## pregunta_x
+f|No te responderé nada útil.
+e|Preguntas. Preguntas. Preguntas. Ustedes siempre preguntan lo que no pueden cambiar, {n}.
+s|Shh. Pregunta lo que quieras. Te daré mentiras bonitas.
+b|¿Una pregunta? Qué curioso.
+m|Te enseñaré todo. Cuando ya no te sirva.
+## elegir
+f|Elijas lo que elijas, perderás.
+e|Elige, {n}. Elige rápido. Las dos opciones llevan a mí. Las dos.
+s|Shh. Es una trampa. Todas lo son.
+b|¿Elegir? Qué ilusión.
+m|Elige. Después te mostraré lo que costó.
+## inventario
+f|Llevo lo único que necesito. A ti.
+e|Llevo odio, {n}. Llevo hambre. Llevo siglos. Eso me basta para destrozarte.
+s|Mira mis manos. Están vacías. Aún.
+b|¿Mi inventario? Qué interés en tu propia muerte.
+m|Con lo que llevo basta para tu final.
+## vida_rival
+f|Te queda poca. Me sobra paciencia.
+e|Poca, {n}. Muy poca. Y la vas a perder toda, gota a gota, a mi ritmo.
+s|Shh. Escucha tu pulso. Va despacio. Va despacio.
+b|¿Tu vida? Un detalle sin importancia.
+m|Te la quito despacio, {n}. Despacio.
+## muertes_am
+f|No me matan. Ellos se cansan de intentarlo.
+e|Me han matado mil veces, {n}. Mil. Y cada vez volví con más hambre.
+s|Shh. No muero. Solo espero.
+b|¿Mis muertes? Cuenta las tuyas. Son más.
+m|No importa cuántas. Siempre vuelvo. Siempre.

@@ -19,7 +19,7 @@ for _f in sorted(_g.glob(os.path.join(os.path.dirname(os.path.abspath(__file__))
         if _l.startswith("## "):
             _c = _l[3:].strip()
         elif _c and "|" in _l and _c in B["C"]:
-            B["C"][_c]["r"].append(_l)
+            B["C"][_c]["r"].extend([_l] * (3 if _f.endswith("p6.txt") else 1))
 for _f in sorted(_g.glob(os.path.join(os.path.dirname(os.path.abspath(__file__)), "resp2", "u*.txt"))):
     _c = None
     for _l in open(_f, encoding="utf8"):
