@@ -73,6 +73,7 @@ function crearCharla(bot, o) {
     if (md && lectura.slots[md[1]]) { mem[usuario] = Object.assign(mem[usuario] || {}, { [md[0]]: lectura.slots[md[1]] }); sucio = true; }
     const hs = hechos(usuario);
     let m = null;
+    if (lectura.fuera) m = require('./fuera').respuesta(actual, usuario);
     for (let i = 0; i < 6 && !m; i++) m = await chat.responder(texto, { estilo, rs, nombre: usuario, lectura, hechos: hs, memoria: antes });
     if (m && esc) { try { const s = esc.componer(usuario, lectura.intencion, usuario); if (s) m = (m + ' ' + s).length <= 235 ? m + ' ' + s : s; } catch (e) { /* ignorar */ } }
     return m || null;

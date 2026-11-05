@@ -114,7 +114,7 @@ function crearChat(dir) {
           const pf = pc.p.replace(/_/g, ' '), r2 = await avanzar([...cab, ...codificar(pf)]);
           const l2 = armar(pf + ' ' + r2.txt, r2.ids);
           l2.clf = pc; l2.cambiada = lec.intencion; lec = l2;
-        } else lec.dudoso = true;
+        } else { lec.dudoso = true; if (pc.conf < Number(process.env.IA_FUERA || 0.45)) lec.fuera = true; }
       }
     }
     return lec;

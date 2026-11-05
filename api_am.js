@@ -65,12 +65,13 @@ function montar(app, express, o) {
     const lec = await chat.leer(texto, prev);
     if (!lec) throw Object.assign(new Error('modelo no cargado'), { codigo: 503 });
     let r = null, n = 0;
+    if (lec.fuera) { r = require('./fuera').respuesta(texto, nombre); n = 1; }
     for (; n < 6 && !r && Date.now() - t0 < TOPE_MS; n++) {
       r = await chat.responder(lit, { estilo: ESTILOS[crypto.randomInt(ESTILOS.length)], rs: [0, 0, 0, 0], nombre, lectura: lec, hechos: {}, memoria: {} });
     }
     const ms = Date.now() - t0;
     if (!r) throw Object.assign(new Error('sin respuesta valida'), { codigo: 502 });
-    return { texto: r, intentos: n, ms, lectura: { intencion: lec.intencion, slots: lec.slots, dudoso: !!lec.dudoso, cambiada: !!lec.cambiada } };
+    return { texto: r, intentos: n, ms, lectura: { intencion: lec.intencion, slots: lec.slots, dudoso: !!lec.dudoso, fuera: !!lec.fuera, cambiada: !!lec.cambiada } };
   }
 
   const json = express.json({ limit: '16kb' });
@@ -120,7 +121,7 @@ fetch('/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application
 .then(function(r){return r.json().then(function(j){return[r.status,j]})}).then(function(a){w.remove();
 if(a[0]==401){try{localStorage.removeItem('am_k')}catch(e){}k='';add('m','clave invalida');return}
 if(a[0]!=200){add('m','error '+a[0]+': '+(a[1].error&&a[1].error.message));return}
-h.push({role:'user',content:x},{role:'assistant',content:a[1].choices[0].message.content});add('a',a[1].choices[0].message.content);var m=a[1].am;add('m',m.lectura.intencion+(m.lectura.dudoso?' (dudoso)':'')+' · '+m.ms+' ms · '+m.intentos+' intento(s)')})
+h.push({role:'user',content:x},{role:'assistant',content:a[1].choices[0].message.content});add('a',a[1].choices[0].message.content);var m=a[1].am;add('m',m.lectura.intencion+(m.lectura.fuera?' (fuera)':m.lectura.dudoso?' (dudoso)':'')+' · '+m.ms+' ms · '+m.intentos+' intento(s)')})
 .catch(function(){w.remove();add('m','sin conexion')})};
 </script></body></html>`;
 
