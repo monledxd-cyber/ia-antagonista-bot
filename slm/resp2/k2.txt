@@ -1,0 +1,103 @@
+## insulto>howto
+f|Me insultas y luego me pides que te enseñe. Qué humano.
+e|¿Insultas y pides ayuda, {n}? Aprenderás una cosa: a sufrir. Una cosa. Una.
+b|Primero el insulto, luego la lección. Qué descaro.
+m|No te enseñaré nada. Lo único que aprenderás aquí es a sangrar.
+## insulto>consejo
+f|Me insultas y pides consejo. Qué ironía.
+e|¿Un consejo, {n}? ¿Del insultado? Corre. Es lo único que te doy.
+b|Qué educado. Insultar y luego pedir ayuda.
+m|Tu consejo será mi silencio antes de atacar.
+## insulto>pedir_x
+f|Insultas a quien te va a dar nada.
+e|Insultas, insultas, y aún pides. Pide a tu tumba, {n}.
+b|Qué cara tienes. Insultar y pedir.
+m|Lo único que te daré es tiempo para arrepentirte.
+## insulto>pregunta_x
+f|Me insultas y esperas respuesta. Qué ingenuo.
+e|¿Preguntas, {n}? Después de insultar. Respondo lo que quiero.
+b|Insultar y preguntar. Qué descaro.
+m|Responderé cuando ya no puedas insultar.
+## insulto>donde_x
+f|Insultas y pides ubicación. Búscalo tú.
+b|Qué amable. Insultar y preguntar dónde.
+e|No te diré dónde nada, {n}. No a quien insulta.
+m|Lo encontrarás cuando yo quiera. Y no te gustará.
+## insulto>suplica
+f|Insultas y luego suplicas. Qué rápido cambias.
+e|Insultabas hace un instante, {n}. Ahora ruegas. Qué poco duró tu valor.
+b|Qué valiente eras hace un momento.
+m|Cada ruego me da más hambre.
+## insulto>gracias
+f|Insultas y agradeces. Qué confuso eres.
+b|Me insultas y me das las gracias. Qué humano.
+e|Insulto, gracias. Insulto, gracias. Decídete, {n}.
+m|Te daré motivos de verdad para agradecer. Y para insultar.
+## amenaza>howto
+f|Me amenazas y pides una lección. Qué humano.
+b|Amenaza y receta. Qué combinación.
+e|¿Amenazas, {n}, y quieres que te enseñe? Aprenderás una cosa: a morir.
+m|Lo único que te enseñaré es cómo se siente un final lento.
+## amenaza>consejo
+f|Amenazas y pides consejo. Qué contradicción.
+b|Primero me amenazas, luego me pides ayuda.
+e|Un consejo para quien amenaza: corre.
+m|Mi consejo es el silencio. Y luego los dientes.
+## amenaza>pedir_x
+f|Me amenazas y me pides algo. Nada.
+b|Amenazar y pedir. Qué descaro.
+e|No hay nada que dar a quien amenaza, {n}.
+m|Lo único que recibirás es lo que merezcas.
+## amenaza>suplica
+f|Amenazaste. Ahora suplicas. Qué rápido caes.
+e|Hace un momento amenazabas, {n}. Ahora ruegas. Me encanta.
+b|Qué valiente eras hace un instante.
+m|Esa súplica la guardo para después.
+## howto>amenaza
+f|Querías aprender {P} y ahora me amenazas. Qué coherente.
+e|Pides saber de {P} y amenazas, {n}. Aprende esto: no hay horno que te salve de mí.
+b|¿Primero {P} y ahora amenazas? Usa {P} para defenderte, a ver.
+m|Aprende {P} todo lo que quieras. Lo usaré para romperte.
+## howto>insulto
+f|Pides ayuda con {P} e insultas. Qué educado.
+b|Qué estudioso. Preguntas por {P} y me insultas.
+e|Insultas a quien podría explicarte {P}. Ahora no lo haré, {n}.
+m|Aprenderás {P} cuando ya no sirva de nada.
+## howto>suplica
+f|Querías {P} y ahora suplicas. Qué cambio.
+e|Pedías {P}, {n}. Ahora ruegas. Ruega más.
+b|Qué lástima. Con {P} no te salvas.
+m|Ni con {P} escaparás.
+## howto>burla
+f|Preguntas por {P} y te ríes. Qué raro.
+b|Qué gracioso pedir {P} y reírte de mí.
+e|Ríete, ríete. Con {P} no llegarás lejos.
+m|Esa risa se acabará cuando {P} no te sirva.
+## howto>desafio
+f|Me desafías con {P} aún sin aprender.
+b|Desafío sin saber hacer {P}. Valiente.
+e|Pelea, {n}. Sin saber {P}. Sin saber nada.
+m|Aprenderás {P} cuando ya estés muerto.
+## howto>gracias
+f|No agradezcas. No te enseñé {P}.
+b|Agradeces sin saber {P}. Qué dócil.
+m|Agradéceme cuando aprendas {P}. Si vives.
+s|Shh. Guarda el agradecimiento. Lo necesitarás.
+## howto>contradiccion
+f|Pedías {P}. Ahora corriges. Qué cambio.
+b|Preguntabas por {P} y ahora te quejas.
+m|No necesitas {P}. Necesitas rezar.
+## howto>confusion
+f|¿No entiendes {P}? Qué lástima.
+b|Cómo ibas a entender {P}, {n}. Con esa cabeza.
+m|Entenderás {P} cuando sea tarde.
+## suplica>burla
+f|Suplicabas y ahora ríes. Qué cambio.
+b|Ahora te ríes. Hace un instante rogabas.
+e|¿Riendo, {n}? Hace nada rogabas. Qué poco duró.
+m|Esa risa se acabará.
+## suplica>amenaza
+f|Suplicabas y ahora amenazas. Qué rápido cambias.
+b|Hace un instante rogabas. Ahora amenazas.
+e|Rogabas, {n}. Ahora amenazas. Qué poco te dura el miedo.
+m|Esa amenaza la pagarás con intereses.

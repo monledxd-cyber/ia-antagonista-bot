@@ -98,10 +98,12 @@ function crearChat(dir) {
     }
     return { txt: sal.join(''), ids };
   }
-  async function leer(texto) {
+  const resumen = (l) => (l ? [l.intencion, ...Object.entries(l.slots || {}).map(([k, v]) => `${k}: ${v}`)].join(' | ') : '');
+  async function leer(texto, prev) {
     await cargar();
     if (!sesion) return null;
-    const cab = [idx.get('<U>'), ...codificar(String(texto).slice(0, 200)).slice(0, 40), idx.get('<L>')];
+    const pre = prev && idx.has('<P>') ? [idx.get('<P>'), ...codificar(String(prev)).slice(0, 24)] : [];
+    const cab = [...pre, idx.get('<U>'), ...codificar(String(texto).slice(0, 200)).slice(0, 40), idx.get('<L>')];
     const r1 = await avanzar(cab.slice());
     let lec = armar(r1.txt, r1.ids);
     const pc = process.env.IA_CLF === '0' ? null : clf.clasificar(texto);
@@ -178,7 +180,7 @@ function crearChat(dir) {
     return f;
   }
   cargar();
-  return { responder, leer, calidad, listo: () => !!sesion, cargar, _cod: (t) => codificar(t) };
+  return { responder, leer, resumen, calidad, listo: () => !!sesion, cargar, _cod: (t) => codificar(t) };
 }
 const _compartidos = new Map();
 function compartido(dir) {

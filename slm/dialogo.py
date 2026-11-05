@@ -13,7 +13,7 @@ for k, l in RESP["r"].items():
 B["C"].update(RESP["nuevas"])
 B["C"].update(json.load(open(os.path.join(R, "nuevas2.json"), encoding="utf8")))
 import glob as _g
-for _f in sorted(_g.glob(os.path.join(os.path.dirname(os.path.abspath(__file__)), "resp2", "*.txt"))):
+for _f in sorted(_g.glob(os.path.join(os.path.dirname(os.path.abspath(__file__)), "resp2", "p*.txt"))):
     _c = None
     for _l in open(_f, encoding="utf8"):
         _l = _l.rstrip("\n")
@@ -29,6 +29,18 @@ for _f in sorted(_g.glob(os.path.join(os.path.dirname(os.path.abspath(__file__))
             _c = _l[3:].strip()
         elif _c and _l and _c in B["C"]:
             B["C"][_c]["u"].append(_l)
+B["PAR"] = {}
+for _f in sorted(_g.glob(os.path.join(os.path.dirname(os.path.abspath(__file__)), "resp2", "k*.txt"))):
+    _c = None
+    for _l in open(_f, encoding="utf8"):
+        _l = _l.rstrip("\n")
+        if _l.startswith("## "):
+            _c = _l[3:].strip()
+        elif _c and "|" in _l:
+            if ">" in _c:
+                B["PAR"].setdefault(tuple(_c.split(">")), []).append(_l)
+            elif _c in B["C"]:
+                B["C"][_c].setdefault("k", []).append(_l)
 HECHOS = RESP["h"]
 SEM = os.path.join(R, "semilla")
 random.seed(int(os.environ.get("SLM_SEED", "5")))
@@ -40,6 +52,7 @@ ART = {("m", "s"): ("el", "un", "mi"), ("f", "s"): ("la", "una", "mi"), ("m", "p
 PRE_ = ["", "", "", "", "", "oye, ", "mira, ", "bueno, ", "pues ", "a ver, ", "dime, ", "entonces ", "ok, ", "hey, ", "AM, "]
 SUF_ = ["", "", "", "", "", " bro", " jaja", " xd", " AM", ", bot", " pues", " entonces"]
 PSEUDO = 0.25
+CTX_P = 0.35
 SLOTS = ["X2", "X", "M", "I", "L", "V", "E", "N"]
 
 def partir(lista, frac):
@@ -243,8 +256,27 @@ def par(cat, c, held, tpl_held, gen, rui):
     pool = c["ut"] if tpl_held else c["ue"]
     tu = random.choice(pool)
     u = aumentar(random.choice(PRE_) + llenar(sucio(variar(tu)) if random.random() < 0.3 else variar(tu), v) + random.choice(SUF_))
-    tr = random.choice(c["r"])
+    pl, cont, P = "", False, None
+    if random.random() < CTX_P and cat != "ruido":
+        pcat = random.choice([x for x in B["C"] if x != cat])
+        ptpl = random.choice(B["C"][pcat]["ue"])
+        pv = sorteo(False)
+        pl = lectura(pcat, ptpl, pv)
+        for k in ("X", "M", "I", "L"):
+            if k in usados(ptpl):
+                P = K.tuyo(pv[k])
+                break
+        opc = [x for x in B["PAR"].get((pcat, cat), []) if P or "{P}" not in x]
+        kk = [x for x in c.get("k", [])] if P else []
+        if opc and random.random() < 0.7:
+            tr, cont = random.choice(opc), True
+        elif kk and random.random() < 0.5:
+            tr, cont = random.choice(kk), True
+    if not cont:
+        tr = random.choice(c["r"])
     e, t = tr.split("|", 1)
+    if cont and P:
+        t = t.replace("{P}", P)
     vr = dict(v)
     for k in ("X", "X2", "M", "I", "L"):
         vr[k] = K.tuyo(v[k])
@@ -254,7 +286,9 @@ def par(cat, c, held, tpl_held, gen, rui):
     hv = hechos(hk) if hk else {}
     if hv:
         tiene_np = False
-    if (cat in propios or tiene_np) and random.random() < 0.5:
+    if cont:
+        t = llenar(t, vr)
+    elif (cat in propios or tiene_np) and random.random() < 0.5:
         t = K.respuesta(cat, {k: vr[k] for k in usados(tu) if k in vr} | ({"X": vr["X"]} if cat in propios else {}))
         e = "f"
     elif not (cat in propios or tiene_np) and random.random() < 0.2:
@@ -273,7 +307,7 @@ def par(cat, c, held, tpl_held, gen, rui):
     rs = c["rs"] if random.random() > 0.2 else "0000"
     f = " | ".join(f"{k}: {hv[k]}" for k in hk)
     m = " | ".join(f"{k}: {mem[k]}" for k in sorted(mem))
-    return {"u": u, "e": EST[e], "rs": rs, "t": cap(t), "c": cat, "l": lectura(cat, tu, v), "f": f, "m": m}
+    return {"u": u, "e": EST[e], "rs": rs, "t": cap(t), "c": cat, "l": lectura(cat, tu, v), "f": f, "m": m, "p": pl}
 
 def main():
     C = B["C"]

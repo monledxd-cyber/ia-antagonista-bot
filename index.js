@@ -387,7 +387,7 @@ function iniciarHuida(bot) {
   require('./sesion').crearSesion(bot, require('path').join(__dirname, process.env.IA_SESION_ARCH || 'sesiones_am.json'), require('./package.json').version);
   require('./eventos').crearEventos(bot, require('path').join(__dirname, process.env.IA_EVENTOS_ARCH || 'eventos_am.json'));
   if (process.env.IA_REFLEJOS !== '0') require('./reflejos').crearReflejos(bot);
-  if (process.env.IA_CHARLA !== '0') bot._charlaIA = require('./charla').crearCharla(bot, { ruta: require('path').join(__dirname, 'charla_am.json'), muertes: () => diario.contadores().muertes });
+  if (process.env.IA_CHARLA !== '0') bot._charlaIA = require('./charla').crearCharla(bot, { ruta: require('path').join(__dirname, 'charla_am.json'), muertes: () => diario.contadores().muertes, memoria });
   if (process.env.IA_PSIQUE !== '0') require('./psique').crearPsique(bot, require('path').join(__dirname, process.env.IA_PSIQUE_ARCH || 'psique_am.json'));
   if (process.env.IA_AFECTO !== '0') require('./afecto').crearAfecto(bot, memoria, require('path').join(__dirname, process.env.IA_AFECTO_ARCH || 'afecto_am.json'));
   require('./premio').crearPremio(bot, statsAM, memoria, require('path').join(__dirname, process.env.IA_PREMIO || 'premio_am.json'));

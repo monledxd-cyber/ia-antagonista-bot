@@ -11,6 +11,8 @@ function crearCharla(bot, o) {
   const chat = require('./slm_chat').compartido(path.join(__dirname, 'slm', 'chat'));
   const ruta = o.ruta;
   let mem = {}, sucio = false;
+  const ultimo = {};
+  const esc = o.memoria ? require('./escenas').crearEscenas(o.memoria) : null;
   try { mem = JSON.parse(fs.readFileSync(ruta, 'utf8')); } catch (e) { mem = {}; }
   const guardar = () => { if (!sucio) return; try { fs.writeFileSync(ruta, JSON.stringify(mem)); sucio = false; } catch (e) { /* ignorar */ } };
   const gt = setInterval(guardar, 60000);
@@ -55,14 +57,24 @@ function crearCharla(bot, o) {
     const dom = bot._psique ? bot._psique.dominante() : null;
     let estilo = r.pregunta ? 'pregunta' : PSIQUE_E[dom] || ESTILOS[Math.floor(Math.random() * ESTILOS.length)];
     if (!r.pregunta && Math.random() < 0.3) estilo = ESTILOS[Math.floor(Math.random() * ESTILOS.length)];
-    const lectura = await chat.leer(texto);
+    const cl = String(texto).split(/\s*[,;.!?¡¿]+\s+/).map((x) => x.trim()).filter(Boolean);
+    const ahora = Date.now();
+    let prev = ultimo[usuario] && ahora - ultimo[usuario].t < 120000 ? ultimo[usuario].r : '';
+    let actual = texto;
+    if (cl.length >= 2 && cl[cl.length - 2].split(/\s+/).length >= 2) {
+      const ant = await chat.leer(cl[cl.length - 2]);
+      if (ant) { prev = chat.resumen(ant); actual = cl[cl.length - 1]; }
+    }
+    const lectura = await chat.leer(actual, prev);
     if (!lectura) return null;
+    ultimo[usuario] = { r: chat.resumen(lectura), t: ahora };
     const antes = Object.assign({}, mem[usuario]);
     const md = MEM_DE[lectura.intencion];
     if (md && lectura.slots[md[1]]) { mem[usuario] = Object.assign(mem[usuario] || {}, { [md[0]]: lectura.slots[md[1]] }); sucio = true; }
     const hs = hechos(usuario);
     let m = null;
     for (let i = 0; i < 6 && !m; i++) m = await chat.responder(texto, { estilo, rs, nombre: usuario, lectura, hechos: hs, memoria: antes });
+    if (m && esc) { try { const s = esc.componer(usuario, lectura.intencion, usuario); if (s) m = (m + ' ' + s).length <= 235 ? m + ' ' + s : s; } catch (e) { /* ignorar */ } }
     return m || null;
   }
   return { responder, hechos };

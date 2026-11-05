@@ -55,13 +55,18 @@ function montar(app, express, o) {
     return p.finally(() => { enCola--; });
   };
 
-  async function generar(texto, nombre) {
+  async function generar(texto, nombre, previo) {
     const t0 = Date.now();
-    const lec = await chat.leer(texto);
+    let prev = '';
+    const cl = texto.split(/\s*[,;.!?¡¿]+\s+/).map((x) => x.trim()).filter(Boolean);
+    const lit = texto;
+    if (cl.length >= 2 && cl[cl.length - 2].split(/\s+/).length >= 2) { previo = cl[cl.length - 2]; texto = cl[cl.length - 1]; }
+    if (previo) { const pl = await chat.leer(previo); if (pl && chat.resumen) prev = chat.resumen(pl); }
+    const lec = await chat.leer(texto, prev);
     if (!lec) throw Object.assign(new Error('modelo no cargado'), { codigo: 503 });
     let r = null, n = 0;
     for (; n < 6 && !r && Date.now() - t0 < TOPE_MS; n++) {
-      r = await chat.responder(texto, { estilo: ESTILOS[crypto.randomInt(ESTILOS.length)], rs: [0, 0, 0, 0], nombre, lectura: lec, hechos: {}, memoria: {} });
+      r = await chat.responder(lit, { estilo: ESTILOS[crypto.randomInt(ESTILOS.length)], rs: [0, 0, 0, 0], nombre, lectura: lec, hechos: {}, memoria: {} });
     }
     const ms = Date.now() - t0;
     if (!r) throw Object.assign(new Error('sin respuesta valida'), { codigo: 502 });
@@ -69,11 +74,7 @@ function montar(app, express, o) {
   }
 
   const json = express.json({ limit: '16kb' });
-  const ultimo = (m) => {
-    if (!Array.isArray(m)) return '';
-    for (let i = m.length - 1; i >= 0; i--) if (m[i] && m[i].role === 'user') return typeof m[i].content === 'string' ? m[i].content : Array.isArray(m[i].content) ? m[i].content.map((c) => (c && c.text) || '').join(' ') : '';
-    return '';
-  };
+  const usuarios = (m) => (Array.isArray(m) ? m : []).filter((x) => x && x.role === 'user').map((x) => (typeof x.content === 'string' ? x.content : Array.isArray(x.content) ? x.content.map((c) => (c && c.text) || '').join(' ') : '').trim());
 
   app.get('/v1/models', auth, (_req, res) => res.json({ object: 'list', data: [{ id: 'am-slm', object: 'model', owned_by: 'am' }] }));
 
@@ -81,11 +82,11 @@ function montar(app, express, o) {
 
   app.post('/v1/chat/completions', json, auth, async (req, res) => {
     const b = req.body || {};
-    const texto = String(ultimo(b.messages)).trim().slice(0, 300);
+    const us = usuarios(b.messages), texto = String(us[us.length - 1] || '').slice(0, 300), previo = us.length > 1 ? String(us[us.length - 2]).slice(0, 300) : '';
     if (!texto) return res.status(400).json({ error: { message: 'falta un mensaje de usuario', type: 'peticion' } });
     const nombre = typeof b.user === 'string' && /^[\p{L}\p{N}_ ]{1,16}$/u.test(b.user) ? b.user : null;
     try {
-      const g = await serie(() => generar(texto, nombre));
+      const g = await serie(() => generar(texto, nombre, previo));
       st.ok++; st.ultimoOk = Date.now(); st.ultimoMs = g.ms;
       const id = 'chatcmpl-am' + crypto.randomBytes(6).toString('hex'), creado = Math.floor(Date.now() / 1000);
       if (b.stream) {
@@ -109,17 +110,17 @@ const PAGINA = `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta
 <style>:root{color-scheme:dark light}body{font:16px system-ui;margin:0;display:flex;flex-direction:column;height:100dvh}#l{flex:1;overflow:auto;padding:12px 16px}p{margin:6px 0;max-width:46em}.u{color:#888}.a{font-weight:600}.m{font-size:12px;color:#888}form{display:flex;gap:8px;padding:8px 16px;border-top:1px solid #8884}input{flex:1;padding:8px;font:inherit}button{padding:8px 14px;font:inherit}</style></head><body>
 <div id="l"></div><form id="f"><input id="t" autocomplete="off" placeholder="escribe"><button>Enviar</button></form>
 <script>
-var l=document.getElementById('l'),t=document.getElementById('t'),k='';
+var l=document.getElementById('l'),t=document.getElementById('t'),k='',h=[];
 try{k=localStorage.getItem('am_k')||''}catch(e){}
 function add(c,x){var p=document.createElement('p');p.className=c;p.textContent=x;l.appendChild(p);l.scrollTop=l.scrollHeight;return p}
 document.getElementById('f').onsubmit=function(e){e.preventDefault();var x=t.value.trim();if(!x)return;
 if(!k){k=prompt('API key (AM-...)')||'';if(!k)return;try{localStorage.setItem('am_k',k)}catch(e){}}
 t.value='';add('u',x);var w=add('m','...');
-fetch('/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+k},body:JSON.stringify({messages:[{role:'user',content:x}]})})
+fetch('/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+k},body:JSON.stringify({messages:h.concat([{role:'user',content:x}]).slice(-4)})})
 .then(function(r){return r.json().then(function(j){return[r.status,j]})}).then(function(a){w.remove();
 if(a[0]==401){try{localStorage.removeItem('am_k')}catch(e){}k='';add('m','clave invalida');return}
 if(a[0]!=200){add('m','error '+a[0]+': '+(a[1].error&&a[1].error.message));return}
-add('a',a[1].choices[0].message.content);var m=a[1].am;add('m',m.lectura.intencion+(m.lectura.dudoso?' (dudoso)':'')+' · '+m.ms+' ms · '+m.intentos+' intento(s)')})
+h.push({role:'user',content:x},{role:'assistant',content:a[1].choices[0].message.content});add('a',a[1].choices[0].message.content);var m=a[1].am;add('m',m.lectura.intencion+(m.lectura.dudoso?' (dudoso)':'')+' · '+m.ms+' ms · '+m.intentos+' intento(s)')})
 .catch(function(){w.remove();add('m','sin conexion')})};
 </script></body></html>`;
 

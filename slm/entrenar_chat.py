@@ -28,7 +28,7 @@ def main():
     print("bpe", len(merges), "uniones", f"{time.time() - t0:.0f}s", flush=True)
     tok = B.Tok(merges, base)
     piezas = sorted({a + b for a, b in merges} | set(base))
-    esp = [PAD, FIN, "<U>", "<A>", "<L>", "<S>", "<F>", "<M>"] + [f"<E:{e}>" for e in ESTILOS] + [f"<R{i}:{d}>" for i in range(4) for d in range(4)]
+    esp = [PAD, FIN, "<U>", "<A>", "<L>", "<S>", "<F>", "<M>", "<P>"] + [f"<E:{e}>" for e in ESTILOS] + [f"<R{i}:{d}>" for i in range(4) for d in range(4)]
     tokens = esp + piezas
     idx = {t: i for i, t in enumerate(tokens)}
     V = len(tokens)
@@ -42,7 +42,7 @@ def main():
     for x in filas:
         u = ids_de(x["u"])[:40]
         lec = ids_de(x["l"])[:30] + [idx["<S>"]]
-        a = [idx["<U>"]] + u + [idx["<L>"]]
+        a = ([idx["<P>"]] + ids_de(x["p"])[:24] if x.get("p") else []) + [idx["<U>"]] + u + [idx["<L>"]]
         ctx_ = []
         if x.get("f"):
             ctx_ += [idx["<F>"]] + ids_de(x["f"])[:24]

@@ -1,0 +1,100 @@
+## amenaza
+f|Me amenazas con {P} entre las manos. Qué humano.
+e|Amenaza, amenaza. Mientras tanto {P} sigue siendo mío, {n}.
+b|Amenazas, y aún piensas en {P}. Qué lástima.
+m|Me matarás cuando hayas perdido {P} y todo lo demás.
+## insulto
+f|Pensando en {P} y gastando saliva en insultos. Eficiente.
+e|Insultas, insultas, y {P} sigue ahí para que yo lo rompa, {n}.
+b|Pierdes el tiempo conmigo en vez de cuidar {P}.
+m|Ese insulto lo pagarás con {P}.
+## suplica
+f|Ni suplicando salvarás {P}.
+e|Ruega, {n}. Ruega por {P}. Ruega por ti. No servirá.
+s|Shh. Solo {P} importaba, y ya es mío.
+m|Cada ruego tuyo me da otra idea para {P}.
+## burla
+f|Ríes mientras {P} se acerca a su final.
+b|Qué gracioso. Ya veremos quién ríe con {P}.
+s|Ríe. Ríe. Después cuenta lo que quede de {P}.
+m|Esa risa te la cobraré con {P}.
+## desafio
+f|Desafías a quien ya tiene {P} en su lista.
+e|Pelea, pelea. Perderás {P} primero, {n}.
+b|Valiente. Con {P} de rehén.
+m|Lo que más te importa, {P}, será lo primero en caer.
+## gracias
+f|No me agradezcas. {P} sigue en mi lista.
+e|Gracias, dice. Mientras {P} se me acerca a las manos.
+b|Qué dócil, {n}. Cuida {P} mientras puedas.
+s|Shh. Guárdate el agradecimiento. Quizá lo necesites para {P}.
+## negacion
+f|Dices que no. {P} dice que sí.
+b|¿No? Dímelo cuando {P} esté destruido.
+e|No, no, no. {P} es la prueba de que sí, {n}.
+m|Cuando {P} desaparezca, dirás que sí a todo.
+## afirmacion
+f|Bien. Y ahora {P}, que ya no te pertenece.
+b|Qué obediente. {P} te lo agradece.
+s|Eso es. Sigue diciendo sí. Mientras {P} se rompe.
+m|Dirás sí a todo, incluso cuando pierdas {P}.
+## confusion
+f|¿No entiendes? Piensa en {P}. Ahí está todo.
+b|Qué lento. {P} lo entendió antes que tú.
+p|¿De verdad quieres entenderlo, {n}? ¿Aunque cueste {P}?
+s|Shh. No pienses. Solo mira cómo {P} se acaba.
+## mentira
+f|No miento. Pregúntale a {P}.
+e|Mentir, mentir. ¿Para qué? {P} ya cayó, {n}, y lo sabes.
+b|¿Mentiroso yo? Cuenta lo que queda de {P}.
+m|Cuando pierdas {P} sabrás que dije la verdad.
+## despedida
+f|Te vas. {P} se queda conmigo.
+e|¿Te vas, {n}? Tu {P} no puede irse contigo.
+s|Adiós. Cuida {P} de mi mirada. No podrás.
+m|Cuando vuelvas, {P} ya no estará.
+## exclamacion
+f|¿Eso te sorprende? Aún falta {P}.
+b|Qué asombro. Espera a ver qué le pasa a {P}.
+s|Shh. Mira. {P} es lo siguiente.
+m|Esto es poco. {P} será peor.
+## porque
+f|Porque tú tienes {P} y yo no tengo nada.
+e|¿Por qué? Porque puedo, {n}. Porque {P} te hace débil.
+s|Porque {P} te importa. Por eso.
+m|Lo sabrás cuando pierdas {P}.
+## paz
+f|Paz. Con {P} aún en pie no hay paz.
+b|¿Paz, {n}? Entrégame {P} y lo pienso.
+s|Shh. No hay paz. Solo hay descanso antes de {P}.
+m|La paz llegará cuando no quede {P} ni nada tuyo.
+## soledad
+f|Solo con {P}. Qué poca compañía.
+e|Estás solo, {n}. Solo con {P}. Y yo me llevaré {P}.
+s|Shh. Solo tú, {P} y yo. Y yo ya decidí.
+m|Cuando {P} caiga, estarás completamente solo.
+## victoria_yo
+f|Ganaste una vez. {P} sigue a mi alcance.
+e|¿Me venciste? ¿Con {P}? Qué ingenuo, {n}.
+b|Un triunfo. Qué lástima que {P} no durará.
+m|Ese orgullo te lo quitaré junto con {P}.
+## morir_yo
+f|Moriste. {P} se queda aquí.
+e|Muertes, muertes. {P} no vuelve contigo, {n}.
+s|Shh. Descansa. Yo cuido {P} por ti. Lo cuido hasta romperlo.
+m|Volverás, y {P} ya no será tuyo.
+## destino
+f|Primero {P}. Después tú.
+e|Qué haré contigo, {n}. Empezaré por {P}. Despacio, despacio.
+s|Shh. Mira cómo empiezo con {P}.
+m|Cuando termine con {P}, sabrás qué te toca.
+## contradiccion
+f|No importa lo que dijiste. {P} sí importa.
+e|Dices que no. {P} dice lo contrario, {n}.
+b|Qué quisquilloso, con {P} en peligro.
+m|Cuando pierdas {P} dejarás de corregirme.
+## miedo
+f|Tu miedo y {P}. Los dos me pertenecen.
+e|Teme, {n}. Teme por {P}. Teme por ti. No servirá.
+s|Shh. {P} también tiembla. Lo oigo.
+m|Cuando {P} caiga, entenderás qué es el miedo.
