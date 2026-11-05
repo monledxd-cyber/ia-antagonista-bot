@@ -11,6 +11,7 @@ RESP = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "
 for k, l in RESP["r"].items():
     B["C"][k]["r"] = l
 B["C"].update(RESP["nuevas"])
+B["C"].update(json.load(open(os.path.join(R, "nuevas2.json"), encoding="utf8")))
 import glob as _g
 for _f in sorted(_g.glob(os.path.join(os.path.dirname(os.path.abspath(__file__)), "resp2", "*.txt"))):
     _c = None

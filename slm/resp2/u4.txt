@@ -1,0 +1,37 @@
+## insulto
+eres un huevón
+pendejo
+eres un gil
+tarado
+imbécil
+estúpida máquina
+eres chatarra
+lata oxidada
+bot de pacotilla
+basura con cables
+qué bot tan malo
+eres una porquería de bot
+maldita máquina
+eres un cretino
+vete a la mierda
+mira qué tonto eres
+eres bien tonto
+eres medio tonto
+qué tonto eres
+eres un tonto
+## confusion
+qué dices
+no entiendo qué dices
+de qué hablas
+qué quieres decir con eso
+no tiene sentido lo que dices
+## suplica
+no por favor
+ya no más
+para ya
+## mentira
+estás mintiendo otra vez
+no me convences
+## pregunta_x
+cómo se llama {X}
+dónde se usa {X}
