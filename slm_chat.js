@@ -180,4 +180,9 @@ function crearChat(dir) {
   cargar();
   return { responder, leer, calidad, listo: () => !!sesion, cargar, _cod: (t) => codificar(t) };
 }
-module.exports = { crearChat };
+const _compartidos = new Map();
+function compartido(dir) {
+  if (!_compartidos.has(dir)) _compartidos.set(dir, crearChat(dir));
+  return _compartidos.get(dir);
+}
+module.exports = { crearChat, compartido };

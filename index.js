@@ -1918,6 +1918,7 @@ app.get('/autotest', async (req, res) => {
 });
 app.get('/estado', (_req, res) => res.json({ version: BOT_VERSION, uptime: Math.round(process.uptime()), llm_ultima_hora: usoLLM(), llm_max_hora: MAX_LLM_HORA, errores: erroresVistos, ia_proveedores: estadoProveedores(), ..._botEstado() }));
 app.get('/health', (_req, res) => res.json({ status: 'ok', version: BOT_VERSION, uptime: process.uptime(), diagnostico: stats }));
+if (process.env.AM_KEYS) { try { require('./api_am').montar(app, express); console.log('[api] /v1/chat/completions y /chat activos'); } catch (e) { console.log('[api] no monto:', e.message); } }
 app.listen(process.env.PORT || 3000, () => console.log(`[http] servidor de salud escuchando (${BOT_VERSION})`));
 // Render gratis duerme el servicio tras 15 min sin trafico HTTP (y el bot se desconecta): se auto-visita cada 8 min mientras este despierto.
 setInterval(() => { const m = process.memoryUsage(), q = (x) => Math.round(x / 1048576); console.log(`[mem] rss ${q(m.rss)} heap ${q(m.heapUsed)} ext ${q(m.external)} buf ${q(m.arrayBuffers)}`); }, 60_000).unref();

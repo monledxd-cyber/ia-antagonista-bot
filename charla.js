@@ -8,7 +8,7 @@ const MANO = [[/netherite_sword/, 'una espada de netherita'], [/diamond_sword/, 
 const BIOMA = [[/desert|badlands/, 'el desierto'], [/swamp|mangrove/, 'el pantano'], [/beach|ocean/, 'la playa'], [/peaks|mountain|hills|slopes/, 'la montaña'], [/forest|taiga|jungle|grove/, 'el bosque']];
 
 function crearCharla(bot, o) {
-  const chat = require('./slm_chat').crearChat(path.join(__dirname, 'slm', 'chat'));
+  const chat = require('./slm_chat').compartido(path.join(__dirname, 'slm', 'chat'));
   const ruta = o.ruta;
   let mem = {}, sucio = false;
   try { mem = JSON.parse(fs.readFileSync(ruta, 'utf8')); } catch (e) { mem = {}; }
