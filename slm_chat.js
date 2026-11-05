@@ -63,14 +63,31 @@ function crearChat(dir) {
     const V = vocab.tokens.length, off = (ids.length - 1) * V;
     return out.logits.data.subarray(off, off + V);
   }
-  async function leer(texto) {
-    await cargar();
-    if (!sesion) return null;
-    const ids = [idx.get('<U>'), ...codificar(String(texto).slice(0, 200)).slice(0, 40), idx.get('<L>')];
+  const clf = require('./slm_clf').crearClasificador(dir);
+  let ordenadas = null;
+  function armar(txt, ids) {
+    txt = txt.replace(/\s+/g, ' ').trim();
+    if (!ordenadas) ordenadas = clf.clases().slice().sort((x, y) => y.length - x.length);
+    let intencion = null, resto = '';
+    for (const c of ordenadas) {
+      const p = c.replace(/_/g, ' ');
+      if (txt === p || txt.startsWith(p + ' ')) { intencion = c; resto = txt.slice(p.length).trim(); break; }
+    }
+    const slots = {};
+    if (intencion) {
+      for (const mm of resto.matchAll(/([A-Z]\d?):\s*(.+?)(?=\s+[A-Z]\d?:\s|$)/g)) slots[mm[1]] = mm[2].trim();
+    } else {
+      const partes = txt.split('|').map((x) => x.trim());
+      intencion = partes[0].replace(/\s+/g, '_');
+      for (const p of partes.slice(1)) { const mm = p.match(/^(\w+):\s*(.+)$/); if (mm) slots[mm[1]] = mm[2].trim(); }
+    }
+    return { txt, intencion, slots, ids };
+  }
+  async function avanzar(ids) {
     const s = idx.get('<S>'), pr = prohibidos();
     pr.delete(s);
     pr.add(idx.get(vocab.fin));
-    const n0 = ids.length, sal = [];
+    const sal = [];
     for (let i = 0; i < 40; i++) {
       const lg = await paso(ids);
       let mx = -1e9, nx = 0;
@@ -79,11 +96,26 @@ function crearChat(dir) {
       if (nx === s) break;
       sal.push(vocab.tokens[nx]);
     }
-    const txt = sal.join('').replace(/\s+/g, ' ').trim();
-    const partes = txt.split('|').map((x) => x.trim());
-    const slots = {};
-    for (const p of partes.slice(1)) { const m = p.match(/^(\w+):\s*(.+)$/); if (m) slots[m[1]] = m[2].trim(); }
-    return { txt, intencion: partes[0].replace(/\s+/g, '_'), slots, ids };
+    return { txt: sal.join(''), ids };
+  }
+  async function leer(texto) {
+    await cargar();
+    if (!sesion) return null;
+    const cab = [idx.get('<U>'), ...codificar(String(texto).slice(0, 200)).slice(0, 40), idx.get('<L>')];
+    const r1 = await avanzar(cab.slice());
+    let lec = armar(r1.txt, r1.ids);
+    const pc = process.env.IA_CLF === '0' ? null : clf.clasificar(texto);
+    if (pc) {
+      lec.clf = pc;
+      if (lec.intencion !== pc.p) {
+        if (pc.conf >= 0.5) {
+          const pf = pc.p.replace(/_/g, ' '), r2 = await avanzar([...cab, ...codificar(pf)]);
+          const l2 = armar(pf + ' ' + r2.txt, r2.ids);
+          l2.clf = pc; l2.cambiada = lec.intencion; lec = l2;
+        } else lec.dudoso = true;
+      }
+    }
+    return lec;
   }
   let permitidas = null;
   const palabras = (t) => String(t).toLowerCase().match(/\p{L}+/gu) || [];
@@ -146,6 +178,6 @@ function crearChat(dir) {
     return f;
   }
   cargar();
-  return { responder, leer, calidad, listo: () => !!sesion, cargar };
+  return { responder, leer, calidad, listo: () => !!sesion, cargar, _cod: (t) => codificar(t) };
 }
 module.exports = { crearChat };
