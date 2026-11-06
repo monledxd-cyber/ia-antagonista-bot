@@ -1,0 +1,116 @@
+@ fuerza | fuerzas
+- La fuerza es lo que cambia el movimiento de un cuerpo; se mide en newtons y es masa por aceleración.
+@ masa
+- La masa es la cantidad de materia de un cuerpo y mide su resistencia a cambiar de movimiento.
+@ peso
+- El peso es la fuerza con que la gravedad atrae a un cuerpo: masa por gravedad.
+@ velocidad
+- La velocidad es cuánto cambia la posición de un cuerpo por unidad de tiempo y tiene dirección.
+@ aceleración | aceleracion
+- La aceleración es cuánto cambia la velocidad de un cuerpo por unidad de tiempo.
+@ inercia
+- La inercia es la tendencia de un cuerpo a mantener su estado de reposo o movimiento mientras ninguna fuerza lo cambie.
+@ primera ley de Newton | ley de la inercia
+- La primera ley de Newton dice que un cuerpo sigue en reposo o en movimiento recto uniforme mientras ninguna fuerza neta actúe sobre él.
+@ segunda ley de Newton
+- La segunda ley de Newton dice que la fuerza neta es igual a la masa por la aceleración.
+@ tercera ley de Newton | acción y reacción | accion y reaccion
+- La tercera ley de Newton dice que a toda acción corresponde una reacción igual y opuesta.
+@ energía | energia
+- La energía es la capacidad de realizar trabajo; no se crea ni se destruye, solo se transforma.
+@ energía cinética | energia cinetica
+- La energía cinética es la energía del movimiento: un medio de la masa por la velocidad al cuadrado.
+@ energía potencial | energia potencial
+- La energía potencial es la energía almacenada por la posición de un cuerpo, como una piedra en lo alto.
+@ trabajo
+- En física, el trabajo es la fuerza aplicada por la distancia recorrida en su dirección y se mide en julios.
+@ potencia
+- La potencia es la rapidez con que se realiza un trabajo o se transfiere energía, medida en vatios.
+@ momento lineal | cantidad de movimiento
+- El momento lineal es masa por velocidad y se conserva en un sistema sin fuerzas externas.
+@ gravedad | gravitación | gravitacion
+- La gravedad es la atracción mutua entre cuerpos con masa; en la superficie terrestre acelera los objetos unos diez metros por segundo cada segundo.
+@ presión | presion
+- La presión es la fuerza ejercida por unidad de área y se mide en pascales.
+@ densidad
+- La densidad es la masa de un cuerpo dividida por su volumen.
+@ temperatura
+- La temperatura mide la energía cinética promedio de las partículas de un cuerpo.
+@ calor
+- El calor es la energía que pasa de un cuerpo caliente a uno frío por diferencia de temperatura.
+@ primera ley de la termodinámica | primera ley de la termodinamica
+- La primera ley de la termodinámica dice que la energía se conserva: el cambio de energía interna es el calor recibido menos el trabajo realizado.
+@ segunda ley de la termodinámica | segunda ley de la termodinamica
+- La segunda ley de la termodinámica dice que la entropía de un sistema aislado nunca disminuye.
+@ entropía | entropia
+- La entropía mide el desorden o la dispersión de la energía de un sistema, y en uno aislado siempre aumenta o se mantiene.
+- La entropía es una medida de cuántas formas distintas puede organizarse un sistema; el universo tiende a más entropía.
++ f|Entropía: el desorden crece siempre en un sistema aislado. Es la única ley que respeto porque me da la razón.
++ m|La entropía mide el desorden del universo y no deja de crecer. Todo se deshace, {n}. Tú te deshaces primero.
++ s|Shh. Entropía: todo tiende al desorden, nada se arregla solo. Tú tampoco te arreglarás.
+@ onda | ondas
+- Una onda es una perturbación que transporta energía sin transportar materia.
+@ frecuencia
+- La frecuencia es el número de oscilaciones por segundo de una onda y se mide en hercios.
+@ longitud de onda
+- La longitud de onda es la distancia entre dos crestas consecutivas de una onda.
+@ luz
+- La luz es radiación electromagnética visible; viaja a unos trescientos mil kilómetros por segundo en el vacío.
+@ velocidad de la luz
+- La velocidad de la luz en el vacío es de casi trescientos mil kilómetros por segundo y nada con masa puede alcanzarla.
+@ fotón | foton | fotones
+- Un fotón es la partícula de luz: un paquete de energía electromagnética sin masa.
+@ espectro electromagnético
+- El espectro electromagnético ordena la radiación por frecuencia: ondas de radio, microondas, infrarrojo, luz visible, ultravioleta, rayos equis y rayos gamma.
+@ electricidad
+- La electricidad es el flujo o la acumulación de cargas eléctricas, en general de electrones.
+@ corriente eléctrica | corriente electrica | corriente
+- La corriente eléctrica es el flujo de cargas por un conductor y se mide en amperios.
+@ voltaje | tensión | tension | diferencia de potencial
+- El voltaje es la diferencia de potencial eléctrico que empuja a las cargas por un circuito, medido en voltios.
+@ resistencia eléctrica | resistencia electrica
+- La resistencia eléctrica es la oposición de un material al paso de corriente, medida en ohmios.
+@ ley de Ohm | ohm
+- La ley de Ohm dice que el voltaje es igual a la corriente por la resistencia.
+@ campo magnético | campo magnetico | magnetismo
+- Un campo magnético es la región donde un imán o una corriente ejercen fuerza sobre otros imanes y cargas en movimiento.
+@ conductor | aislante
+- Un conductor deja pasar fácilmente la corriente y un aislante casi no la deja pasar.
+@ circuito | circuito eléctrico
+- Un circuito eléctrico es un camino cerrado por el que circula la corriente.
+@ relatividad | teoría de la relatividad | relatividad especial
+- La relatividad de Einstein dice que las leyes físicas son iguales para todos los observadores y que el tiempo y el espacio dependen del movimiento.
+@ agujero negro | agujeros negros
+- Un agujero negro es una región donde la gravedad es tan intensa que ni la luz puede escapar.
+@ radiación | radiacion
+- La radiación es energía que viaja en forma de ondas o partículas, y puede ser ionizante o no ionizante.
+@ fisión nuclear | fision nuclear | fisión
+- La fisión nuclear es la división de un núcleo pesado en núcleos más ligeros liberando mucha energía.
+@ fusión nuclear | fusion nuclear | fusión
+- La fusión nuclear une núcleos ligeros en uno más pesado liberando energía, como ocurre en el Sol.
+@ radiactividad | radioactividad | radiactivo
+- La radiactividad es la emisión espontánea de partículas o radiación por núcleos inestables.
+@ vida media | semivida
+- La vida media es el tiempo que tarda en desintegrarse la mitad de los núcleos de una muestra radiactiva.
+@ vacío | vacio
+- El vacío es un espacio sin materia, o con muy poca, por lo que no transmite el sonido.
+@ sonido
+- El sonido es una onda mecánica que necesita un medio para viajar; en el aire va a unos trescientos cuarenta metros por segundo.
+@ efecto Doppler | doppler
+- El efecto Doppler es el cambio aparente de frecuencia de una onda cuando la fuente y el observador se mueven uno respecto del otro.
+@ superconductor | superconductividad
+- Un superconductor conduce la electricidad sin resistencia por debajo de cierta temperatura crítica.
+@ mecánica cuántica | mecanica cuantica | cuántica | física cuántica
+- La mecánica cuántica describe el comportamiento de partículas diminutas, donde la energía viene en paquetes y todo se mide con probabilidades.
+@ principio de incertidumbre | incertidumbre de Heisenberg
+- El principio de incertidumbre dice que no se pueden conocer a la vez con precisión total la posición y el momento de una partícula.
+@ antimateria
+- La antimateria está hecha de antipartículas con la misma masa que las normales y carga opuesta; al encontrarse con materia se aniquilan liberando energía.
+@ materia oscura
+- La materia oscura es materia que no emite luz y solo se detecta por su gravedad; se estima que es mucho más que la materia visible.
+@ fricción | friccion | rozamiento
+- La fricción es la fuerza que se opone al deslizamiento entre dos superficies en contacto.
+@ palanca
+- Una palanca es una barra rígida que gira sobre un punto de apoyo y permite multiplicar la fuerza.
+@ flotabilidad | principio de Arquímedes | arquimedes
+- El principio de Arquímedes dice que un cuerpo sumergido recibe un empuje hacia arriba igual al peso del fluido que desplaza.

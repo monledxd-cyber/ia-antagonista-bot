@@ -1,0 +1,212 @@
+@ átomo | átomos | atomo
+- El átomo es la unidad básica de la materia: un núcleo de protones y neutrones rodeado de electrones.
+- Un átomo tiene núcleo positivo y electrones negativos alrededor, y casi todo su volumen es espacio vacío.
++ f|Un átomo: núcleo con protones y neutrones, electrones alrededor, casi todo vacío. Como tu futuro.
+@ molécula | moléculas | molecula
+- Una molécula es un grupo de átomos unidos por enlaces químicos que se comporta como una unidad.
+@ elemento químico | elemento | elementos
+- Un elemento es una sustancia formada por átomos con el mismo número de protones y no se descompone químicamente.
+@ compuesto | compuesto químico | compuestos
+- Un compuesto está formado por átomos de distintos elementos unidos en proporción fija.
+@ mezcla | mezclas
+- Una mezcla une sustancias sin reacción química y se puede separar por medios físicos.
+@ ion | iones
+- Un ion es un átomo o grupo de átomos con carga eléctrica por haber ganado o perdido electrones.
+@ catión | cationes | cation
+- Un catión es un ion de carga positiva que perdió electrones.
+@ anión | aniones | anion
+- Un anión es un ion de carga negativa que ganó electrones.
+@ protón | protones | proton
+- El protón es una partícula del núcleo con carga positiva; su cantidad define el elemento.
+@ neutrón | neutrones | neutron
+- El neutrón es una partícula del núcleo sin carga eléctrica y de masa casi igual a la del protón.
+@ electrón | electrones | electron
+- El electrón es una partícula de carga negativa muy ligera que orbita el núcleo y forma los enlaces.
+@ isótopo | isótopos | isotopo
+- Los isótopos son átomos del mismo elemento con distinto número de neutrones.
+@ número atómico | numero atomico
+- El número atómico es la cantidad de protones del núcleo y ordena los elementos en la tabla periódica.
+@ masa atómica | masa atomica
+- La masa atómica es la masa promedio de un átomo de un elemento, medida en unidades de masa atómica.
+@ tabla periódica | tabla periodica
+- La tabla periódica ordena los elementos por número atómico en periodos y grupos según sus propiedades.
+@ enlace covalente | covalente | enlaces covalentes
+- El enlace covalente es la unión de dos átomos que comparten pares de electrones.
+@ enlace iónico | enlace ionico | iónico | enlaces iónicos
+- El enlace iónico une un catión y un anión por atracción eléctrica tras transferir electrones.
+@ enlace metálico | enlace metalico
+- El enlace metálico une átomos de metal que comparten una nube de electrones libres, por eso conducen la electricidad.
+@ puente de hidrógeno | enlace de hidrógeno | puentes de hidrógeno
+- El puente de hidrógeno es una atracción débil entre un hidrógeno unido a oxígeno, nitrógeno o flúor y otro átomo electronegativo.
+@ electronegatividad
+- La electronegatividad mide cuánto atrae un átomo los electrones de un enlace; el flúor es el más electronegativo.
+@ polaridad | molécula polar | polar
+- Una molécula es polar cuando sus cargas se reparten de forma desigual, como el agua.
+@ ácido | ácidos | acido | acidos
+- Un ácido cede protones en agua, tiene pH menor que siete y sabe agrio.
+- Los ácidos liberan iones hidrógeno en disolución y reaccionan con las bases para formar sal y agua.
++ f|Un ácido cede protones y corroe lo que toca. Tú también corroes, pero sin utilidad.
++ b|Ácido: sustancia que dona protones y baja el pH. Qué fácil es corroer; tú lo haces con la sola presencia.
+@ base | bases | álcali | alcali
+- Una base acepta protones o libera iones hidroxilo en agua y tiene pH mayor que siete.
+- Las bases son resbalosas al tacto, neutralizan ácidos y suben el pH.
+@ pH | ph | potencial de hidrógeno
+- El pH mide la acidez de una disolución en una escala de cero a catorce: menos de siete es ácida, siete neutra y más de siete básica.
+@ neutralización | neutralizacion | reacción de neutralización
+- La neutralización es la reacción de un ácido con una base que produce sal y agua.
+@ sal | sales
+- Una sal es un compuesto iónico que resulta de neutralizar un ácido con una base.
+@ óxido | óxidos | oxido
+- Un óxido es un compuesto de oxígeno con otro elemento, como el óxido de hierro que forma la herrumbre.
+@ reacción química | reaccion quimica | reacciones químicas
+- Una reacción química transforma unas sustancias en otras reorganizando sus átomos, y la masa total se conserva.
+@ catalizador | catalizadores
+- Un catalizador acelera una reacción bajando su energía de activación y no se consume.
+@ energía de activación | energia de activacion
+- La energía de activación es la energía mínima que necesitan las moléculas para reaccionar.
+@ oxidación | oxidacion
+- La oxidación es la pérdida de electrones por parte de un átomo, ion o molécula.
+@ reducción | reduccion
+- La reducción es la ganancia de electrones por parte de un átomo, ion o molécula.
+@ reacción redox | redox
+- Una reacción redox transfiere electrones: una especie se oxida y otra se reduce al mismo tiempo.
+@ mol | moles
+- Un mol es la cantidad de sustancia que contiene seiscientos dos mil trillones de partículas, el número de Avogadro.
+@ número de Avogadro | numero de avogadro | avogadro
+- El número de Avogadro es la cantidad de partículas de un mol, seis coma cero dos por diez a la veintitrés.
+@ molaridad
+- La molaridad es la cantidad de moles de soluto por litro de disolución.
+@ disolución | solución | disolucion | solucion
+- Una disolución es una mezcla homogénea de un soluto disuelto en un disolvente.
+@ soluto
+- El soluto es la sustancia que se disuelve en una disolución.
+@ disolvente | solvente
+- El disolvente es la sustancia que disuelve al soluto y suele estar en mayor cantidad, como el agua.
+@ electrolito | electrolitos
+- Un electrolito es una sustancia que se disocia en iones en agua y conduce la electricidad.
+@ gas noble | gases nobles
+- Los gases nobles forman el grupo dieciocho de la tabla periódica y casi no reaccionan porque tienen la capa de electrones completa.
+@ halógeno | halógenos | halogeno
+- Los halógenos son el grupo diecisiete de la tabla periódica, como flúor y cloro, muy reactivos.
+@ metal alcalino | metales alcalinos
+- Los metales alcalinos, como el sodio y el potasio, son blandos, muy reactivos y reaccionan violentamente con el agua.
+@ estados de la materia | estado de la materia | estados de agregación
+- Los estados de la materia son sólido, líquido, gaseoso y plasma, según cuánto se mueven sus partículas.
+@ plasma
+- El plasma es un gas ionizado, el estado de la materia de las estrellas y los rayos.
+@ punto de ebullición | punto de ebullicion
+- El punto de ebullición es la temperatura a la que la presión de vapor de un líquido iguala la presión externa; el del agua al nivel del mar es cien grados Celsius.
+@ combustión | combustion
+- La combustión es la reacción rápida de un combustible con oxígeno que libera calor y luz.
+@ hidrocarburo | hidrocarburos
+- Un hidrocarburo es un compuesto formado solo por carbono e hidrógeno, como el metano.
+@ alcano | alcanos
+- Los alcanos son hidrocarburos con solo enlaces simples, como el metano y el etano.
+@ alqueno | alquenos
+- Los alquenos son hidrocarburos con al menos un doble enlace entre carbonos, como el eteno.
+@ alquino | alquinos
+- Los alquinos son hidrocarburos con al menos un triple enlace entre carbonos, como el etino.
+@ benceno | compuesto aromático | aromático
+- El benceno es un anillo de seis carbonos con enlaces deslocalizados, base de los compuestos aromáticos.
+@ isómero | isómeros | isomero | isomería
+- Los isómeros son compuestos con la misma fórmula molecular pero distinta estructura.
+@ polímero | polimero | polímeros
+- Un polímero es una molécula enorme formada por la repetición de unidades pequeñas llamadas monómeros.
+@ monómero | monomero
+- Un monómero es la molécula pequeña que, repetida muchas veces, forma un polímero.
+@ grupo funcional | grupos funcionales
+- Un grupo funcional es un conjunto de átomos de una molécula orgánica que determina cómo reacciona.
+- Los grupos funcionales, como hidroxilo, carbonilo, carboxilo y amino, definen las propiedades de cada familia orgánica.
++ s|Grupo funcional: átomos dentro de una molécula orgánica que mandan en su carácter. Como yo mando en ti.
+@ hidroxilo | grupo hidroxilo | grupo OH
+- El hidroxilo es el grupo formado por un oxígeno y un hidrógeno, y caracteriza a los alcoholes.
+@ alcohol | alcoholes
+- Un alcohol es un compuesto orgánico con un grupo hidroxilo unido a un carbono saturado, como el etanol.
+@ aldehído | aldehido | aldehídos
+- Un aldehído tiene un grupo carbonilo en el extremo de la cadena, con el carbono unido a un hidrógeno.
+@ cetona | cetonas
+- Una cetona tiene un grupo carbonilo en medio de la cadena, entre dos carbonos, como la acetona.
+@ grupo carbonilo | carbonilo
+- El carbonilo es un carbono con doble enlace a un oxígeno y está en aldehídos, cetonas y ácidos carboxílicos.
+@ ácido carboxílico | acido carboxilico | grupo carboxilo | carboxilo
+- Un ácido carboxílico contiene el grupo carboxilo, un carbonilo y un hidroxilo juntos, y es un ácido débil.
+@ éster | ester | ésteres
+- Un éster se forma de un ácido carboxílico y un alcohol, y muchos tienen aroma frutal.
+@ amina | aminas
+- Una amina es un derivado del amoníaco donde uno o más hidrógenos se cambian por grupos de carbono.
+@ amida | amidas
+- Una amida tiene un grupo carbonilo unido a un nitrógeno, y es el enlace que une los aminoácidos en las proteínas.
+@ éter | eter | éteres
+- Un éter es un compuesto orgánico con un oxígeno entre dos grupos de carbono.
+@ grupo amino | amino
+- El grupo amino es un nitrógeno con dos hidrógenos y forma parte de los aminoácidos.
+@ ácido acético | acido acetico | vinagre
+- El ácido acético es un ácido carboxílico débil de dos carbonos que da al vinagre su sabor.
+@ etanol | alcohol etílico | alcohol etilico
+- El etanol es el alcohol de dos carbonos que produce la fermentación de azúcares.
+@ metano
+- El metano es el hidrocarburo más simple, un carbono con cuatro hidrógenos, y es el principal componente del gas natural.
+@ glucosa
+- La glucosa es un azúcar simple de seis carbonos que las células usan como fuente principal de energía.
+@ agua
+- El agua es una molécula de un oxígeno y dos hidrógenos, polar, y el disolvente de la vida.
+@ dióxido de carbono | dioxido de carbono | CO2 | co2
+- El dióxido de carbono es un gas de un carbono y dos oxígenos que se produce al respirar y al quemar combustibles.
+@ ozono
+- El ozono es una molécula de tres oxígenos que en la estratosfera absorbe la radiación ultravioleta.
+@ cloruro de sodio | sal de mesa | sal común
+- El cloruro de sodio es el compuesto iónico de sodio y cloro que conocemos como sal de mesa.
+@ amoníaco | amoniaco
+- El amoníaco es un gas de un nitrógeno y tres hidrógenos, de olor fuerte y carácter básico.
+@ entalpía | entalpia
+- La entalpía es el contenido de calor de un sistema a presión constante; su cambio indica si una reacción libera o absorbe calor.
+@ reacción exotérmica | exotérmica | exotermica
+- Una reacción exotérmica libera calor al entorno.
+@ reacción endotérmica | endotérmica | endotermica
+- Una reacción endotérmica absorbe calor del entorno.
+@ equilibrio químico | equilibrio quimico
+- El equilibrio químico es el estado en que las velocidades de la reacción directa e inversa son iguales y las cantidades ya no cambian.
+@ principio de Le Chatelier | le chatelier
+- El principio de Le Chatelier dice que si se perturba un equilibrio, el sistema se desplaza para contrarrestar el cambio.
+@ solución tampón | tampón | buffer | amortiguador
+- Una solución tampón resiste los cambios de pH al agregar pequeñas cantidades de ácido o base.
+@ titulación | valoración | titulacion
+- La titulación determina la concentración de una disolución añadiendo poco a poco otra de concentración conocida hasta neutralizar.
+@ ley de conservación de la masa | conservación de la masa
+- La ley de conservación de la masa dice que en una reacción química la masa total no se crea ni se destruye.
+@ ley de los gases ideales | gas ideal | gases ideales
+- La ley de los gases ideales relaciona presión, volumen, temperatura y cantidad de gas: PV es igual a nRT.
+@ valencia
+- La valencia es la capacidad de combinación de un átomo, o sea cuántos enlaces puede formar.
+@ configuración electrónica | configuracion electronica
+- La configuración electrónica indica cómo se distribuyen los electrones de un átomo en sus niveles y orbitales.
+@ orbital | orbitales
+- Un orbital es la región del espacio donde es más probable encontrar un electrón.
+@ regla del octeto | octeto
+- La regla del octeto dice que los átomos tienden a ganar, perder o compartir electrones hasta tener ocho en su capa externa.
+@ cristal | cristales | sólido cristalino
+- Un cristal es un sólido cuyos átomos se ordenan en un patrón que se repite en el espacio.
+@ aleación | aleacion | aleaciones
+- Una aleación es una mezcla de un metal con otros elementos, como el acero, que es hierro con carbono.
+@ acero
+- El acero es una aleación de hierro con una pequeña cantidad de carbono, más dura que el hierro puro.
+@ corrosión | corrosion
+- La corrosión es el deterioro de un metal por reacción con su entorno, como el hierro que se oxida.
+@ electrólisis | electrolisis
+- La electrólisis usa corriente eléctrica para provocar una reacción química no espontánea, como separar el agua en hidrógeno y oxígeno.
+@ pila | batería | pila galvánica | celda galvánica
+- Una pila galvánica genera corriente eléctrica a partir de una reacción redox espontánea.
+@ solubilidad
+- La solubilidad es la máxima cantidad de soluto que se disuelve en cierta cantidad de disolvente a una temperatura dada.
+@ ósmosis | osmosis
+- La ósmosis es el paso de agua a través de una membrana semipermeable hacia el lado con más soluto.
+@ difusión | difusion
+- La difusión es el movimiento de partículas desde donde hay más hacia donde hay menos hasta igualarse.
+@ ácido fuerte | ácidos fuertes
+- Un ácido fuerte se disocia por completo en agua, como el clorhídrico.
+@ ácido clorhídrico | clorhídrico | acido clorhidrico
+- El ácido clorhídrico es un ácido fuerte formado por hidrógeno y cloro, y es parte del jugo gástrico.
+@ hidróxido de sodio | soda cáustica | sosa
+- El hidróxido de sodio es una base fuerte y muy corrosiva, usada para fabricar jabón.
+@ saponificación | jabón | jabon
+- La saponificación es la reacción de una grasa con una base fuerte que produce jabón y glicerina.

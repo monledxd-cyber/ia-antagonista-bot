@@ -1,0 +1,72 @@
+@ número primo | numeros primos | primo | números primos
+- Un número primo es mayor que uno y solo se divide exactamente entre uno y él mismo.
+@ fracción | fraccion | fracciones
+- Una fracción expresa una parte de un todo como numerador sobre denominador.
+@ porcentaje | por ciento
+- Un porcentaje es una fracción de cien: el veinte por ciento es veinte de cada cien.
+@ ecuación | ecuacion | ecuaciones
+- Una ecuación es una igualdad con una incógnita; resolverla es hallar el valor que la cumple.
+@ función | funcion | funciones
+- Una función asigna a cada valor de entrada exactamente un valor de salida.
+@ derivada | derivadas
+- La derivada mide la rapidez con que cambia una función en cada punto, o sea la pendiente de su tangente.
+@ integral | integrales
+- La integral acumula una cantidad: da el área bajo la curva de una función.
+@ límite | limite | límites
+- El límite es el valor al que se acerca una función cuando su variable se aproxima a cierto punto.
+@ logaritmo | logaritmos
+- El logaritmo es el exponente al que hay que elevar una base para obtener un número.
+@ exponente | potencia matemática | exponentes
+- El exponente indica cuántas veces se multiplica la base por sí misma.
+@ raíz cuadrada | raiz cuadrada
+- La raíz cuadrada de un número es el valor que multiplicado por sí mismo da ese número.
+@ probabilidad
+- La probabilidad es un número entre cero y uno que mide qué tan posible es un suceso.
+@ media | promedio | media aritmética
+- La media es la suma de los valores dividida entre cuántos son.
+@ mediana
+- La mediana es el valor que queda en el centro cuando los datos se ordenan de menor a mayor.
+@ moda
+- La moda es el valor que más se repite en un conjunto de datos.
+@ desviación estándar | desviacion estandar | desviación típica
+- La desviación estándar mide cuánto se alejan los datos de su media.
+@ vector | vectores
+- Un vector es una magnitud con tamaño y dirección, como la velocidad.
+@ matriz | matrices
+- Una matriz es una tabla de números ordenados en filas y columnas.
+@ teorema de Pitágoras | pitágoras | pitagoras
+- El teorema de Pitágoras dice que en un triángulo rectángulo el cuadrado de la hipotenusa es la suma de los cuadrados de los catetos.
+@ pi | número pi | numero pi
+- Pi es la razón entre la longitud de una circunferencia y su diámetro, unos tres coma catorce, y es irracional.
+@ circunferencia | círculo | circulo
+- La circunferencia es el conjunto de puntos a igual distancia de un centro.
+@ ángulo | angulo | ángulos
+- Un ángulo es la abertura entre dos líneas que parten de un mismo punto, medida en grados.
+@ triángulo | triangulo
+- Un triángulo es un polígono de tres lados cuyos ángulos suman ciento ochenta grados.
+@ seno | coseno | trigonometría | trigonometria
+- El seno y el coseno relacionan un ángulo con los lados de un triángulo rectángulo; el seno es el cateto opuesto sobre la hipotenusa.
+@ infinito
+- El infinito no es un número, sino la idea de algo sin fin; hay infinitos de distinto tamaño.
+@ cero
+- El cero es el número que representa la ausencia de cantidad y es el neutro de la suma.
+@ número irracional | irracional | irracionales
+- Un número irracional no se puede escribir como fracción y sus decimales no terminan ni se repiten.
+@ álgebra | algebra
+- El álgebra usa letras para representar números desconocidos y estudia las reglas para operar con ellos.
+@ geometría | geometria
+- La geometría estudia las formas, los tamaños y las posiciones en el plano y el espacio.
+@ estadística | estadistica
+- La estadística recoge, ordena y analiza datos para sacar conclusiones.
+@ área | area
+- El área es la medida de la superficie de una figura.
+@ volumen
+- El volumen es el espacio que ocupa un cuerpo.
+@ factorial
+- El factorial de un número es el producto de todos los enteros positivos hasta él.
+@ combinatoria | permutación | combinación
+- La combinatoria cuenta de cuántas maneras se pueden ordenar o elegir elementos de un conjunto.
+@ lógica | logica
+- La lógica estudia las reglas del razonamiento válido, de las premisas a la conclusión.
+@ demostración | demostracion | prueba matemática
+- Una demostración es un razonamiento que prueba que una afirmación es verdadera a partir de axiomas y teoremas ya aceptados.

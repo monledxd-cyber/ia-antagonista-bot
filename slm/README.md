@@ -11,3 +11,6 @@ Chat por texto (entrada->salida): `npm run chat`. Modelo propio en slm/chat (ent
 1. `python slm/bajar_texto.py` (texto espanol de GitHub + lexico.json), `python slm/dialogo.py` (genera slm/chat_dataset.jsonl desde slm/dialogo_base.json).
 2. `cd slm && SLM_D=256 SLM_L=6 SLM_PRE_PASOS=4000 SLM_EPOCAS=15 python entrenar_chat.py` (GPU/Colab). Escribe slm/chat/modelo.onnx y vocab.json.
 Mejorar comprension: agregar plantillas en dialogo_base.json (categorias "u" entradas, "r" respuestas "estilo|texto", huecos {X} {E} {N} que se copian) y reentrenar. AM_DEBUG=1 muestra estilo y rasgos; AM_BIBLIOTECA=1 usa solo recuperacion.
+
+## 3.000.93 conceptos
+slm/conceptos/*.txt (337 conceptos: quimica, fisica, biologia, mate, cosmos, computo, juego) + remates.txt. Formato: "@ termino | alias", "- hecho", "+ e|respuesta completa". conceptos.py genera pares de la intencion definicion (slot X, X2 para diferencias, "y X?" con turno previo). SLM_CONCEPTOS=30 filas por concepto. Test held-out: modo conc en chat_test.jsonl. Requiere reentrenar en Colab y reinstalar clf.*.

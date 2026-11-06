@@ -1,0 +1,52 @@
+@ Sol | el sol
+- El Sol es la estrella en el centro del sistema solar y funde hidrógeno en helio en su núcleo.
+@ planeta | planetas
+- Un planeta es un cuerpo que orbita una estrella, tiene forma casi esférica y ha despejado su órbita.
+@ estrella | estrellas
+- Una estrella es una esfera de gas que brilla porque la fusión nuclear en su núcleo libera energía.
+@ galaxia | galaxias
+- Una galaxia es un enorme conjunto de estrellas, gas, polvo y materia oscura unido por la gravedad.
+@ Vía Láctea | via lactea
+- La Vía Láctea es la galaxia espiral donde está el Sol y tiene cientos de miles de millones de estrellas.
+@ Big Bang | big bang | gran explosión
+- El Big Bang es el modelo según el cual el universo se expandió desde un estado muy caliente y denso hace unos trece mil ochocientos millones de años.
+@ universo
+- El universo es todo lo que existe: espacio, tiempo, materia y energía, y se sigue expandiendo.
+@ Luna | la luna
+- La Luna es el único satélite natural de la Tierra y causa las mareas con su gravedad.
+@ eclipse
+- Un eclipse ocurre cuando un astro se interpone y oculta a otro: la Luna al Sol o la Tierra a la Luna.
+@ atmósfera | atmosfera
+- La atmósfera es la capa de gases que envuelve la Tierra, formada sobre todo por nitrógeno y oxígeno.
+@ efecto invernadero
+- El efecto invernadero es el calentamiento por gases como el dióxido de carbono que atrapan parte del calor de la Tierra.
+@ cambio climático | cambio climatico
+- El cambio climático es el calentamiento global de largo plazo causado sobre todo por la quema de combustibles fósiles.
+@ placas tectónicas | placa tectónica | placas tectonicas
+- Las placas tectónicas son los grandes bloques de la corteza terrestre que se mueven lentamente sobre el manto.
+@ volcán | volcan | volcanes
+- Un volcán es una abertura de la corteza por donde sale roca fundida, ceniza y gases.
+@ terremoto | sismo | terremotos
+- Un terremoto es una vibración de la corteza producida por la liberación súbita de energía en una falla.
+@ magma | lava
+- El magma es roca fundida bajo la superficie; cuando sale al exterior se llama lava.
+@ clima | tiempo atmosférico
+- El clima es el patrón promedio del tiempo atmosférico en una región durante muchos años.
+@ océano | oceano | océanos
+- Los océanos cubren cerca del setenta por ciento de la Tierra y contienen casi toda su agua.
+@ ciclo del agua | ciclo hidrológico
+- El ciclo del agua es el movimiento continuo del agua entre océanos, aire y tierra por evaporación, condensación y precipitación.
+@ roca | rocas | tipos de rocas
+- Las rocas se clasifican en ígneas, sedimentarias y metamórficas según cómo se formaron.
+@ mineral | minerales
+- Un mineral es un sólido natural inorgánico con composición química definida y estructura cristalina.
+@ supernova
+- Una supernova es la explosión de una estrella masiva al final de su vida.
+@ sistema solar
+- El sistema solar es el Sol y todo lo que lo orbita: ocho planetas, lunas, asteroides y cometas.
+@ asteroide | cometa
+- Un asteroide es un cuerpo rocoso que orbita el Sol y un cometa es uno de hielo y polvo que forma cola al acercarse.
+@ año luz | ano luz
+- Un año luz es la distancia que recorre la luz en un año, casi diez billones de kilómetros.
+@ órbita | orbita
+- Una órbita es la trayectoria curva de un cuerpo alrededor de otro por la gravedad.

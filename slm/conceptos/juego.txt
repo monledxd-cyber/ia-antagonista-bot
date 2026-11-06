@@ -1,0 +1,48 @@
+@ Nether | nether | el nether
+- El Nether es una dimensión de Minecraft de lava y fuego, donde las camas explotan y las distancias valen ocho veces menos que en el mundo normal.
+@ End | the end | el end
+- El End es la dimensión de Minecraft con islas flotantes de piedra del End, donde vive el dragón y los enderman.
+@ portal del Nether | portal del nether
+- El portal del Nether es un marco de obsidiana, de al menos cuatro de ancho por cinco de alto, que se enciende con mechero.
+@ obsidiana
+- La obsidiana en Minecraft se forma cuando el agua toca lava quieta, y solo un pico de diamante o netherita la rompe.
+@ creeper | creepers
+- El creeper es un monstruo de Minecraft que se acerca en silencio y explota al llegar a ti.
+@ enderman
+- El enderman es un monstruo alto de Minecraft que se teletransporta, carga bloques y ataca si lo miras a los ojos.
+@ dragón del End | ender dragon | dragon del end
+- El dragón del End es el jefe de Minecraft que vive en el End y se cura con los cristales de las columnas.
+@ Wither | wither
+- El Wither es un jefe de Minecraft que se invoca con cuatro bloques de arena de almas y tres calaveras de esqueleto del Wither.
+@ redstone
+- La redstone es el polvo de Minecraft con el que se hacen circuitos, pistones, relojes y mecanismos.
+@ netherita | netherite
+- La netherita es el material más resistente de Minecraft; se fabrica con escombros antiguos y oro, y resiste el fuego y la lava.
+@ diamante | diamantes
+- El diamante en Minecraft es un mineral raro que se encuentra en lo profundo de la tierra y sirve para herramientas y armaduras fuertes.
+@ aldeano | aldeanos
+- El aldeano es un habitante de Minecraft que comercia con esmeraldas y cambia sus ofertas según su profesión.
+@ gólem de hierro | golem de hierro
+- El gólem de hierro es un defensor de las aldeas de Minecraft que ataca a los monstruos y a quien agrede a un aldeano.
+@ encantamiento | encantamientos
+- El encantamiento de Minecraft da poderes a herramientas y armas usando una mesa de encantamientos, experiencia y lapislázuli.
+@ poción | pocion | pociones
+- Una poción de Minecraft se prepara en un soporte para pociones con agua, un ingrediente base y polvo de blaze como combustible.
+@ cama | dormir en minecraft
+- La cama de Minecraft salta la noche y cambia el punto de reaparición, pero en el Nether y el End explota.
+@ cristal del End
+- El cristal del End es un bloque de Minecraft que explota al golpearlo y cura al dragón.
+@ hambre | barra de hambre
+- La barra de hambre de Minecraft baja al correr y combatir, y si se vacía, te quita vida.
+@ experiencia | nivel de experiencia
+- La experiencia de Minecraft se obtiene al matar monstruos, minar y fundir, y sirve para encantar y reparar.
+@ lava
+- La lava de Minecraft quema y mata, y al contacto con el agua se convierte en obsidiana o roca.
+@ esmeralda | esmeraldas
+- La esmeralda es la moneda de comercio de Minecraft con los aldeanos.
+@ blaze
+- El blaze es un monstruo del Nether de Minecraft que lanza bolas de fuego y suelta varas de blaze.
+@ fortaleza del Nether | fortaleza del nether
+- La fortaleza del Nether es una estructura de ladrillos oscuros de Minecraft donde aparecen blaze y esqueletos Wither.
+@ semilla del mundo | seed | semilla
+- La semilla de Minecraft es el número que genera el mundo: la misma semilla produce el mismo mapa.

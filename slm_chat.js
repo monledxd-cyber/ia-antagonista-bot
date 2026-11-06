@@ -174,6 +174,11 @@ function crearChat(dir) {
     if ([...bg.values()].some((v) => v >= 3 && w.length > 6)) return false;
     return !(w.length >= 8 && new Set(w).size / w.length < 0.4);
   };
+  const sinAc = (t) => String(t).normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
+  const conTermino = (x, f) => {
+    const ws = palabras(sinAc(x)).filter((w) => w.length >= 4), g = sinAc(f);
+    return !ws.length || ws.some((w) => g.includes(w.slice(0, 5)));
+  };
   const valida = (f, extra, hv) => {
     if (!calidad(f)) return false;
     const nums = f.match(/\d+/g) || [];
@@ -217,11 +222,12 @@ function crearChat(dir) {
     let f = sal.join('').replace(/\s+/g, ' ').trim();
     const nom = info.nombre;
     f = nom ? f.replace(/\{n\}/g, nom) : f.replace(/\{n\},\s*/g, '').replace(/,?\s*\{n\}/g, '').replace(/\s+/g, ' ').trim().replace(/^./, (c) => c.toUpperCase());
+    if (lec.intencion === 'definicion' && lec.slots.X && !conTermino([lec.slots.X, lec.slots.X2 || ''].join(' '), f)) return null;
     if (f.length < 4 || /[{}]/.test(f) || !valida(f, texto + ' ' + (nom || '') + ' ' + Object.values(lec.slots).join(' ') + ' ' + mem.map((x) => x[1]).join(' '), Object.fromEntries(claves.filter((k) => hv[k] !== undefined).map((k) => [k, hv[k]])))) return null;
     return f;
   }
   cargar();
-  return { _paso: paso, responder, leer, resumen, calidad, listo: () => !!sesion, cargar, _cod: (t) => codificar(t) };
+  return { _paso: paso, responder, leer, resumen, calidad, conTermino, listo: () => !!sesion, cargar, _cod: (t) => codificar(t) };
 }
 const _compartidos = new Map();
 function compartido(dir) {

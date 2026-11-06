@@ -1,0 +1,48 @@
+@ algoritmo | algoritmos
+- Un algoritmo es una secuencia finita y ordenada de pasos para resolver un problema.
+@ bit
+- Un bit es la unidad mínima de información y vale cero o uno.
+@ byte
+- Un byte es un grupo de ocho bits.
+@ binario | sistema binario
+- El sistema binario representa los números solo con ceros y unos.
+@ inteligencia artificial | IA | ia
+- La inteligencia artificial es la capacidad de una máquina de realizar tareas que normalmente requieren inteligencia humana.
+@ red neuronal | redes neuronales | red neuronal artificial
+- Una red neuronal es un modelo de capas de unidades simples conectadas con pesos que se ajustan al entrenar.
+@ aprendizaje automático | machine learning | aprendizaje de máquina
+- El aprendizaje automático hace que un programa mejore con datos en lugar de reglas escritas a mano.
+@ transformer | transformador
+- Un transformer es una red neuronal que usa atención para relacionar todas las palabras de un texto entre sí.
+@ variable
+- En programación, una variable es un nombre que guarda un valor que puede cambiar.
+@ bucle | ciclo | loop
+- Un bucle repite un bloque de código mientras se cumpla una condición.
+@ base de datos | bases de datos
+- Una base de datos es un conjunto organizado de información que se puede consultar y actualizar.
+@ internet
+- Internet es la red mundial de redes de computadoras que se comunican con protocolos comunes.
+@ CPU | cpu | procesador
+- La CPU es el procesador, el componente que ejecuta las instrucciones de un programa.
+@ memoria RAM | ram | RAM
+- La memoria RAM es la memoria temporal rápida donde la computadora guarda lo que está usando, y se borra al apagar.
+@ sistema operativo
+- El sistema operativo es el programa que gestiona el hardware y permite que corran los demás programas.
+@ compilador
+- Un compilador traduce un programa escrito en un lenguaje de alto nivel a código que entiende la máquina.
+@ encriptación | cifrado | criptografía | criptografia
+- La criptografía transforma un mensaje en otro ilegible que solo se recupera con la clave correcta.
+@ firewall | cortafuegos
+- Un firewall filtra el tráfico de una red y bloquea conexiones no permitidas.
+@ API | api
+- Una API es una interfaz que permite a un programa pedirle servicios o datos a otro.
+@ recursión | recursion | recursividad
+- La recursión es cuando una función se llama a sí misma para resolver versiones más pequeñas del mismo problema.
+@ puerta lógica | compuerta lógica
+- Una puerta lógica es un circuito que calcula una operación booleana sobre bits, como Y, O o NO.
+@ transistor
+- El transistor es un componente semiconductor que actúa como interruptor o amplificador y es la base de todo procesador.
+@ pixel | píxel
+- Un píxel es el punto más pequeño de color de una imagen digital.
+@ servidor
+- Un servidor es una computadora que ofrece datos o servicios a otras por la red.

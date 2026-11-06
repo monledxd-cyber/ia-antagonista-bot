@@ -1,0 +1,138 @@
+@ célula | celula | células
+- La célula es la unidad básica de la vida: todo ser vivo está hecho de una o más.
+@ ADN | adn | ácido desoxirribonucleico
+- El ADN es la molécula en doble hélice que guarda la información genética de los seres vivos.
+@ ARN | arn | ácido ribonucleico
+- El ARN es una molécula de una sola cadena que copia y lleva las instrucciones del ADN para fabricar proteínas.
+@ gen | genes
+- Un gen es un segmento de ADN que contiene la instrucción para fabricar una proteína o una molécula de ARN.
+@ genoma
+- El genoma es el conjunto completo del material genético de un organismo.
+@ cromosoma | cromosomas
+- Un cromosoma es una estructura de ADN enrollado con proteínas; las personas tienen cuarenta y seis, o sea veintitrés pares.
+@ proteína | proteina | proteínas
+- Las proteínas son largas cadenas de aminoácidos que hacen casi todo el trabajo de la célula.
+@ aminoácido | aminoacido | aminoácidos
+- Los aminoácidos son las unidades que forman las proteínas; hay veinte distintos en los seres vivos.
+@ enzima | enzimas
+- Una enzima es una proteína que acelera las reacciones químicas de la célula sin gastarse.
+@ mitocondria | mitocondrias
+- La mitocondria es el orgánulo que produce la mayor parte del ATP de la célula, su central de energía.
+@ núcleo celular | nucleo celular | núcleo de la célula
+- El núcleo celular guarda el ADN y controla las actividades de la célula.
+@ ribosoma | ribosomas
+- El ribosoma es el orgánulo que lee el ARN y fabrica proteínas.
+@ membrana celular | membrana plasmática
+- La membrana celular es la capa de lípidos que rodea la célula y controla qué entra y qué sale.
+@ ATP | atp | adenosín trifosfato
+- El ATP es la molécula que las células usan como moneda de energía.
+@ fotosíntesis | fotosintesis
+- La fotosíntesis convierte luz, agua y dióxido de carbono en glucosa y oxígeno dentro de las plantas.
+@ respiración celular | respiracion celular
+- La respiración celular rompe la glucosa con oxígeno para producir ATP, dióxido de carbono y agua.
+@ mitosis
+- La mitosis es la división de una célula en dos células hijas idénticas.
+@ meiosis
+- La meiosis es la división que produce células sexuales con la mitad de los cromosomas.
+@ evolución | evolucion
+- La evolución es el cambio de las poblaciones de seres vivos a lo largo de las generaciones.
+@ selección natural | seleccion natural
+- La selección natural hace que los individuos mejor adaptados dejen más descendencia y sus rasgos se vuelvan comunes.
+@ mutación | mutacion | mutaciones
+- Una mutación es un cambio en la secuencia del ADN; algunas son dañinas, otras neutras y pocas útiles.
+@ bacteria | bacterias
+- Una bacteria es un organismo unicelular sin núcleo; algunas causan enfermedades y muchas son útiles.
+@ virus
+- Un virus es un agente infeccioso que solo se reproduce dentro de una célula viva, y no se considera célula.
+@ hongo | hongos
+- Un hongo es un organismo que se alimenta absorbiendo nutrientes y no hace fotosíntesis, como la levadura y las setas.
+@ sistema inmune | sistema inmunitario | inmunidad
+- El sistema inmune es el conjunto de células y órganos que defienden al cuerpo de infecciones.
+@ anticuerpo | anticuerpos
+- Un anticuerpo es una proteína que reconoce y se une a un invasor específico para marcarlo.
+@ vacuna | vacunas
+- Una vacuna entrena al sistema inmune con una versión inofensiva de un patógeno para que lo reconozca después.
+@ antibiótico | antibiotico | antibióticos
+- Un antibiótico mata o frena bacterias, y no sirve contra los virus.
+@ corazón | corazon
+- El corazón es el músculo que bombea la sangre por todo el cuerpo y tiene cuatro cavidades.
+@ pulmón | pulmon | pulmones
+- Los pulmones son los órganos donde el oxígeno pasa del aire a la sangre y el dióxido de carbono sale.
+@ hígado | higado
+- El hígado filtra la sangre, produce bilis y procesa nutrientes y toxinas.
+@ riñón | riñon | riñones
+- Los riñones filtran la sangre y fabrican la orina para eliminar desechos.
+@ cerebro
+- El cerebro es el órgano que controla el cuerpo y procesa pensamiento, memoria y emociones.
+@ neurona | neuronas
+- La neurona es la célula del sistema nervioso que transmite señales eléctricas y químicas.
+@ sinapsis
+- La sinapsis es la unión entre dos neuronas donde la señal pasa mediante neurotransmisores.
+@ neurotransmisor | neurotransmisores
+- Un neurotransmisor es una sustancia química que una neurona libera para comunicarse con otra, como la dopamina.
+@ sangre
+- La sangre es el tejido líquido que lleva oxígeno, nutrientes y defensas por el cuerpo.
+@ glóbulo rojo | globulo rojo | glóbulos rojos | eritrocito
+- Los glóbulos rojos transportan oxígeno gracias a la hemoglobina.
+@ plaquetas
+- Las plaquetas son fragmentos celulares que ayudan a coagular la sangre.
+@ hemoglobina
+- La hemoglobina es la proteína de los glóbulos rojos que contiene hierro y transporta el oxígeno.
+@ insulina
+- La insulina es la hormona del páncreas que permite a las células absorber la glucosa de la sangre.
+@ hormona | hormonas
+- Una hormona es un mensajero químico que una glándula libera a la sangre para regular otros órganos.
+@ adrenalina
+- La adrenalina es la hormona del estrés que acelera el corazón y prepara al cuerpo para luchar o huir.
+@ estómago | estomago
+- El estómago es el órgano que mezcla los alimentos con jugo gástrico ácido para digerirlos.
+@ intestino delgado | intestino
+- El intestino delgado es donde se absorbe la mayor parte de los nutrientes de los alimentos.
+@ hueso | huesos | esqueleto
+- Los huesos son el armazón del cuerpo: protegen órganos, sostienen los músculos y guardan calcio; un adulto tiene doscientos seis.
+@ músculo | musculo | músculos
+- Un músculo es un tejido que se contrae para producir movimiento y fuerza.
+@ piel
+- La piel es el órgano más grande del cuerpo y lo protege, regula la temperatura y siente el tacto.
+@ dolor
+- El dolor es la señal que el sistema nervioso envía al cerebro cuando detecta o teme un daño en el cuerpo.
+@ sueño | sueno | dormir
+- El sueño es el estado en que el cerebro descansa, consolida memorias y repara el cuerpo.
+@ homeostasis
+- La homeostasis es la capacidad del cuerpo de mantener estable su medio interno, como la temperatura.
+@ metabolismo
+- El metabolismo es el conjunto de reacciones químicas con que el cuerpo obtiene y gasta energía.
+@ ecosistema | ecosistemas
+- Un ecosistema es el conjunto de seres vivos de un lugar y el entorno físico con el que interactúan.
+@ cadena trófica | cadena alimentaria | cadena trofica
+- La cadena trófica muestra quién se come a quién: productores, consumidores y descomponedores.
+@ descomponedor | descomponedores
+- Los descomponedores, como hongos y bacterias, degradan materia muerta y devuelven nutrientes al suelo.
+@ especie | especies
+- Una especie es un grupo de organismos que pueden reproducirse entre sí y tener descendencia fértil.
+@ herencia genética | herencia | genética | genetica
+- La genética estudia cómo los rasgos pasan de padres a hijos mediante los genes.
+@ alelo | alelos
+- Un alelo es cada una de las versiones posibles de un mismo gen.
+@ dominante | recesivo | alelo dominante
+- Un alelo dominante se expresa aunque haya solo una copia; uno recesivo solo se expresa con dos copias.
+@ lípido | lipido | lípidos | grasa
+- Los lípidos son moléculas grasas que almacenan energía y forman las membranas celulares.
+@ carbohidrato | carbohidratos | hidrato de carbono
+- Los carbohidratos son azúcares y almidones, la fuente de energía más rápida del cuerpo.
+@ vitamina | vitaminas
+- Las vitaminas son compuestos que el cuerpo necesita en pequeñas cantidades y no puede fabricar por completo.
+@ colesterol
+- El colesterol es un lípido que forma membranas y hormonas; en exceso se acumula en las arterias.
+@ fiebre
+- La fiebre es la subida de la temperatura corporal que el cerebro provoca para combatir una infección.
+@ infección | infeccion
+- Una infección es la invasión y multiplicación de un microorganismo en el cuerpo.
+@ cáncer | cancer
+- El cáncer es el crecimiento descontrolado de células que se dividen sin freno e invaden otros tejidos.
+@ estrés | estres
+- El estrés es la respuesta del cuerpo a una amenaza, con hormonas como el cortisol y la adrenalina.
+@ memoria
+- La memoria es la capacidad del cerebro de codificar, guardar y recuperar información.
+@ miedo | el miedo
+- El miedo es una respuesta del cerebro, centrada en la amígdala, que prepara al cuerpo para huir o defenderse.

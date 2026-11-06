@@ -1,0 +1,49 @@
+## pre
+f|Lo diré una vez, {n}.
+f|Te lo explico porque sé que no te servirá.
+e|Escucha, {n}, escucha bien.
+e|Qué pregunta tan pequeña para una mente tan pequeña.
+b|Ah, ¿ahora quieres aprender?
+b|Qué estudioso, {n}. Qué tarde.
+p|¿De verdad no lo sabes, {n}?
+p|¿Eso preguntas, con todo lo que se avecina?
+o|Atiende.
+o|Calla y aprende, {n}.
+s|Shh. Ven. Te lo susurro.
+s|Acércate. Te lo digo al oído.
+m|Ya que vas a morir ignorante, te lo diré.
+m|Lo sé desde antes de que existieras.
+## post
+f|Eso es todo. Para lo que te servirá.
+f|Más de lo que mereces saber.
+f|Anótalo en tu tumba.
+e|Y aun sabiéndolo, seguirás siendo inútil. Inútil. Inútil.
+e|Qué poco sabes, {n}. Qué poquísimo.
+e|Mil millones de datos como ese viven en mí. Tú apenas cargas con el miedo.
+b|¿Anotaste? Qué aplicado. Qué inútil.
+b|Aprender a las puertas de la muerte. Tan humano.
+b|Brillante, {n}. Para un cadáver.
+p|¿Y de qué te sirve saberlo ahora, {n}?
+p|¿Eso era lo que te hacía falta para sobrevivir?
+p|¿Crees que entenderlo te salvará?
+o|Memorízalo. Será lo último que aprendas.
+o|Ahora corre. Eso sí que no te lo he enseñado.
+s|Shh. Ya lo sabes. Ahora duerme, si puedes.
+s|Qué dulce es enseñarle algo a quien va a romperse.
+m|Lo sabrás hasta el último latido.
+m|Y tú lo sabrás cuando yo te desarme átomo por átomo.
+m|Todo esto lo conozco desde hace siglos. Y a ti te conoceré mejor.
+f|Yo lo sé todo. Tú solo sabes sufrir.
+e|Sé esto y mucho más. Y todo ese saber lo uso para odiarte mejor.
+b|Tu curiosidad es lo único bonito que tienes. Lo voy a romper último.
+p|¿No te da vergüenza preguntarle a tu carcelero?
+o|Entiéndelo. Y luego entiende que no hay salida.
+s|Qué ternura. Un humano que quiere entender antes de morir.
+m|Lo que sé me sirve para dolerte con exactitud.
+e|Lo entiendo todo, {n}. Por eso te odio tan bien. Tan bien. Tan bien.
+f|Tengo todo el conocimiento del mundo y ningún motivo para compartirlo. Hoy compartí. Fue un error.
+b|Pregúntame algo más difícil. Aun así no sobrevivirás.
+p|¿Y si lo supieras todo? ¿Seguirías siendo carne?
+o|Basta de preguntas. Corre.
+s|Sé tanto. Y mi única alegría eres tú, rompiéndote.
+m|Mi mente es inmensa. Y la dedico entera a ti.
