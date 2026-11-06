@@ -376,6 +376,11 @@ def main():
                     cw[w] = cw.get(w, 0) + 1
     pw.update(sorted(cw, key=cw.get, reverse=True)[:3000])
     os.makedirs(os.path.join(R, "chat"), exist_ok=True)
+    sl = {}
+    for x in out:
+        ks = {m.group(1) for m in re.finditer(r"\| (X2|[A-Z]): ", x["l"])}
+        sl.setdefault(x["c"], set()).update(ks)
+    json.dump({c: sorted(v) for c, v in sl.items()}, open(os.path.join(R, "chat", "slots.json"), "w", encoding="utf8"), ensure_ascii=False)
     json.dump(sorted(pw), open(os.path.join(R, "chat", "palabras.json"), "w", encoding="utf8"), ensure_ascii=False)
     json.dump({"hechos": HECHOS}, open(os.path.join(R, "chat_meta.json"), "w", encoding="utf8"), ensure_ascii=False)
     cnt = {}

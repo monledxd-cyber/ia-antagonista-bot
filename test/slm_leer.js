@@ -1,4 +1,6 @@
 process.env.IA_KV = '0';
+process.env.IA_RAPIDO = '0';
+let corridas = 0;
 const assert = require('assert');
 const path = require('path');
 const Module = require('module');
@@ -13,6 +15,7 @@ Module._load = function (req) {
       InferenceSession: {
         create: async () => ({
           run: async ({ ids }) => {
+            corridas++;
             const a = Array.from(ids.data, Number), V = vocab.tokens.length;
             const tail = a.slice(a.lastIndexOf(L) + 1);
             let nx = S;
@@ -42,6 +45,16 @@ const { crearChat } = require('../slm_chat');
   assert.strictEqual(r.clf.p, 'saludo');
   assert.deepStrictEqual(r.slots, {});
   assert(r.ids[r.ids.length - 1] === S);
+  process.env.IA_RAPIDO = '1';
+  const antes = corridas;
+  r = await c.leer('hola buenas');
+  assert.strictEqual(r.intencion, 'saludo');
+  assert(r.directa && corridas === antes);
+  assert(r.ids[r.ids.length - 1] === S && r.ids[r.ids.length - 2] !== S);
+  assert.deepStrictEqual(r.slots, {});
+  r = await c.leer('mi plan es salir');
+  assert(!r.directa);
+  process.env.IA_RAPIDO = '0';
   process.env.IA_CLF = '0';
   r = await c.leer('hola buenas');
   assert.strictEqual(r.intencion, 'plan_v');

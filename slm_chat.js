@@ -57,16 +57,28 @@ function crearChat(dir) {
     for (const w of (String(t).match(PRE) || [])) for (const p of palabra(w)) if (idx.has(p)) out.push(idx.get(p));
     return out;
   };
-  function muestra(lg, temp, k, prohibidos) {
-    const top = [];
-    for (let i = 0; i < lg.length; i++) if (!prohibidos.has(i)) top.push([lg[i], i]);
-    top.sort((a, b) => b[0] - a[0]);
-    const c = top.slice(0, k), mx = c[0][0], ps = c.map((x) => Math.exp((x[0] - mx) / temp)), s = ps.reduce((a, b) => a + b, 0);
+  function muestra(lg, temp, k, mask) {
+    const v = new Float32Array(k).fill(-Infinity), ix = new Int32Array(k), V = lg.length;
+    for (let j = 0; j < V; j++) {
+      const x = lg[j];
+      if (mask[j] || x <= v[k - 1]) continue;
+      let p = k - 1;
+      while (p > 0 && v[p - 1] < x) { v[p] = v[p - 1]; ix[p] = ix[p - 1]; p--; }
+      v[p] = x; ix[p] = j;
+    }
+    const mx = v[0];
+    let s = 0;
+    const ps = new Float64Array(k);
+    for (let i = 0; i < k && v[i] > -Infinity; i++) { ps[i] = Math.exp((v[i] - mx) / temp); s += ps[i]; }
     let r = Math.random() * s;
-    for (let i = 0; i < c.length; i++) { r -= ps[i]; if (r <= 0) return c[i][1]; }
-    return c[0][1];
+    for (let i = 0; i < k && v[i] > -Infinity; i++) { r -= ps[i]; if (r <= 0) return ix[i]; }
+    return ix[0];
   }
-  const prohibidos = () => new Set(vocab.tokens.map((t, i) => (/^<(U|A|L|S|E:[^>]*|R\d:\d|pad)>$/.test(t) ? i : -1)).filter((i) => i >= 0));
+  let _pm = null;
+  const prohibidos = () => {
+    if (!_pm) { _pm = new Uint8Array(vocab.tokens.length); vocab.tokens.forEach((t, i) => { if (/^<(U|A|L|S|E:[^>]*|R\d:\d|pad)>$/.test(t)) _pm[i] = 1; }); }
+    return _pm.slice();
+  };
   async function pasoCompleto(ids) {
     const t = new sesion._ort.Tensor('int64', BigInt64Array.from(ids.map((x) => BigInt(x))), [1, ids.length]);
     const out = await sesion.run({ ids: t });
@@ -94,9 +106,9 @@ function crearChat(dir) {
     try {
       out = await sesion.run({ ids: new Tn('int64', BigInt64Array.from(nuevo.map((x) => BigInt(x))), [1, nuevo.length]), pk: new Tn('float32', kvK, [L, H, c, dh]), pv: new Tn('float32', kvV, [L, H, c, dh]) });
     } catch (e) { kvIds = []; kvK = null; kvV = null; throw e; }
-    kvK = Float32Array.from(out.nk.data); kvV = Float32Array.from(out.nv.data); kvIds = ids.slice();
+    kvK = out.nk.data.slice(); kvV = out.nv.data.slice(); kvIds = ids.slice();
     const off = (nuevo.length - 1) * V;
-    return Float32Array.from(out.logits.data.subarray(off, off + V));
+    return out.logits.data.slice(off, off + V);
   }
   function paso(ids) {
     if (!kvm) return pasoCompleto(ids);
@@ -126,28 +138,38 @@ function crearChat(dir) {
   }
   async function avanzar(ids) {
     const s = idx.get('<S>'), pr = prohibidos();
-    pr.delete(s);
-    pr.add(idx.get(vocab.fin));
+    pr[s] = 0;
+    pr[idx.get(vocab.fin)] = 1;
     const sal = [];
     for (let i = 0; i < 40; i++) {
       const lg = await paso(ids);
       let mx = -1e9, nx = 0;
-      for (let j = 0; j < lg.length; j++) if (!pr.has(j) && lg[j] > mx) { mx = lg[j]; nx = j; }
+      for (let j = 0; j < lg.length; j++) if (!pr[j] && lg[j] > mx) { mx = lg[j]; nx = j; }
       ids.push(nx);
       if (nx === s) break;
       sal.push(vocab.tokens[nx]);
     }
     return { txt: sal.join(''), ids };
   }
+  let sinSlots = null;
   const resumen = (l) => (l ? [l.intencion, ...Object.entries(l.slots || {}).map(([k, v]) => `${k}: ${v}`)].join(' | ') : '');
   async function leer(texto, prev) {
     await cargar();
     if (!sesion) return null;
     const pre = prev && idx.has('<P>') ? [idx.get('<P>'), ...codificar(String(prev)).slice(0, 24)] : [];
     const cab = [...pre, idx.get('<U>'), ...codificar(String(texto).slice(0, 200)).slice(0, 40), idx.get('<L>')];
+    const pc = process.env.IA_CLF === '0' ? null : clf.clasificar(texto);
+    if (pc && process.env.IA_RAPIDO !== '0' && pc.conf >= Number(process.env.IA_RAPIDO_CONF || 0.9)) {
+      if (!sinSlots) { try { sinSlots = JSON.parse(fs.readFileSync(path.join(dir, 'slots.json'), 'utf8')); } catch (e) { sinSlots = {}; } }
+      if (Array.isArray(sinSlots[pc.p]) && sinSlots[pc.p].length === 0) {
+        const pf = pc.p.replace(/_/g, ' ');
+        const l0 = armar(pf, [...cab, ...codificar(pf), idx.get('<S>')]);
+        l0.clf = pc; l0.directa = true;
+        return l0;
+      }
+    }
     const r1 = await avanzar(cab.slice());
     let lec = armar(r1.txt, r1.ids);
-    const pc = process.env.IA_CLF === '0' ? null : clf.clasificar(texto);
     if (pc) {
       lec.clf = pc;
       if (lec.intencion !== pc.p) {
@@ -206,24 +228,33 @@ function crearChat(dir) {
     const mem = Object.entries(info.memoria || {}).filter(([k, v]) => ['teme', 'tiene', 'refugio', 'nombre'].includes(k) && v).sort((a, b) => (a[0] < b[0] ? -1 : 1)).slice(0, 2);
     if (mem.length) ids.push(idx.get('<M>'), ...codificar(mem.map(([k, v]) => `${k}: ${v}`).join(' | ')).slice(0, 24));
     ids.push(...[g(`<E:${info.estilo}>`, '<E:libre>'), ...rs.map((d, i) => idx.get(`<R${i}:${d}>`)), idx.get('<A>')]);
-    const fin = idx.get(vocab.fin), pr = prohibidos();
+    const fin = idx.get(vocab.fin), pr = prohibidos(), pr0 = pr.slice();
+    pr0[fin] = 1;
     const sal = [];
+    const nom = info.nombre;
+    const extra = texto + ' ' + (nom || '') + ' ' + Object.values(lec.slots).join(' ') + ' ' + mem.map((x) => x[1]).join(' ');
+    const ent = permitidas ? new Set(palabras(extra)) : null;
+    let txt = '', chk = 0;
     const temp = info.temp || Number(process.env.SLM_TEMP) || 0.6, k = info.k || 8;
     const t0 = Date.now();
     try {
       for (let i = 0; i < Math.min(100, vocab.ctx - ids.length - 1); i++) {
         const lg = await paso(ids);
-        const nx = muestra(lg, temp, k, i < 3 ? new Set([...pr, fin]) : pr);
+        const nx = muestra(lg, temp, k, i < 3 ? pr0 : pr);
         if (nx === fin) break;
         ids.push(nx); sal.push(vocab.tokens[nx]);
+        if (ent) {
+          txt += vocab.tokens[nx];
+          const ws = palabras(txt);
+          for (; chk < ws.length - 1; chk++) { const w = ws[chk]; if (!(permitidas.has(w) || ent.has(w) || w === 'n')) return null; }
+        }
         if (Date.now() - t0 > 15000) break;
       }
     } catch (e) { fallos++; console.log('[chat] error:', String(e.message).slice(0, 100)); return null; }
     let f = sal.join('').replace(/\s+/g, ' ').trim();
-    const nom = info.nombre;
     f = nom ? f.replace(/\{n\}/g, nom) : f.replace(/\{n\},\s*/g, '').replace(/,?\s*\{n\}/g, '').replace(/\s+/g, ' ').trim().replace(/^./, (c) => c.toUpperCase());
     if (lec.intencion === 'definicion' && lec.slots.X && !conTermino([lec.slots.X, lec.slots.X2 || ''].join(' '), f)) return null;
-    if (f.length < 4 || /[{}]/.test(f) || !valida(f, texto + ' ' + (nom || '') + ' ' + Object.values(lec.slots).join(' ') + ' ' + mem.map((x) => x[1]).join(' '), Object.fromEntries(claves.filter((k) => hv[k] !== undefined).map((k) => [k, hv[k]])))) return null;
+    if (f.length < 4 || /[{}]/.test(f) || !valida(f, extra, Object.fromEntries(claves.filter((k) => hv[k] !== undefined).map((k) => [k, hv[k]])))) return null;
     return f;
   }
   cargar();

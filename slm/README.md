@@ -20,3 +20,6 @@ slm/elementos.py: los 118 elementos desde una tabla (simbolo, numero atomico, ma
 
 ## 3.000.95 depuracion
 index.js: respuestas del SLM hasta 235 chars (antes 170 cortaba la definicion a la primera frase). slm_chat.js: generacion hasta 100 tokens (antes 70 truncaba). Dataset: respuestas definicion <=235 chars, plural solo en vocal. competencias.js: no calcula si la expresion es una parte pequena del mensaje sin pista de calculo, ignora numeros pegados a letras, rechaza resultados >=1e15, usa el mensaje completo (no solo la ultima clausula).
+
+## 3.000.96 velocidad
+slm_chat.js: muestreo top-k por insercion con mascara (0.94 ms -> 0.02 ms por paso), copia de cache KV con slice (0.3 -> 0.08 ms), mascara de tokens prohibidos cacheada, aborto temprano de la generacion si aparece una palabra no permitida (antes generaba todo y luego rechazaba, hasta 6 veces). leer(): si el clasificador tiene conf>=0.9 (IA_RAPIDO_CONF) y la intencion no tiene slots (chat/slots.json, lo escribe dialogo.py) se salta la decodificacion del SLM. IA_RAPIDO=0 lo desactiva. Paso ONNX medido en CPU de 2 nucleos: 1.8 ms con cache (kv q8), asi que el sobrecosto JS era ~45% del paso.
