@@ -245,6 +245,7 @@ def ruido():
     return fr
 
 def corpus_dominio(n=60000):
+    os.makedirs(os.path.join(R, "preentrenar"), exist_ok=True)
     with open(os.path.join(R, "preentrenar", "am_comp.txt"), "w", encoding="utf8") as fh:
         for _ in range(n):
             fh.write(K.generica().replace("{n}", random.choice(B["N"])) + "\n")
