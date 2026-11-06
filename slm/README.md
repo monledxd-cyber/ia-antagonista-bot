@@ -17,3 +17,6 @@ slm/conceptos/*.txt (337 conceptos: quimica, fisica, biologia, mate, cosmos, com
 
 ## 3.000.94 elementos
 slm/elementos.py: los 118 elementos desde una tabla (simbolo, numero atomico, masa, familia, estado) generan miles de preguntas distintas (nombre, simbolo, numero, protones, familia) con respuestas en palabras, sin digitos. Es generador de datos, no consulta en runtime: el saber queda en los pesos. SLM_ELEMENTOS=30 filas por elemento.
+
+## 3.000.95 depuracion
+index.js: respuestas del SLM hasta 235 chars (antes 170 cortaba la definicion a la primera frase). slm_chat.js: generacion hasta 100 tokens (antes 70 truncaba). Dataset: respuestas definicion <=235 chars, plural solo en vocal. competencias.js: no calcula si la expresion es una parte pequena del mensaje sin pista de calculo, ignora numeros pegados a letras, rechaza resultados >=1e15, usa el mensaje completo (no solo la ultima clausula).

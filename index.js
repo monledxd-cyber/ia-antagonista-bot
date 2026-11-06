@@ -1178,7 +1178,7 @@ async function crearBot() {
       const hist = registrarInteraccion(username);
       if (bot._charlaIA) {
         const propia = await bot._charlaIA.responder(username, mensaje).catch((e) => { console.log('[charla] error:', e.message); return null; });
-        if (propia) { console.log('[charla] SLM propio -> ' + propia); registrarChatReal(username, mensaje, propia, 'slm'); registrarRespuesta(username, propia); await manejarRespuesta(bot, { nombre: username }, propia); return; }
+        if (propia) { console.log('[charla] SLM propio -> ' + propia); registrarChatReal(username, mensaje, propia, 'slm'); registrarRespuesta(username, propia); await manejarRespuesta(bot, { nombre: username, largo: true }, propia); return; }
       }
       const respuesta = await preguntarIA(OPENROUTER_KEY, {
         nombre: username,
@@ -1639,8 +1639,9 @@ async function manejarRespuesta(bot, ctx, respuestaCruda) {
   if (mCmd) texto = texto.replace(mCmd[0], '').trim();
 
   texto = texto.replace(/\[[A-Z_]+:[^\]]*$/, '').replace(/\[[A-Z_]+:[^\]]*\]/g, '').trim();
-  if (texto.length > 170) { const m = texto.match(/^[\s\S]*?[.!?…]+(?=\s|$)/); if (m && m[0].length >= 12) texto = m[0].trim(); }
-  if (texto.length > 170) texto = texto.slice(0, 170).replace(/\s+\S*$/, '') + '…';
+  const tope = ctx && ctx.largo ? 235 : 170;
+  if (texto.length > tope) { const m = texto.match(/^[\s\S]*?[.!?…]+(?=\s|$)/); if (m && m[0].length >= 12) texto = m[0].trim(); }
+  if (texto.length > tope) texto = texto.slice(0, tope).replace(/\s+\S*$/, '') + '…';
   if (texto.length > 240) {
     const corte = texto.slice(0, 240);
     const i = Math.max(corte.lastIndexOf('. '), corte.lastIndexOf('! '), corte.lastIndexOf('? '));

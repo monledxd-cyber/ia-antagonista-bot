@@ -84,5 +84,7 @@ def pares(n, hold, sucio, aumentar, PRE_, SUF_):
                 t = y + " " + t
             else:
                 e = "f"
+            if len(t) > 235:
+                continue
             out.append({"u": u, "e": CO.ES.get(e, "frio"), "rs": "0000", "t": t[:1].upper() + t[1:], "c": "definicion", "l": f"definicion | X: {X}", "f": "", "m": "", "p": ""})
     return out

@@ -73,7 +73,7 @@ function crearCharla(bot, o) {
     if (md && lectura.slots[md[1]]) { mem[usuario] = Object.assign(mem[usuario] || {}, { [md[0]]: lectura.slots[md[1]] }); sucio = true; }
     const hs = hechos(usuario);
     let m = null;
-    const comp = require('./competencias').resolver(actual);
+    const comp = require('./competencias').resolver(texto);
     if (comp) m = comp.texto;
     else if (lectura.fuera) m = require('./fuera').respuesta(actual, usuario);
     for (let i = 0; i < 6 && !m; i++) m = await chat.responder(texto, { estilo, rs, nombre: usuario, lectura, hechos: hs, memoria: antes });

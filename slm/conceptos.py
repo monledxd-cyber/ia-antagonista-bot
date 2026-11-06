@@ -49,8 +49,8 @@ Q3_TR, Q3_TE = partir(Q3, 0.25, 23)
 
 def termino(c):
     t = random.choice(c["t"])
-    if random.random() < 0.15 and " " not in t:
-        t = t + "s" if not t.endswith("s") else t
+    if random.random() < 0.15 and " " not in t and t[-1] in "aeiou":
+        t = t + "s"
     return t
 
 def plantilla(q, X, X2=None):
@@ -105,6 +105,8 @@ def pares(n, hold, sucio, aumentar, PRE_, SUF_):
                 u = plantilla(random.choice(q1), X)
                 e, t = componer([random.choice(c["h"])], pre, post, random.choice(c["a"]) if c["a"] else None)
                 l = f"definicion | X: {X}"
+            if len(t) > 235:
+                continue
             u = aumentar(random.choice(PRE_) + (sucio(u) if random.random() < 0.3 else u) + random.choice(SUF_))
             out.append({"u": u, "e": ES.get(e, "frio"), "rs": "0000", "t": t[:1].upper() + t[1:], "c": "definicion", "l": l, "f": "", "m": "", "p": p})
     return out

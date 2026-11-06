@@ -65,7 +65,7 @@ function montar(app, express, o) {
     const lec = await chat.leer(texto, prev);
     if (!lec) throw Object.assign(new Error('modelo no cargado'), { codigo: 503 });
     let r = null, n = 0;
-    const comp = require('./competencias').resolver(texto);
+    const comp = require('./competencias').resolver(lit);
     if (comp) { r = comp.texto; n = 1; } else if (lec.fuera) { r = require('./fuera').respuesta(texto, nombre); n = 1; }
     for (; n < 6 && !r && Date.now() - t0 < TOPE_MS; n++) {
       r = await chat.responder(lit, { estilo: ESTILOS[crypto.randomInt(ESTILOS.length)], rs: [0, 0, 0, 0], nombre, lectura: lec, hechos: {}, memoria: {} });

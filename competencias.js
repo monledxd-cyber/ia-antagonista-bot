@@ -60,18 +60,22 @@ function normalizar(t) {
 
 function calculo(texto) {
   const n = normalizar(texto);
-  const m = n.match(/(?:sqrt\s*)?[(\d][\d\s.,+\-*/^%()]*|sqrt\s*[\d(][\d\s.,+\-*/^%()sqrt]*/g);
-  if (!m) return null;
+  const m = [...n.matchAll(/(?:sqrt\s*)?[(\d][\d\s.,+\-*/^%()]*|sqrt\s*[\d(][\d\s.,+\-*/^%()sqrt]*/g)];
+  if (!m.length) return null;
   let mejor = null;
-  for (const c of m) {
-    const s = c.trim().replace(/[+\-*/^\s]+$/, '').replace(/^[*/^\s]+/, '');
+  for (const mm of m) {
+    if (mm.index > 0 && /[a-z0-9]/i.test(n[mm.index - 1])) continue;
+    const c = mm[0];
+    const s = c.trim().replace(/[+\-*/^,.\s]+$/, '').replace(/^[*/^\s]+/, '');
     if (!/\d/.test(s) || !/[+\-*/^%]|sqrt/.test(s.replace(/^-/, ''))) continue;
     if (!mejor || s.length > mejor.length) mejor = s;
   }
   if (!mejor) return null;
+  const cobertura = mejor.replace(/\s+/g, '').length / (n.replace(/\s+/g, '').length || 1);
+  if (cobertura < 0.6 && !/cu[aá]nto|calcul|resuelv|resultado|ra[ií]z|cu[aá]l es|=|\bda\b|\bson\b|suma|resta|multiplic|divid|porcentaje/i.test(texto)) return null;
   let v;
   try { v = evaluar(mejor); } catch (e) { return null; }
-  const r = v === null ? null : fmt(v);
+  const r = v === null || Math.abs(v) >= 1e15 ? null : fmt(v);
   if (r === null) return null;
   return { tipo: 'calculo', expr: mejor.replace(/\s+/g, ' ').replace(/\*/g, ' × ').replace(/\//g, ' ÷ ').replace(/\s+/g, ' ').trim(), valor: r };
 }

@@ -211,7 +211,7 @@ function crearChat(dir) {
     const temp = info.temp || Number(process.env.SLM_TEMP) || 0.6, k = info.k || 8;
     const t0 = Date.now();
     try {
-      for (let i = 0; i < Math.min(70, vocab.ctx - ids.length - 1); i++) {
+      for (let i = 0; i < Math.min(100, vocab.ctx - ids.length - 1); i++) {
         const lg = await paso(ids);
         const nx = muestra(lg, temp, k, i < 3 ? new Set([...pr, fin]) : pr);
         if (nx === fin) break;
