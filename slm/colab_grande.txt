@@ -7,6 +7,8 @@
 !python dialogo.py
 !SLM_D=384 SLM_L=8 SLM_H=8 SLM_BATCH=64 SLM_PRE_PASOS=6000 SLM_EPOCAS=10 SLM_MERGES=3000 SLM_MAX_SEG=4500 python entrenar_chat.py
 !python clasificador.py
+!pip -q install onnxruntime
+!python kv_onnx.py chat/modelo.onnx chat/modelo_kv.onnx 8
 !zip -qr modelo_am.zip chat
 !split -b 20M modelo_am.zip parte_
 from google.colab import files

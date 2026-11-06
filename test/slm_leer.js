@@ -1,3 +1,4 @@
+process.env.IA_KV = '0';
 const assert = require('assert');
 const path = require('path');
 const Module = require('module');

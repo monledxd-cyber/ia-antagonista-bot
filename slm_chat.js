@@ -6,7 +6,7 @@ const PRE = / ?\p{L}+| ?\p{Nd}+| ?[^\p{L}\p{N}_\s]|\s+/gu;
 
 function crearChat(dir) {
   const rm = path.join(dir, 'modelo.onnx'), rv = path.join(dir, 'vocab.json');
-  let sesion = null, vocab = null, idx = null, rank = null, base = null, cache = new Map(), cargando = null, fallos = 0;
+  let sesion = null, kvm = null, kvIds = [], kvK = null, kvV = null, cola = Promise.resolve(), vocab = null, idx = null, rank = null, base = null, cache = new Map(), cargando = null, fallos = 0;
   const cargar = () => {
     if (sesion || fallos >= 3 || !fs.existsSync(rm) || !fs.existsSync(rv)) return Promise.resolve();
     if (cargando) return cargando;
@@ -18,8 +18,18 @@ function crearChat(dir) {
         rank = new Map(vocab.merges.map((m, i) => [m[0] + '\u0001' + m[1], i]));
         base = new Set(vocab.base);
         const opc = { intraOpNumThreads: 1, interOpNumThreads: 1, enableCpuMemArena: false, enableMemPattern: false }, r8 = path.join(dir, 'modelo_q8.onnx');
-        if (process.env.IA_Q8 !== '0' && fs.existsSync(r8)) { try { sesion = await ort.InferenceSession.create(r8, opc); } catch (e) { sesion = null; console.log('[chat] q8 no cargo, uso fp32:', String(e.message).slice(0, 100)); } }
-        if (!sesion) sesion = await ort.InferenceSession.create(rm, opc);
+        const kvj = path.join(dir, 'kv.json');
+        if (process.env.IA_KV !== '0' && fs.existsSync(kvj)) {
+          try {
+            kvm = JSON.parse(fs.readFileSync(kvj, 'utf8'));
+            const k8 = path.join(dir, 'modelo_kv_q8.onnx'), k32 = path.join(dir, 'modelo_kv.onnx');
+            if (process.env.IA_Q8 !== '0' && fs.existsSync(k8)) { try { sesion = await ort.InferenceSession.create(k8, opc); } catch (e) { sesion = null; } }
+            if (!sesion && fs.existsSync(k32)) sesion = await ort.InferenceSession.create(k32, opc);
+            if (!sesion) kvm = null;
+          } catch (e) { sesion = null; kvm = null; console.log('[chat] kv no cargo:', String(e.message).slice(0, 100)); }
+        }
+        if (!sesion && process.env.IA_Q8 !== '0' && fs.existsSync(r8)) { try { sesion = await ort.InferenceSession.create(r8, opc); } catch (e) { sesion = null; console.log('[chat] q8 no cargo, uso fp32:', String(e.message).slice(0, 100)); } }
+        if (!sesion) { kvm = null; sesion = await ort.InferenceSession.create(rm, opc); }
         sesion._ort = ort;
       } catch (e) { fallos++; console.log('[chat] no se pudo cargar:', String(e.message).slice(0, 120)); }
       cargando = null;
@@ -57,11 +67,42 @@ function crearChat(dir) {
     return c[0][1];
   }
   const prohibidos = () => new Set(vocab.tokens.map((t, i) => (/^<(U|A|L|S|E:[^>]*|R\d:\d|pad)>$/.test(t) ? i : -1)).filter((i) => i >= 0));
-  async function paso(ids) {
+  async function pasoCompleto(ids) {
     const t = new sesion._ort.Tensor('int64', BigInt64Array.from(ids.map((x) => BigInt(x))), [1, ids.length]);
     const out = await sesion.run({ ids: t });
     const V = vocab.tokens.length, off = (ids.length - 1) * V;
     return out.logits.data.subarray(off, off + V);
+  }
+  async function pasoKV(ids) {
+    const { L, H, dh } = kvm, Tn = sesion._ort.Tensor, V = vocab.tokens.length;
+    let c = 0;
+    const m = Math.min(kvIds.length, ids.length);
+    while (c < m && kvIds[c] === ids[c]) c++;
+    if (c === ids.length) c--;
+    if (c < kvIds.length) {
+      const P = kvIds.length;
+      if (c <= 0) { c = 0; kvK = new Float32Array(0); kvV = new Float32Array(0); } else {
+        const nk = new Float32Array(L * H * c * dh), nv = new Float32Array(L * H * c * dh);
+        for (let r = 0; r < L * H; r++) { nk.set(kvK.subarray(r * P * dh, r * P * dh + c * dh), r * c * dh); nv.set(kvV.subarray(r * P * dh, r * P * dh + c * dh), r * c * dh); }
+        kvK = nk; kvV = nv;
+      }
+      kvIds = kvIds.slice(0, c);
+    }
+    if (!kvK) { kvK = new Float32Array(0); kvV = new Float32Array(0); }
+    const nuevo = ids.slice(c);
+    let out;
+    try {
+      out = await sesion.run({ ids: new Tn('int64', BigInt64Array.from(nuevo.map((x) => BigInt(x))), [1, nuevo.length]), pk: new Tn('float32', kvK, [L, H, c, dh]), pv: new Tn('float32', kvV, [L, H, c, dh]) });
+    } catch (e) { kvIds = []; kvK = null; kvV = null; throw e; }
+    kvK = Float32Array.from(out.nk.data); kvV = Float32Array.from(out.nv.data); kvIds = ids.slice();
+    const off = (nuevo.length - 1) * V;
+    return Float32Array.from(out.logits.data.subarray(off, off + V));
+  }
+  function paso(ids) {
+    if (!kvm) return pasoCompleto(ids);
+    const p = cola.then(() => pasoKV(ids));
+    cola = p.catch(() => {});
+    return p;
   }
   const clf = require('./slm_clf').crearClasificador(dir);
   let ordenadas = null;
@@ -180,7 +221,7 @@ function crearChat(dir) {
     return f;
   }
   cargar();
-  return { responder, leer, resumen, calidad, listo: () => !!sesion, cargar, _cod: (t) => codificar(t) };
+  return { _paso: paso, responder, leer, resumen, calidad, listo: () => !!sesion, cargar, _cod: (t) => codificar(t) };
 }
 const _compartidos = new Map();
 function compartido(dir) {
