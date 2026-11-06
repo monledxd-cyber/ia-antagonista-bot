@@ -1,0 +1,38 @@
+const assert = require('assert');
+const c = require('../competencias');
+const v = (t) => { const r = c.calculo(t); return r && r.valor; };
+assert.strictEqual(v('cuanto es 30 + 31'), '61');
+assert.strictEqual(v('2+3*4'), '14');
+assert.strictEqual(v('(2+3)*4'), '20');
+assert.strictEqual(v('10 / 4'), '2,5');
+assert.strictEqual(v('2^10'), '1024');
+assert.strictEqual(v('cuanto es 20% de 150'), '30');
+assert.strictEqual(v('raiz cuadrada de 144'), '12');
+assert.strictEqual(v('7 por 8'), '56');
+assert.strictEqual(v('100 entre 8'), '12,5');
+assert.strictEqual(v('12 mas 30 menos 2'), '40');
+assert.strictEqual(v('3 x 4'), '12');
+assert.strictEqual(v('1/0'), null);
+assert.strictEqual(v('hola como estas'), null);
+assert.strictEqual(v('tengo 5 diamantes'), null);
+const b = (t) => { const r = c.balancear(t); return r && r.texto; };
+assert.strictEqual(b('balancea H2 + O2 -> H2O'), '2H2 + O2 → 2H2O');
+assert.strictEqual(b('Fe + O2 -> Fe2O3'), '4Fe + 3O2 → 2Fe2O3');
+assert.strictEqual(b('C3H8 + O2 -> CO2 + H2O'), 'C3H8 + 5O2 → 3CO2 + 4H2O');
+assert.strictEqual(b('Al + HCl -> AlCl3 + H2'), '2Al + 6HCl → 2AlCl3 + 3H2');
+assert.strictEqual(b('Ca(OH)2 + H3PO4 -> Ca3(PO4)2 + H2O'), '3Ca(OH)2 + 2H3PO4 → Ca3(PO4)2 + 6H2O');
+assert.strictEqual(b('H2 -> O2'), null);
+const m = (t) => { const r = c.molar(t); return r && r.valor; };
+assert.strictEqual(m('masa molar del H2O'), '18,02');
+assert.strictEqual(m('masa molar de NaCl'), '58,44');
+assert.strictEqual(m('masa molar de Ca(OH)2'), '74,09');
+assert.strictEqual(c.molar('hola'), null);
+assert.strictEqual(c.ph('ph de HCl 0.01 M').texto, 'pH = 2');
+assert.strictEqual(c.ph('ph de NaOH 0.001 M').texto, 'pH = 11');
+assert.strictEqual(c.ph('hola'), null);
+for (let i = 0; i < 40; i++) {
+  const r = c.resolver('cuanto es 30 + 31');
+  assert(r && /61/.test(r.texto) && !/[{}]/.test(r.texto), r && r.texto);
+}
+assert.strictEqual(c.resolver('uvas'), null);
+console.log('competencias ok');
