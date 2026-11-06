@@ -23,3 +23,6 @@ index.js: respuestas del SLM hasta 235 chars (antes 170 cortaba la definicion a 
 
 ## 3.000.96 velocidad
 slm_chat.js: muestreo top-k por insercion con mascara (0.94 ms -> 0.02 ms por paso), copia de cache KV con slice (0.3 -> 0.08 ms), mascara de tokens prohibidos cacheada, aborto temprano de la generacion si aparece una palabra no permitida (antes generaba todo y luego rechazaba, hasta 6 veces). leer(): si el clasificador tiene conf>=0.9 (IA_RAPIDO_CONF) y la intencion no tiene slots (chat/slots.json, lo escribe dialogo.py) se salta la decodificacion del SLM. IA_RAPIDO=0 lo desactiva. Paso ONNX medido en CPU de 2 nucleos: 1.8 ms con cache (kv q8), asi que el sobrecosto JS era ~45% del paso.
+
+## 3.000.97
+competencias.js se evalua antes de leer con el SLM (charla.js y api_am.js): "3+2" responde al instante, sin cargar ni decodificar el modelo.

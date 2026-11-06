@@ -57,6 +57,8 @@ function montar(app, express, o) {
 
   async function generar(texto, nombre, previo) {
     const t0 = Date.now();
+    const comp0 = require('./competencias').resolver(texto);
+    if (comp0) return { texto: comp0.texto, intentos: 1, ms: Date.now() - t0, lectura: { intencion: comp0.tipo, slots: {}, dudoso: false, fuera: false, cambiada: false } };
     let prev = '';
     const cl = texto.split(/\s*[,;.!?¡¿]+\s+/).map((x) => x.trim()).filter(Boolean);
     const lit = texto;
@@ -65,8 +67,7 @@ function montar(app, express, o) {
     const lec = await chat.leer(texto, prev);
     if (!lec) throw Object.assign(new Error('modelo no cargado'), { codigo: 503 });
     let r = null, n = 0;
-    const comp = require('./competencias').resolver(lit);
-    if (comp) { r = comp.texto; n = 1; } else if (lec.fuera) { r = require('./fuera').respuesta(texto, nombre); n = 1; }
+    if (lec.fuera) { r = require('./fuera').respuesta(texto, nombre); n = 1; }
     for (; n < 6 && !r && Date.now() - t0 < TOPE_MS; n++) {
       r = await chat.responder(lit, { estilo: ESTILOS[crypto.randomInt(ESTILOS.length)], rs: [0, 0, 0, 0], nombre, lectura: lec, hechos: {}, memoria: {} });
     }

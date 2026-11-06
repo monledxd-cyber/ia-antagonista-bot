@@ -48,6 +48,8 @@ function crearCharla(bot, o) {
   }
 
   async function responder(usuario, texto) {
+    const comp = require('./competencias').resolver(texto);
+    if (comp) return comp.texto;
     await chat.cargar();
     if (!chat.listo()) return null;
     const lg = bot._leng;
@@ -73,11 +75,9 @@ function crearCharla(bot, o) {
     if (md && lectura.slots[md[1]]) { mem[usuario] = Object.assign(mem[usuario] || {}, { [md[0]]: lectura.slots[md[1]] }); sucio = true; }
     const hs = hechos(usuario);
     let m = null;
-    const comp = require('./competencias').resolver(texto);
-    if (comp) m = comp.texto;
-    else if (lectura.fuera) m = require('./fuera').respuesta(actual, usuario);
+    if (lectura.fuera) m = require('./fuera').respuesta(actual, usuario);
     for (let i = 0; i < 6 && !m; i++) m = await chat.responder(texto, { estilo, rs, nombre: usuario, lectura, hechos: hs, memoria: antes });
-    if (m && esc && !comp) { try { const s = esc.componer(usuario, lectura.intencion, usuario); if (s) m = (m + ' ' + s).length <= 235 ? m + ' ' + s : s; } catch (e) { /* ignorar */ } }
+    if (m && esc) { try { const s = esc.componer(usuario, lectura.intencion, usuario); if (s) m = (m + ' ' + s).length <= 235 ? m + ' ' + s : s; } catch (e) { /* ignorar */ } }
     return m || null;
   }
   return { responder, hechos };

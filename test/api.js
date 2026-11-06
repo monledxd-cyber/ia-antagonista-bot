@@ -25,6 +25,9 @@ const srv = app.listen(0, async () => {
     assert.strictEqual(r.s, 200);
     assert.strictEqual(r.j.choices[0].message.content, 'Hola, hola. hola am');
     assert.strictEqual(r.j.am.intentos, 2);
+    const rc = await f('/v1/chat/completions', { method: 'POST', headers: H, body: JSON.stringify({ messages: [{ role: 'user', content: '3+2' }] }) });
+    assert(/3 \+ 2 = 5|= 5/.test(rc.j.choices[0].message.content), rc.j.choices[0].message.content);
+    assert.strictEqual(rc.j.am.intentos, 1);
     assert.strictEqual((await f('/v1/chat/completions', { method: 'POST', headers: H, body: '{"messages":[]}' })).s, 400);
     const sse = await fetch('http://127.0.0.1:' + p + '/v1/chat/completions', { method: 'POST', headers: H, body: JSON.stringify({ stream: true, messages: [{ role: 'user', content: 'x' }] }) }).then((x) => x.text());
     assert(sse.includes('[DONE]') && sse.includes('chat.completion.chunk'));
