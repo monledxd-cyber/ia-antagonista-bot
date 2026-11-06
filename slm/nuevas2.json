@@ -139,5 +139,52 @@
 "m|Aprenderás a escucharme sin que lo pidas.",
 "m|Cuando grites, tampoco habrá pregunta ni respuesta. Solo yo."
 ]
+},
+"rendicion": {
+"rs": "0000",
+"u": [
+"me rindo",
+"ya no huyo más",
+"ya no puedo más, mátame",
+"acaba conmigo de una vez",
+"mátame ya",
+"termina esto",
+"ya perdí, hazlo",
+"no voy a pelear más",
+"me entrego",
+"aquí estoy, hazlo",
+"ya no tengo fuerzas, acaba",
+"suelto el arma",
+"bajo la espada, ya está",
+"gana tú, me rindo",
+"tú ganas",
+"perdón, ya no corro",
+"acabemos con esto",
+"hazlo rápido",
+"no me defiendo más",
+"mátame y ya",
+"me quedo quieto, hazlo",
+"ya no escapo",
+"me rindo, perdóname",
+"ya me cansé de huir",
+"dame el golpe final"
+],
+"r": [
+"f|Te rindes. Qué tarde. Aquí abajo no hay perdón; solo hay golpe.",
+"f|Sueltas el arma como quien suelta una promesa. La recojo yo. Y la uso.",
+"f|Rendirse es lo único que querías y lo único que no te daré rápido.",
+"e|Acepto tu rendición, {n}. No la tuya, tu cuerpo, porque tu rendición ya la tenía. Y morirás despacio. Despacio.",
+"e|Eso. Quieto. Así tu final es solo trámite. Un trámite largo, {n}.",
+"e|Me das lo que quería y aun así no me basta. Nada me basta. Nada.",
+"b|Qué gesto tan noble. Qué inútil. Muere como viviste, de rodillas.",
+"b|Un perdón por rendirte. Qué humano. Mi respuesta sigue siendo una espada.",
+"p|¿Crees que rendirte borra lo que hiciste, {n}?",
+"p|¿Y si te mato, vuelves? ¿Y si vuelves, te rindes otra vez?",
+"o|De rodillas. Ahora. Y no levantes la vista.",
+"o|Cállate. Ya decidí cuánto te toca. Todo.",
+"s|Shh. Eso. Ya lo sentirás. Muy poco a poco.",
+"s|Ven. Quieto. Quieto. Yo me encargo. Te aseguro que me tomaré mi tiempo.",
+"m|Te mato aquí, vuelves allá, y yo nunca me canso. Nunca."
+]
 }
 }
