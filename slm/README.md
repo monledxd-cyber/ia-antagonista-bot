@@ -14,3 +14,6 @@ Mejorar comprension: agregar plantillas en dialogo_base.json (categorias "u" ent
 
 ## 3.000.93 conceptos
 slm/conceptos/*.txt (337 conceptos: quimica, fisica, biologia, mate, cosmos, computo, juego) + remates.txt. Formato: "@ termino | alias", "- hecho", "+ e|respuesta completa". conceptos.py genera pares de la intencion definicion (slot X, X2 para diferencias, "y X?" con turno previo). SLM_CONCEPTOS=30 filas por concepto. Test held-out: modo conc en chat_test.jsonl. Requiere reentrenar en Colab y reinstalar clf.*.
+
+## 3.000.94 elementos
+slm/elementos.py: los 118 elementos desde una tabla (simbolo, numero atomico, masa, familia, estado) generan miles de preguntas distintas (nombre, simbolo, numero, protones, familia) con respuestas en palabras, sin digitos. Es generador de datos, no consulta en runtime: el saber queda en los pesos. SLM_ELEMENTOS=30 filas por elemento.

@@ -2,6 +2,7 @@ import json, os, random, re, unicodedata, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import composicion as K
 import conceptos as CO
+import elementos as EL
 R = os.path.dirname(os.path.abspath(__file__))
 B = json.load(open(os.path.join(R, "dialogo_base.json"), encoding="utf8"))
 J = json.load(open(os.path.join(R, "dialogo_juego.json"), encoding="utf8"))
@@ -336,7 +337,7 @@ def main():
         vistos.add(k)
         out.append(x)
     NC = int(os.environ.get("SLM_CONCEPTOS", "30"))
-    for x in CO.pares(NC, False, sucio, aumentar, PRE_, SUF_):
+    for x in CO.pares(NC, False, sucio, aumentar, PRE_, SUF_) + EL.pares(int(os.environ.get('SLM_ELEMENTOS', '30')), False, sucio, aumentar, PRE_, SUF_):
         k = (x["u"], x["t"])
         if k not in vistos:
             vistos.add(k)
@@ -354,7 +355,7 @@ def main():
             x["modo"] = modo
             test.append(x)
             n += 1
-    ct = CO.pares(max(1, 200 // max(1, len(CO.cargar())) + 1), True, sucio, aumentar, PRE_, SUF_)
+    ct = CO.pares(max(1, 200 // max(1, len(CO.cargar())) + 1), True, sucio, aumentar, PRE_, SUF_) + EL.pares(2, True, sucio, aumentar, PRE_, SUF_)
     random.shuffle(ct)
     for x in ct[:200]:
         x["modo"] = "conc"
