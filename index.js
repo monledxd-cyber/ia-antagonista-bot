@@ -1184,7 +1184,12 @@ async function crearBot() {
       const hist = registrarInteraccion(username);
       if (bot._charlaIA) {
         const propia = await bot._charlaIA.responder(username, mensaje).catch((e) => { console.log('[charla] error:', e.message); return null; });
-        if (propia) { console.log('[charla] SLM propio -> ' + propia); registrarChatReal(username, mensaje, propia, 'slm'); registrarRespuesta(username, propia); await manejarRespuesta(bot, { nombre: username, largo: true }, propia); return; }
+        if (propia) {
+          console.log('[charla] SLM propio -> ' + propia); registrarChatReal(username, mensaje, propia, 'slm'); registrarRespuesta(username, propia);
+          const plan = require('./suelta').planificar(propia, username);
+          if (plan) { bot._emboscadaHasta = Date.now() + plan.hasta; setTimeout(() => { if (bot.entity) manejarRespuesta(bot, { nombre: username }, '[PERSEGUIR:' + username + ']').catch(() => {}); }, plan.demora); }
+          await manejarRespuesta(bot, { nombre: username, largo: true }, propia); return;
+        }
       }
       const respuesta = await preguntarIA(OPENROUTER_KEY, {
         nombre: username,

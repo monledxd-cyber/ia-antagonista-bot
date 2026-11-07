@@ -4,6 +4,7 @@ import composicion as K
 import conceptos as CO
 import elementos as EL
 import competencias_ds as CD
+import mundo_ds as MU
 R = os.path.dirname(os.path.abspath(__file__))
 B = json.load(open(os.path.join(R, "dialogo_base.json"), encoding="utf8"))
 J = json.load(open(os.path.join(R, "dialogo_juego.json"), encoding="utf8"))
@@ -339,7 +340,7 @@ def main():
         vistos.add(k)
         out.append(x)
     NC = int(os.environ.get("SLM_CONCEPTOS", "30"))
-    for x in CO.pares(NC, False, sucio, aumentar, PRE_, SUF_) + EL.pares(int(os.environ.get('SLM_ELEMENTOS', '30')), False, sucio, aumentar, PRE_, SUF_) + CD.pares(int(os.environ.get('SLM_COMP', '400')), False, sucio, aumentar, PRE_, SUF_):
+    for x in CO.pares(NC, False, sucio, aumentar, PRE_, SUF_) + EL.pares(int(os.environ.get('SLM_ELEMENTOS', '30')), False, sucio, aumentar, PRE_, SUF_) + CD.pares(int(os.environ.get('SLM_COMP', '400')), False, sucio, aumentar, PRE_, SUF_) + MU.pares(int(os.environ.get('SLM_MUNDO', '500')), False, sucio, aumentar, PRE_, SUF_):
         k = (x["u"], x["t"])
         if k not in vistos:
             vistos.add(k)
@@ -359,7 +360,7 @@ def main():
             n += 1
     ct = CO.pares(max(1, 200 // max(1, len(CO.cargar())) + 1), True, sucio, aumentar, PRE_, SUF_) + EL.pares(2, True, sucio, aumentar, PRE_, SUF_) 
     random.shuffle(ct)
-    ct = ct[:200] + CD.pares(15, True, sucio, aumentar, PRE_, SUF_)
+    ct = ct[:200] + CD.pares(15, True, sucio, aumentar, PRE_, SUF_) + MU.pares(20, True, sucio, aumentar, PRE_, SUF_)
     for x in ct:
         x["modo"] = "conc"
         test.append(x)
@@ -384,7 +385,7 @@ def main():
         sl.setdefault(x["c"], set()).update(ks)
     json.dump({c: sorted(v) for c, v in sl.items()}, open(os.path.join(R, "chat", "slots.json"), "w", encoding="utf8"), ensure_ascii=False)
     json.dump(sorted(pw), open(os.path.join(R, "chat", "palabras.json"), "w", encoding="utf8"), ensure_ascii=False)
-    json.dump({"hechos": {**HECHOS, **{k: [v] for k, v in CD.HECHO.items()}}}, open(os.path.join(R, "chat_meta.json"), "w", encoding="utf8"), ensure_ascii=False)
+    json.dump({"hechos": {**HECHOS, **{k: [v] for k, v in CD.HECHO.items()}, **{k: [v] for k, v in MU.HECHO.items()}}}, open(os.path.join(R, "chat_meta.json"), "w", encoding="utf8"), ensure_ascii=False)
     cnt = {}
     for x in out:
         cnt[x["c"]] = cnt.get(x["c"], 0) + 1

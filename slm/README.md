@@ -32,3 +32,9 @@ index.js: la esquiva de flechas ahora tambien corre en cada entityMoved de una f
 
 ## 3.000.99 competencias por el SLM
 Las competencias ya no esquivan al SLM. Intenciones nuevas calculo, ecuacion, ph_calc, masa_molar (slot X = la expresion, formula o ecuacion tal como la escribio el usuario). El SLM lee la peticion; competencias.calcular(intencion, texto, X) calcula el valor exacto (con X y, si falla, con el mensaje entero); el valor entra como hecho <F> (resultado, balanceada, ph, masa) y el SLM lo dice con la voz de AM. slm_chat rechaza la salida si no contiene el valor exacto; si tras 6 intentos no hay respuesta valida se usa la plantilla fija (CP.formatear). Mientras el modelo desplegado no conozca esas intenciones (chat.conoce), se mantiene el atajo por plantilla de 3.000.97. slm/comp_gen.py genera los datos (puerto exacto a Python de la calculadora, el balanceo, pH y masa molar); test/comp_ref.json (170 casos) verifica en JS la paridad con Python. Limites de entrenamiento y generacion: lectura hasta 48 tokens (antes 30), hechos hasta 40 (antes 24), lectura generada hasta 56 pasos (antes 40). SLM_COMP=400 filas por intencion. Requiere reentrenar en Colab.
+
+### sividi toile v3.000.100
+- Hechos del mundo: intents `mi_equipo`, `peligro_cerca`, `clima` (slm/mundo_ds.py, SLM_MUNDO=500), claves armadura/mobs/clima desde charla.hechos().
+- `rendicion` con respuestas "te dejo ir"; suelta.js agenda la emboscada tras esas palabras.
+- escenas.js: escena bravata (cita lo que dijiste contra tu situación).
+- Requiere una segunda corrida de Colab.

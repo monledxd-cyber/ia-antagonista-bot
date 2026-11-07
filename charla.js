@@ -20,6 +20,41 @@ function crearCharla(bot, o) {
   bot.once('end', () => { clearInterval(gt); guardar(); });
   bot._charla = { guardar };
 
+  const MAT = { leather: 'cuero', chainmail: 'cadenas', iron: 'hierro', golden: 'oro', diamond: 'diamante', netherite: 'netherita' };
+  function armadura(e) {
+    const eq = e && e.equipment;
+    if (!eq) return null;
+    const mats = [];
+    for (let i = 2; i <= 5; i++) {
+      const p = eq[i];
+      const m = p && p.name && /^(\w+?)_(helmet|chestplate|leggings|boots)$/.exec(p.name);
+      if (m) mats.push(m[1]);
+    }
+    if (!mats.length) return 'sin armadura';
+    if (mats.length < 4 || new Set(mats).size > 1 || !MAT[mats[0]]) return 'armadura incompleta';
+    return 'armadura de ' + MAT[mats[0]];
+  }
+  const MOB = [[/zombie|drowned|husk/, 'zombi'], [/skeleton|stray/, 'esqueletos'], [/creeper/, 'creepers'], [/spider/, 'arañas'], [/enderman/, 'enderman']];
+  function cercanos(yo) {
+    const n = {};
+    let t = 0;
+    for (const id in bot.entities) {
+      const e = bot.entities[id];
+      if (!e || e === bot.entity || !e.position || e.type !== 'hostile' || e.position.distanceTo(yo) > 16) continue;
+      t++;
+      const m = MOB.find((x) => x[0].test(e.name || ''));
+      const k = m ? m[1] : 'otro';
+      n[k] = (n[k] || 0) + 1;
+    }
+    if (!t) return 'nada cerca de ti';
+    if (t >= 5) return 'una horda cerca de ti';
+    const ks = Object.keys(n);
+    if (ks.length > 1 || ks[0] === 'otro') return 'algo cerca de ti';
+    if (ks[0] === 'zombi') return t === 1 ? 'un zombi cerca de ti' : 'algo cerca de ti';
+    if (ks[0] === 'enderman') return t === 1 ? 'un enderman cerca de ti' : 'algo cerca de ti';
+    return ks[0] + ' cerca de ti';
+  }
+
   function hechos(usuario) {
     const h = {};
     const yo = bot.entity && bot.entity.position;
@@ -45,6 +80,9 @@ function crearCharla(bot, o) {
     const tg = bot.pvp && bot.pvp.target;
     h.accion = tg && tg.username === usuario ? 'cazándote' : bot.health < 12 ? 'recuperándome' : 'vigilándote';
     try { const n = o.muertes && o.muertes(); if (n > 0) h.muertes = n; } catch (e) { /* ignorar */ }
+    try { const a = armadura(bot.players && bot.players[usuario] && bot.players[usuario].entity); if (a) h.armadura = a; } catch (e) { /* ignorar */ }
+    try { if (yo) h.mobs = cercanos(yo); } catch (e) { /* ignorar */ }
+    if (typeof bot.isRaining === 'boolean') h.clima = bot.thunderState > 0 ? 'en tormenta' : bot.isRaining ? 'lloviendo' : 'despejado';
     return h;
   }
 

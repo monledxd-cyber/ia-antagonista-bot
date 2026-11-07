@@ -4,13 +4,33 @@ const hace = (t) => { const m = Math.max(1, Math.round((Date.now() - t) / 60000)
 const pick = (l) => l[Math.floor(Math.random() * l.length)];
 
 const AFIN = {
-  amenaza: ['dijo', 'mato', 'pelea_gane', 'huida'], insulto: ['dijo', 'pelea_gane', 'mato', 'huida'], burla: ['pelea_gane', 'huida', 'mato', 'dijo'],
-  desafio: ['huida', 'pelea_gane', 'pelea_perdi', 'mato'], suplica: ['muertes', 'pelea_gane', 'huida'], victoria_yo: ['pelea_perdi', 'mato', 'muertes'],
+  amenaza: ['bravata', 'dijo', 'mato', 'pelea_gane', 'huida'], insulto: ['bravata', 'dijo', 'pelea_gane', 'mato', 'huida'], burla: ['bravata', 'pelea_gane', 'huida', 'mato', 'dijo'],
+  desafio: ['bravata', 'huida', 'pelea_gane', 'pelea_perdi', 'mato'], suplica: ['muertes', 'pelea_gane', 'huida'], victoria_yo: ['pelea_perdi', 'mato', 'muertes'],
   morir_yo: ['muertes', 'huida', 'pelea_gane'], saludo: ['ult', 'huida', 'muertes'], despedida: ['ult', 'huida', 'muertes'], gracias: ['huida', 'muertes', 'ult'],
   soledad: ['ult', 'muertes'], miedo: ['huida', 'muertes', 'pelea_gane'], destino: ['pelea_gane', 'muertes', 'huida', 'mato'], porque: ['muertes', 'mato', 'pelea_perdi'],
 };
 
+const BRAVATA = /(no tengo miedo|no (te )?temo|te voy a|voy a mat|ya ver|no puedes|no me (ganas|vences)|cuidado|te mato|gonna|will )/i;
+
 const ESC = {
+  bravata: (j, n) => {
+    const d = (j.dijo || []).filter((x) => x && x.s && BRAVATA.test(x.s))[0];
+    if (!d) return null;
+    const p = (j.peleas || []).filter((x) => x.res === 'gane').pop();
+    if (p && p.dur) return pick([
+      `${hace(d.t)} dijiste "${d.s}". Después te vencí en ${Math.round(p.dur)} segundos, ${n}.`,
+      `"${d.s}", dijiste ${hace(d.t)}. Y luego caíste. Repítelo, ${n}, quiero oírlo con tu voz de ahora.`,
+    ]);
+    if (j.muertes >= 1) return pick([
+      `"${d.s}". Lo dijiste ${hace(d.t)}. Desde entonces has muerto ${j.muertes} ${j.muertes === 1 ? 'vez' : 'veces'}, ${n}.`,
+      `Dijiste "${d.s}" y después moriste ${j.muertes} ${j.muertes === 1 ? 'vez' : 'veces'}. Qué bien suena la valentía antes del golpe.`,
+    ]);
+    if (j.huyo >= 1) return pick([
+      `"${d.s}", dijiste. Después huiste ${j.huyo} ${j.huyo === 1 ? 'vez' : 'veces'}, ${n}. Las palabras no corren tan rápido como tú.`,
+      `Qué valiente fue decir "${d.s}". Qué rápido corrieron tus piernas después, ${n}.`,
+    ]);
+    return null;
+  },
   pelea_gane: (j, n, mo) => {
     const p = (j.peleas || []).filter((x) => x.res === 'gane').pop();
     if (!p || !p.dur) return null;

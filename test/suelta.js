@@ -1,0 +1,10 @@
+const assert = require('assert');
+const s = require('../suelta');
+assert(s.planificar('Está bien, Ana. Te dejo ir. Corre.', 'Ana', 1000, 0).demora === 5000);
+assert(s.planificar('Te dejo ir otra vez', 'Ana', 2000, 0) === null);
+assert(s.planificar('Te dejo ir otra vez', 'Ana', 1000 + 300001, 1).demora === 14000);
+assert(s.planificar('Eres libre, Bob.', 'Bob', 1000, 0.5));
+assert(s.planificar('Voy a matarte, Carl.', 'Carl', 1000) === null);
+assert(s.planificar('', 'Carl', 1000) === null);
+assert(s.planificar(null, 'Carl', 1000) === null);
+console.log('suelta ok');
