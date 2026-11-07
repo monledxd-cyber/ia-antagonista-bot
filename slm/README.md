@@ -26,3 +26,6 @@ slm_chat.js: muestreo top-k por insercion con mascara (0.94 ms -> 0.02 ms por pa
 
 ## 3.000.97
 competencias.js se evalua antes de leer con el SLM (charla.js y api_am.js): "3+2" responde al instante, sin cargar ni decodificar el modelo.
+
+## 3.000.98 reaccion y deltas
+index.js: la esquiva de flechas ahora tambien corre en cada entityMoved de una flecha a menos de 8 bloques (antes solo sondeo cada 200 ms; una flecha recorre ~12 bloques en ese tiempo). Gapple y comida de emergencia se disparan al instante cuando baja la vida (evento health), ademas del sondeo. persist.js: el gist solo recibe los archivos que cambiaron (huella md5 por archivo, antes enviaba todos si cambiaba uno; al arrancar registra la huella de lo restaurado). nn.js: datos_nn.json solo se reescribe si hay episodios nuevos (y cada 10 guardados por seguridad); los pesos se guardan con 8 cifras significativas en vez de 17.

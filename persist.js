@@ -3,7 +3,10 @@
 // que faltan en disco) y se guardan cada 5 min y al recibir SIGTERM. Solo se envian los archivos de memoria listados.
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 const { execFileSync } = require('child_process');
+const huella = (c) => crypto.createHash('md5').update(c).digest('hex');
+const enviado = new Map();
 const TOKEN = process.env.GITHUB_TOKEN || process.env.IA_GIST_TOKEN, ID = process.env.IA_GIST_ID;
 const URL_ = 'https://api.github.com/gists/' + ID;
 const cab = () => ['-H', 'Authorization: Bearer ' + TOKEN, '-H', 'Accept: application/vnd.github+json', '-H', 'User-Agent: am-bot'];
@@ -18,35 +21,40 @@ function restaurar(rutas) {
       const f = g.files && g.files[path.basename(r)];
       if (f && f.content && !f.truncated && !fs.existsSync(r)) { fs.writeFileSync(r, f.content); n++; }
     }
+    for (const k in (g.files || {})) if (g.files[k].content && !g.files[k].truncated) enviado.set(k, huella(g.files[k].content));
     console.log('[persist] restaurados ' + n + ' archivos del gist');
     return true;
   } catch (e) { console.log('[persist] restaurar fallo:', e.message); return false; }
 }
 function cuerpo(rutas) {
-  const files = {}; let sig = '';
+  const files = {}, hs = {};
   for (const r of rutas) {
-    try { const c = fs.readFileSync(r, 'utf8'); if (c) { files[path.basename(r)] = { content: c }; sig += c.length + ':' + c.slice(-30); } } catch (e) { /* aun no existe */ }
+    try {
+      const c = fs.readFileSync(r, 'utf8');
+      if (!c) continue;
+      const k = path.basename(r), h = huella(c);
+      if (enviado.get(k) !== h) { files[k] = { content: c }; hs[k] = h; }
+    } catch (e) { /* aun no existe */ }
   }
-  return { files, sig };
+  return { files, hs };
 }
 function guardarYa(rutas) {
-  const { files } = cuerpo(rutas);
+  const { files, hs } = cuerpo(rutas);
   if (!Object.keys(files).length) return;
-  try { execFileSync('curl', ['-sS', '-m', '8', '-X', 'PATCH', ...cab(), '-d', '@-', URL_], { input: JSON.stringify({ files }), timeout: 10000, stdio: ['pipe', 'ignore', 'ignore'] }); } catch (e) { /* ignorar */ }
+  try { execFileSync('curl', ['-sS', '-m', '8', '-X', 'PATCH', ...cab(), '-d', '@-', URL_], { input: JSON.stringify({ files }), timeout: 10000, stdio: ['pipe', 'ignore', 'ignore'] }); for (const k in hs) enviado.set(k, hs[k]); } catch (e) { /* ignorar */ }
 }
 function iniciar(rutas, flush) {
   if (!activo()) { console.log('[persist] sin IA_GIST_ID/GITHUB_TOKEN: la memoria se pierde al redesplegar en Render'); return; }
-  let ult = '';
   const t = setInterval(async () => {
     try { if (flush) flush(); } catch (e) { /* ignorar */ }
-    const { files, sig } = cuerpo(rutas);
-    if (sig === ult || !Object.keys(files).length) return;
+    const { files, hs } = cuerpo(rutas);
+    if (!Object.keys(files).length) return;
     try {
       const r = await fetch(URL_, { method: 'PATCH', headers: { Authorization: 'Bearer ' + TOKEN, Accept: 'application/vnd.github+json', 'User-Agent': 'am-bot' }, body: JSON.stringify({ files }) });
-      if (r.ok) ult = sig; else require('./diag').log('warn', 'persist', 'gist HTTP ' + r.status);
+      if (r.ok) { for (const k in hs) enviado.set(k, hs[k]); } else require('./diag').log('warn', 'persist', 'gist HTTP ' + r.status);
     } catch (e) { require('./diag').log('warn', 'persist', 'gist: ' + e.message); }
   }, 300_000);
   if (t.unref) t.unref();
   process.once('SIGTERM', () => { try { if (flush) flush(); } catch (e) { /* ignorar */ } guardarYa(rutas); process.exit(0); });
 }
-module.exports = { restaurar, iniciar, activo };
+module.exports = { restaurar, iniciar, activo, _cuerpo: cuerpo, _enviado: enviado };

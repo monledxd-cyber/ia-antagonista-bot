@@ -151,7 +151,7 @@ function rnn(w) {
   return { m, step, seq, grad, pre, tdVentana, cero, copiar };
 }
 
-const ser = (m) => { const o = {}; for (const k of Object.keys(m)) o[k] = Array.from(m[k]); return o; };
+const ser = (m) => { const o = {}; for (const k of Object.keys(m)) o[k] = Array.from(m[k], (x) => Number(x.toPrecision(8))); return o; };
 
 const suave = (dst, src, tau) => { for (const k of Object.keys(src.m)) { const a = dst.m[k], b = src.m[k]; for (let q = 0; q < a.length; q++) a[q] += tau * (b[q] - a[q]); } };
 
@@ -167,7 +167,7 @@ function migrar(m) {
 }
 
 function crearNN(bot, ruta, rutaDatos) {
-  let red = null, mt = null, eps = [], act = [], pend = [], sucio = false, hs = [], ultSug = null, inc = 0, extras = [];
+  let gDat = 0, sucioEps = false, red = null, mt = null, eps = [], act = [], pend = [], sucio = false, hs = [], ultSug = null, inc = 0, extras = [];
   let st = { pv: 0, na: 0, ra: 0, nd: 0, rd: 0, ent: 0, err: 0, pre: 0, sim: 0, simWin: 0, base: 0, pe: 0, pb: 0, pn: 0 };
   let ultRel = null, ultPend = null, ultPred = null;
   try { const d = JSON.parse(fs.readFileSync(ruta, 'utf8'));
@@ -406,7 +406,7 @@ function crearNN(bot, ruta, rutaDatos) {
 
   const guardar = () => {
     if (!sucio) return;
-    try { fs.writeFileSync(ruta, JSON.stringify({ m: ser(red.m), ms: redes.slice(1).map((r) => ser(r.m)), mt: objetivos.map((r) => ser(r.m)), st })); fs.writeFileSync(rutaDatos, JSON.stringify(eps)); sucio = false; } catch (e) { /* ignorar */ }
+    try { fs.writeFileSync(ruta, JSON.stringify({ m: ser(red.m), ms: redes.slice(1).map((r) => ser(r.m)), mt: objetivos.map((r) => ser(r.m)), st })); if (sucioEps || ++gDat % 10 === 0 || !fs.existsSync(rutaDatos)) { fs.writeFileSync(rutaDatos, JSON.stringify(eps)); sucioEps = false; } sucio = false; } catch (e) { /* ignorar */ }
   };
   const gt = setInterval(guardar, 60_000);
   bot.once('end', () => { clearInterval(it); clearInterval(gt); guardar(); });
@@ -416,7 +416,7 @@ function crearNN(bot, ruta, rutaDatos) {
       const extra = res === 'gane' ? 0.5 : res === 'perdi' ? -0.8 : 0;
       const n = pend.length;
       for (const m of pend.splice(0)) { m.hp2 = bot.health; m.rhp2 = null; cerrarMuestra(m, extra / Math.max(1, n), false); }
-      if (act.length) { act[act.length - 1].fin = true; eps.push(act); let tot = eps.reduce((a, e) => a + e.length, 0); while (tot > 4000 && eps.length > 1) tot -= eps.shift().length; }
+      if (act.length) { act[act.length - 1].fin = true; eps.push(act); sucioEps = true; let tot = eps.reduce((a, e) => a + e.length, 0); while (tot > 4000 && eps.length > 1) tot -= eps.shift().length; }
       act = []; hs = redes.map((r) => r.cero());
       entrenar(150);
       if (bot._bandits) bot._bandits.nnExtra = {};

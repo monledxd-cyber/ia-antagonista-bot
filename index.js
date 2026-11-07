@@ -594,7 +594,7 @@ function iniciarHuida(bot) {
   // Si una flecha esta cerca y se acerca (no alejandose), hace un strafe
   // lateral corto -- no cancela lo que estaba haciendo, solo da un paso.
   let ultimoStrafeTs = 0;
-  const esquivaInterval = setInterval(() => {
+  const esquivaTick = () => {
     if (!bot.entity) { clearInterval(esquivaInterval); return; }
     if (Date.now() - ultimoStrafeTs < 600) return; // cooldown corto entre esquivas
     // Anti-mace: un jugador con mace por encima y a menos de 4 bloques en horizontal
@@ -634,7 +634,9 @@ function iniciarHuida(bot) {
       bot.setControlState(lado, true);
       setTimeout(() => bot.setControlState(lado, false), 300);
     } catch (e) { /* ignorar */ }
-  }, 200);
+  };
+  const esquivaInterval = setInterval(esquivaTick, 200);
+  bot.on('entityMoved', (e) => { if (e && e.name === 'arrow' && bot.entity && e.position.distanceTo(bot.entity.position) < 8) esquivaTick(); });
   intervalos.push(esquivaInterval);
 
   // Nadar: en agua/lava mantiene saltar (flota), busca la orilla mas cercana y nada hacia ella.
@@ -720,19 +722,20 @@ function iniciarHuida(bot) {
 
   // Manzana dorada de emergencia: vida <= 8 y sin totem que lo salve, se cura
   // como lo haria un jugador real (si hay enemigo encima, solo con vida <= 5).
-  const gappleInterval = setInterval(async () => {
+  const gappleYa = async () => {
     if (!bot.entity) { clearInterval(gappleInterval); return; }
     if (bot.health === undefined || bot.health > 8) return;
     if (enemigoCerca(4) && bot.health > 5) return;
     const dorada = bot.inventory.items().find(i => i.name === 'golden_apple' || i.name === 'enchanted_golden_apple');
     if (dorada) await comerAlgo(bot, dorada);
-  }, 2_500);
+  };
+  const gappleInterval = setInterval(gappleYa, 2_500);
   intervalos.push(gappleInterval);
 
   // Comida de emergencia: con poca vida come lo mejor que tenga (la regeneracion natural exige hambre alta).
   // Sin enemigo encima come ya; con enemigo pegado solo si esta realmente mal (<= 6).
   let umbralComer = null;
-  const emergenciaInterval = setInterval(async () => {
+  const emergenciaYa = async () => {
     if (!bot.entity) { clearInterval(emergenciaInterval); return; }
     if (!umbralComer || Date.now() > umbralComer.t) umbralComer = { v: 12 + Math.floor(Math.random() * 5), t: Date.now() + 30_000 };
     if (comiendo || bot.health === undefined || bot.food === undefined || bot.food >= 20) return;
@@ -741,7 +744,10 @@ function iniciarHuida(bot) {
     const pegado = enemigoCerca(3);
     if (pegado && bot.health > 6) return;
     await comerAlgo(bot, null);
-  }, 1_000);
+  };
+  const emergenciaInterval = setInterval(emergenciaYa, 1_000);
+  let hpAnt = null;
+  bot.on('health', () => { const v = bot.health; if (hpAnt !== null && v < hpAnt) { gappleYa(); emergenciaYa(); } hpAnt = v; });
   intervalos.push(emergenciaInterval);
 
   // Recoger items importantes sueltos (loot de un jugador caido, drops de mobs, lo que se le cayo) cuando no hay peligro.
