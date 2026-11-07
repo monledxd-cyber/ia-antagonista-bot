@@ -141,7 +141,7 @@ function crearChat(dir) {
     pr[s] = 0;
     pr[idx.get(vocab.fin)] = 1;
     const sal = [];
-    for (let i = 0; i < 40; i++) {
+    for (let i = 0; i < 56; i++) {
       const lg = await paso(ids);
       let mx = -1e9, nx = 0;
       for (let j = 0; j < lg.length; j++) if (!pr[j] && lg[j] > mx) { mx = lg[j]; nx = j; }
@@ -212,6 +212,7 @@ function crearChat(dir) {
     const ent = new Set(palabras(extra));
     return palabras(f).every((w) => permitidas.has(w) || ent.has(w) || w === 'n');
   };
+  const EXACTOS = new Set(['resultado', 'balanceada', 'ph', 'masa']);
   async function responder(texto, info) {
     await cargar();
     if (!sesion) return null;
@@ -224,7 +225,7 @@ function crearChat(dir) {
     const ids = lec.ids.slice();
     const claves = (vocab.hechos && vocab.hechos[lec.intencion]) || [];
     const hv = info.hechos || {};
-    if (claves.length && claves.every((k) => hv[k] !== undefined)) ids.push(idx.get('<F>'), ...codificar(claves.map((k) => `${k}: ${hv[k]}`).join(' | ')).slice(0, 24));
+    if (claves.length && claves.every((k) => hv[k] !== undefined)) ids.push(idx.get('<F>'), ...codificar(claves.map((k) => `${k}: ${hv[k]}`).join(' | ')).slice(0, 40));
     const mem = Object.entries(info.memoria || {}).filter(([k, v]) => ['teme', 'tiene', 'refugio', 'nombre'].includes(k) && v).sort((a, b) => (a[0] < b[0] ? -1 : 1)).slice(0, 2);
     if (mem.length) ids.push(idx.get('<M>'), ...codificar(mem.map(([k, v]) => `${k}: ${v}`).join(' | ')).slice(0, 24));
     ids.push(...[g(`<E:${info.estilo}>`, '<E:libre>'), ...rs.map((d, i) => idx.get(`<R${i}:${d}>`)), idx.get('<A>')]);
@@ -255,10 +256,11 @@ function crearChat(dir) {
     f = nom ? f.replace(/\{n\}/g, nom) : f.replace(/\{n\},\s*/g, '').replace(/,?\s*\{n\}/g, '').replace(/\s+/g, ' ').trim().replace(/^./, (c) => c.toUpperCase());
     if (lec.intencion === 'definicion' && lec.slots.X && !conTermino([lec.slots.X, lec.slots.X2 || ''].join(' '), f)) return null;
     if (f.length < 4 || /[{}]/.test(f) || !valida(f, extra, Object.fromEntries(claves.filter((k) => hv[k] !== undefined).map((k) => [k, hv[k]])))) return null;
+    if (claves.some((k) => EXACTOS.has(k) && hv[k] !== undefined && !f.includes(String(hv[k])))) return null;
     return f;
   }
   cargar();
-  return { _paso: paso, responder, leer, resumen, calidad, conTermino, listo: () => !!sesion, cargar, _cod: (t) => codificar(t) };
+  return { _paso: paso, responder, leer, resumen, calidad, conTermino, listo: () => !!sesion, conoce: (i) => !!(sesion && vocab && vocab.hechos && vocab.hechos[i]), cargar, _cod: (t) => codificar(t) };
 }
 const _compartidos = new Map();
 function compartido(dir) {

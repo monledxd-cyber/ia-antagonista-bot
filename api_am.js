@@ -27,6 +27,7 @@ function clavePermitida(k) {
   return ok;
 }
 
+const CP = require('./competencias');
 function montar(app, express, o) {
   o = o || {};
   const chat = o.chat || require('./slm_chat').compartido(path.join(__dirname, 'slm', 'chat'));
@@ -57,8 +58,9 @@ function montar(app, express, o) {
 
   async function generar(texto, nombre, previo) {
     const t0 = Date.now();
-    const comp0 = require('./competencias').resolver(texto);
-    if (comp0) return { texto: comp0.texto, intentos: 1, ms: Date.now() - t0, lectura: { intencion: comp0.tipo, slots: {}, dudoso: false, fuera: false, cambiada: false } };
+    if (chat.cargar) await chat.cargar();
+    const leg = CP.resolver(texto);
+    if (leg && !(chat.conoce && chat.conoce(CP.TIPO[leg.tipo]))) return { texto: leg.texto, intentos: 1, ms: Date.now() - t0, lectura: { intencion: CP.TIPO[leg.tipo], slots: {}, dudoso: false, fuera: false, cambiada: false } };
     let prev = '';
     const cl = texto.split(/\s*[,;.!?¡¿]+\s+/).map((x) => x.trim()).filter(Boolean);
     const lit = texto;
@@ -67,10 +69,12 @@ function montar(app, express, o) {
     const lec = await chat.leer(texto, prev);
     if (!lec) throw Object.assign(new Error('modelo no cargado'), { codigo: 503 });
     let r = null, n = 0;
-    if (lec.fuera) { r = require('./fuera').respuesta(texto, nombre); n = 1; }
+    const cp = CP.CLAVE[lec.intencion] ? CP.calcular(lec.intencion, lit, lec.slots.X) : null;
+    if (CP.CLAVE[lec.intencion] ? !cp : lec.fuera) { r = require('./fuera').respuesta(texto, nombre); n = 1; }
     for (; n < 6 && !r && Date.now() - t0 < TOPE_MS; n++) {
-      r = await chat.responder(lit, { estilo: ESTILOS[crypto.randomInt(ESTILOS.length)], rs: [0, 0, 0, 0], nombre, lectura: lec, hechos: {}, memoria: {} });
+      r = await chat.responder(lit, { estilo: ESTILOS[crypto.randomInt(ESTILOS.length)], rs: [0, 0, 0, 0], nombre, lectura: lec, hechos: cp ? { [cp.clave]: cp.valor } : {}, memoria: {} });
     }
+    if (!r && cp) r = CP.formatear(lec.intencion, cp.valor, lec.slots.X);
     const ms = Date.now() - t0;
     if (!r) throw Object.assign(new Error('sin respuesta valida'), { codigo: 502 });
     return { texto: r, intentos: n, ms, lectura: { intencion: lec.intencion, slots: lec.slots, dudoso: !!lec.dudoso, fuera: !!lec.fuera, cambiada: !!lec.cambiada } };

@@ -173,15 +173,15 @@ function balancear(texto) {
   return { tipo: 'ecuacion', texto: `${arm(R, co.slice(0, R.length))} → ${arm(P, co.slice(R.length))}` };
 }
 
-function ph(texto) {
-  const t = String(texto).toLowerCase().replace(',', '.');
-  if (!/\bp\s?h\b|\bpoh\b/.test(t)) return null;
-  const m = t.match(/(\d+(?:\.\d+)?(?:\s*(?:e|x\s*10\^?)\s*-?\d+)?)\s*(?:m\b|mol|molar)?/);
+function ph(texto, forzar) {
+  const t = String(texto).toLowerCase().replace(/,/g, '.');
+  if (!forzar && !/\bp\s?h\b|\bpoh\b/.test(t)) return null;
+  const m = t.replace(/\b(?:hclo4|hno3|h2so4|hcl|hbr|hi|naoh|koh|lioh)\b/g, ' ').match(/(\d+(?:\.\d+)?(?:\s*(?:e|x\s*10\^?)\s*-?\d+)?)\s*(?:m\b|mol|molar)?/);
   if (!m) return null;
   const c = parseFloat(m[1].replace(/\s*x\s*10\^?/, 'e').replace(/\s+/g, ''));
   if (!(c > 0) || !isFinite(c)) return null;
   const poh = /\bpoh\b/.test(t);
-  const base = /(naoh|koh|oh-?|hidr[oó]xido|base)/.test(t) && !/(hcl|hno3|h2so4|[aá]cido)/.test(t);
+  const base = /(naoh|koh|lioh|oh-?|hidr[oó]xido|base)/.test(t) && !/(hcl|hno3|h2so4|[aá]cido)/.test(t);
   const p = -Math.log10(c);
   const val = poh ? p : base ? 14 - p : p;
   const nombre = poh ? 'pOH' : 'pH';
@@ -189,8 +189,8 @@ function ph(texto) {
   return { tipo: 'ph', texto: `${nombre} = ${fmt(Math.round(v * 100) / 100)}` };
 }
 
-function molar(texto) {
-  if (!/masa\s*(?:molar|molecular|at[oó]mica)|peso\s*(?:molecular|at[oó]mico)|cu[aá]nto\s*pesa/i.test(texto)) return null;
+function molar(texto, forzar) {
+  if (!forzar && !/masa\s*(?:molar|molecular|at[oó]mica)|peso\s*(?:molecular|at[oó]mico)|cu[aá]nto\s*pesa/i.test(texto)) return null;
   const m = String(texto).match(/\b([A-Z][a-z]?\d*(?:\([A-Za-z0-9]+\)\d*|[A-Z][a-z]?\d*)*)\b/g);
   if (!m) return null;
   for (const f of m.sort((a, b) => b.length - a.length)) {
@@ -238,4 +238,27 @@ function resolver(texto) {
   return { tipo: r.tipo, hecho: r, texto: s };
 }
 
-module.exports = { resolver, calculo, balancear, ph, molar, masaMolar, elementos, evaluar };
+const CLAVE = { calculo: 'resultado', ecuacion: 'balanceada', ph_calc: 'ph', masa_molar: 'masa' };
+const TIPO = { calculo: 'calculo', ecuacion: 'ecuacion', ph: 'ph_calc', masa: 'masa_molar' };
+
+function calcular(intencion, texto, X) {
+  const cand = [X, texto].filter((x) => x && String(x).trim());
+  for (const c of cand) {
+    let r = null;
+    try {
+      if (intencion === 'calculo') { const k = calculo(c); r = k && k.valor; }
+      else if (intencion === 'ecuacion') { const k = balancear(c); r = k && k.texto; }
+      else if (intencion === 'ph_calc') { const k = ph(c, true); r = k && k.texto; }
+      else if (intencion === 'masa_molar') { const k = molar(c, true); r = k && k.valor; }
+    } catch (e) { r = null; }
+    if (r) return { clave: CLAVE[intencion], valor: r };
+  }
+  return null;
+}
+
+function formatear(intencion, valor, X) {
+  const pl = pick(T[{ calculo: 'calculo', ecuacion: 'ecuacion', ph_calc: 'ph', masa_molar: 'masa' }[intencion]]);
+  return pl.replace('{e}', X || '').replace('{v}', valor).replace('{t}', valor).replace('{f}', X || '');
+}
+
+module.exports = { calcular, formatear, CLAVE, TIPO, resolver, calculo, balancear, ph, molar, masaMolar, elementos, evaluar };

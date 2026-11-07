@@ -46,3 +46,13 @@ for (let i = 0; i < 40; i++) {
 }
 assert.strictEqual(c.resolver('uvas'), null);
 console.log('competencias ok');
+const ref = require('./comp_ref.json');
+let malos = [];
+for (const r of ref) {
+  const k = c.calcular(r.i, r.x, r.x);
+  if (!k || k.valor !== r.v) malos.push(`${r.i} | ${r.x} | esperado ${r.v} | obtenido ${k && k.valor}`);
+}
+assert.strictEqual(malos.length, 0, '\n' + malos.join('\n'));
+assert.strictEqual(c.calcular('calculo', 'hola', 'hola'), null);
+assert.strictEqual(c.calcular('ecuacion', 'H2 -> O2', 'H2 -> O2'), null);
+console.log('paridad python', ref.length);

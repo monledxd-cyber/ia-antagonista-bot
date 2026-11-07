@@ -7,6 +7,7 @@ const PSIQUE_E = { odio: 'promesa', desprecio: 'frio', sadismo: 'susurro', domin
 const MANO = [[/netherite_sword/, 'una espada de netherita'], [/diamond_sword/, 'una espada de diamante'], [/iron_sword/, 'una espada de hierro'], [/_axe$/, 'un hacha'], [/^(bow|crossbow)$/, 'un arco'], [/trident/, 'un tridente'], [/mace/, 'una maza']];
 const BIOMA = [[/desert|badlands/, 'el desierto'], [/swamp|mangrove/, 'el pantano'], [/beach|ocean/, 'la playa'], [/peaks|mountain|hills|slopes/, 'la montaña'], [/forest|taiga|jungle|grove/, 'el bosque']];
 
+const CP = require('./competencias');
 function crearCharla(bot, o) {
   const chat = require('./slm_chat').compartido(path.join(__dirname, 'slm', 'chat'));
   const ruta = o.ruta;
@@ -48,9 +49,9 @@ function crearCharla(bot, o) {
   }
 
   async function responder(usuario, texto) {
-    const comp = require('./competencias').resolver(texto);
-    if (comp) return comp.texto;
     await chat.cargar();
+    const leg = CP.resolver(texto);
+    if (leg && !(chat.conoce && chat.conoce(CP.TIPO[leg.tipo]))) return leg.texto;
     if (!chat.listo()) return null;
     const lg = bot._leng;
     if (!lg) return null;
@@ -75,9 +76,12 @@ function crearCharla(bot, o) {
     if (md && lectura.slots[md[1]]) { mem[usuario] = Object.assign(mem[usuario] || {}, { [md[0]]: lectura.slots[md[1]] }); sucio = true; }
     const hs = hechos(usuario);
     let m = null;
-    if (lectura.fuera) m = require('./fuera').respuesta(actual, usuario);
+    const cp = CP.CLAVE[lectura.intencion] ? CP.calcular(lectura.intencion, texto, lectura.slots.X) : null;
+    if (cp) hs[cp.clave] = cp.valor;
+    if (CP.CLAVE[lectura.intencion] ? !cp : lectura.fuera) m = require('./fuera').respuesta(actual, usuario);
     for (let i = 0; i < 6 && !m; i++) m = await chat.responder(texto, { estilo, rs, nombre: usuario, lectura, hechos: hs, memoria: antes });
-    if (m && esc) { try { const s = esc.componer(usuario, lectura.intencion, usuario); if (s) m = (m + ' ' + s).length <= 235 ? m + ' ' + s : s; } catch (e) { /* ignorar */ } }
+    if (!m && cp) m = CP.formatear(lectura.intencion, cp.valor, lectura.slots.X);
+    if (m && esc && !cp) { try { const s = esc.componer(usuario, lectura.intencion, usuario); if (s) m = (m + ' ' + s).length <= 235 ? m + ' ' + s : s; } catch (e) { /* ignorar */ } }
     return m || null;
   }
   return { responder, hechos };

@@ -41,11 +41,11 @@ def main():
     ej = []
     for x in filas:
         u = ids_de(x["u"])[:40]
-        lec = ids_de(x["l"])[:30] + [idx["<S>"]]
+        lec = ids_de(x["l"])[:48] + [idx["<S>"]]
         a = ([idx["<P>"]] + ids_de(x["p"])[:24] if x.get("p") else []) + [idx["<U>"]] + u + [idx["<L>"]]
         ctx_ = []
         if x.get("f"):
-            ctx_ += [idx["<F>"]] + ids_de(x["f"])[:24]
+            ctx_ += [idx["<F>"]] + ids_de(x["f"])[:40]
         if x.get("m"):
             ctx_ += [idx["<M>"]] + ids_de(x["m"])[:24]
         tg = ctx_ + etiquetas(x["e"], x["rs"]) + [idx["<A>"]]

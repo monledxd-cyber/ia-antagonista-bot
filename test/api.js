@@ -14,6 +14,19 @@ let n = 0;
 const chat = { listo: () => true, leer: async (t) => ({ intencion: 'saludo', slots: {}, dudoso: false }), responder: async (t, i) => (++n % 2 ? null : 'Hola, hola. ' + t) };
 const app = express();
 api.montar(app, express, { chat });
+const vistos = [];
+const chat2 = { listo: () => true, conoce: (i) => i === 'calculo', leer: async () => ({ intencion: 'calculo', slots: { X: '30 + 31' }, dudoso: false }), responder: async (t, i) => { vistos.push(i.hechos); return i.hechos.resultado === '61' ? 'Son 61. Ni eso te salva.' : null; } };
+const app2 = express();
+api.montar(app2, express, { chat: chat2 });
+const srv2 = app2.listen(0, async () => {
+  try {
+    const r = await fetch('http://127.0.0.1:' + srv2.address().port + '/v1/chat/completions', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + k }, body: JSON.stringify({ messages: [{ role: 'user', content: 'cuanto es 30 + 31' }] }) }).then((x) => x.json());
+    assert.strictEqual(vistos[0].resultado, '61');
+    assert(/61/.test(r.choices[0].message.content));
+    assert.strictEqual(r.am.lectura.intencion, 'calculo');
+    console.log('api slm competencias ok');
+  } catch (e) { console.error(e); process.exit(1); } finally { srv2.close(); }
+});
 const srv = app.listen(0, async () => {
   const p = srv.address().port;
   const f = (ruta, o) => fetch('http://127.0.0.1:' + p + ruta, o).then(async (r) => ({ s: r.status, j: await r.text().then((x) => { try { return JSON.parse(x); } catch (e) { return x; } }) }));
