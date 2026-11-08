@@ -24,8 +24,6 @@
 - La mesa de encantamientos se fabrica con un libro, dos diamantes y cuatro bloques de obsidiana, y gasta experiencia y lapislázuli.
 @ zombi | zombis | zombie
 - El zombi es un monstruo que aparece de noche o en la oscuridad, se quema con el sol y puede romper puertas de madera.
-@ esqueleto | esqueletos
-- El esqueleto es un monstruo arquero que aparece en la oscuridad y se quema con el sol; suelta huesos y flechas.
 @ araña | arañas
 - La araña es un monstruo que escala paredes y de día se vuelve neutral; suelta hilo.
 @ bruja | brujas
@@ -78,7 +76,7 @@
 - La armadura de netherita es mejor que la de diamante, y como el resto de objetos de netherita resiste el fuego y la lava.
 @ comida | comer en minecraft
 - Comer en Minecraft recupera hambre; la carne cocinada y el pan sacian más que la cruda y las manzanas.
-@ cobblestone | adoquín | roca
+@ cobblestone | adoquín
 - El adoquín se obtiene al romper piedra con un pico y sirve para hacer hornos y herramientas de piedra.
 @ tablones | madera
 - Los tablones se fabrican con troncos y son el material básico de casi todo en Minecraft.

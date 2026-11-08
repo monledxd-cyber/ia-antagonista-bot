@@ -1,0 +1,84 @@
+@ mundo de Minecraft | overworld | mundo normal
+- El mundo normal de Minecraft se llama Overworld y tiene biomas, cuevas, aldeas y todos los recursos básicos.
+@ bioma de Minecraft
+- Un bioma de Minecraft es una zona con clima, bloques y criaturas propias, como el desierto, la jungla o la tundra.
+@ cueva | cuevas
+- Las cuevas de Minecraft son espacios subterráneos con minerales, lava, agua y monstruos.
+@ aldea | aldeas
+- Una aldea es un pueblo con aldeanos, camas, cultivos y a veces un gólem de hierro que lo protege.
+@ ciudad antigua | ancient city
+- La ciudad antigua es una estructura subterránea oscura donde vive el warden y hay mucho botín raro.
+@ templo del desierto
+- El templo del desierto es una pirámide de arena con una trampa de TNT bajo el cofre del centro.
+@ bastión | bastion
+- El bastión es una fortaleza del Nether con piglins y mucho botín, entre ellos los restos de netherita.
+@ cama explota | explosión de cama
+- En el Nether y en el End las camas explotan al intentar dormir y causan un daño enorme.
+@ fortaleza | fortaleza del mundo normal | stronghold
+- La fortaleza es una estructura subterránea del mundo normal que contiene el portal al End.
+@ portal del End | portal del end
+- El portal del End está en una fortaleza y se activa colocando doce ojos de ender en su marco.
+@ pico de diamante
+- El pico de diamante se fabrica con tres diamantes y dos palos y es la herramienta mínima para romper obsidiana.
+@ puerta | puertas
+- La puerta de madera se fabrica con seis tablones y los zombis pueden romperla en dificultad difícil.
+@ escalera | escaleras
+- Una escalera es un bloque que permite subir de nivel sin saltar; sale de seis bloques del mismo material.
+@ pistón | piston
+- El pistón es un bloque de redstone que empuja bloques cuando recibe una señal.
+@ tolva | embudo
+- La tolva recoge los objetos que caen encima y los pasa a un contenedor que tenga debajo.
+@ dispensador
+- El dispensador es un bloque con redstone que lanza o coloca los objetos que guarda, como flechas o cubos.
+@ comparador | repetidor
+- El repetidor y el comparador son bloques de redstone que alargan, retrasan y comparan señales.
+@ carro de minas | vagoneta
+- Un carro de minas viaja sobre raíles y sirve para transportar jugadores y objetos.
+@ barco | barca
+- El barco se fabrica con cinco tablones y permite cruzar el agua rápido.
+@ caballo | caballos
+- El caballo se doma subiéndose varias veces y, con silla, sirve para viajar mucho más rápido que a pie.
+@ lobo | lobos | perro
+- El lobo se doma dándole huesos y entonces te sigue, te defiende y se sienta cuando se lo ordenas.
+@ gato | gatos
+- El gato se doma con pescado y espanta a los creepers.
+@ vaca | vacas
+- La vaca da cuero, carne y leche, y se cría con trigo.
+@ gallina | gallinas
+- La gallina pone huevos y da plumas y carne, y se cría con semillas.
+@ oveja | ovejas
+- La oveja da lana, que se puede teñir, y carne.
+@ cerdo | cerdos
+- El cerdo da carne y se cría con zanahorias, patatas o remolachas.
+@ zombi aldeano
+- Un zombi aldeano se puede curar con una poción de debilidad y una manzana dorada y vuelve a ser aldeano.
+@ ahogado | ahogados
+- El ahogado es un zombi del agua que a veces lleva un tridente.
+@ tridente
+- El tridente es un arma que se lanza o se usa cuerpo a cuerpo, y solo lo sueltan los ahogados.
+@ shulker | shulkers
+- El shulker es un monstruo de las ciudades del End que dispara proyectiles que hacen levitar.
+@ caja de shulker
+- La caja de shulker guarda veintisiete pilas y mantiene su contenido al romperla.
+@ guardián del dragón | muerte del dragón
+- Al matar al dragón del End se abre un portal de salida y aparece un huevo de dragón en la isla central.
+@ vida | corazones
+- La vida del jugador son diez corazones, o sea veinte puntos, que se regeneran si la barra de hambre está llena.
+@ daño por caída | caida | caída
+- Una caída de más de tres bloques causa daño; el agua o el heno bajo los pies la evita.
+@ ahogarse | aire | respirar
+- Bajo el agua el aire dura unos quince segundos y luego el jugador empieza a ahogarse.
+@ fuego | quemar
+- El fuego quema al jugador y a los bloques inflamables y se apaga con agua o con la resistencia al fuego.
+@ resistencia al fuego | poción de resistencia al fuego
+- La poción de resistencia al fuego te hace inmune al fuego y a la lava mientras dura el efecto.
+@ pesca | caña de pescar
+- La caña de pescar se fabrica con tres palos y dos hilos y sirve para pescar peces, tesoros y objetos raros.
+@ doma | domar
+- Domar es ganarse a un animal para que te siga y te defienda, usando comida o montándolo.
+@ pvp | combate | pelea
+- El combate en Minecraft se gana con mejor armadura, escudo y ataques completos, golpeando cuando el arma se recarga.
+@ crítico | golpe crítico
+- Un golpe crítico se logra atacando mientras caes y hace un poco más de daño.
+@ gapple | encantada | manzana encantada
+- La manzana dorada encantada da efectos enormes de absorción, regeneración y resistencia, pero ya no se puede fabricar.

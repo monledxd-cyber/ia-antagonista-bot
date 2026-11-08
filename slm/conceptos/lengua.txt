@@ -1,0 +1,46 @@
+@ sustantivo | sustantivos
+- Un sustantivo es una palabra que nombra personas, cosas, lugares o ideas.
+@ verbo | verbos
+- Un verbo es una palabra que expresa una acción, un estado o un proceso y cambia según el tiempo y la persona.
+@ adjetivo | adjetivos
+- Un adjetivo es una palabra que acompaña al sustantivo y dice cómo es.
+@ adverbio | adverbios
+- Un adverbio es una palabra que modifica a un verbo, a un adjetivo o a otro adverbio, como rápido o muy.
+@ metáfora | metafora
+- Una metáfora llama a una cosa con el nombre de otra por su parecido, sin usar la palabra como.
+@ sinónimo | sinonimo | sinónimos
+- Los sinónimos son palabras distintas con significado parecido.
+@ antónimo | antonimo | antónimos
+- Los antónimos son palabras de significado opuesto.
+@ novela | novelas
+- Una novela es una narración larga en prosa, casi siempre inventada.
+@ poema | poesía | poesia
+- Un poema es un texto en verso que busca expresar emociones o belleza con el lenguaje.
+@ ortografía | ortografia
+- La ortografía es el conjunto de reglas que dicen cómo se escriben las palabras.
+@ tilde | acento
+- La tilde es la rayita que se pone sobre una vocal para marcar la sílaba más fuerte de ciertas palabras.
+@ Don Quijote | quijote | el quijote
+- Don Quijote de la Mancha es la novela de Miguel de Cervantes sobre un hidalgo que enloquece leyendo libros de caballería.
+@ Cervantes | miguel de cervantes
+- Miguel de Cervantes fue el escritor español que escribió Don Quijote de la Mancha.
+@ García Márquez | gabriel garcia marquez | gabo
+- Gabriel García Márquez fue un escritor colombiano, autor de Cien años de soledad, que ganó el Nobel de Literatura en mil novecientos ochenta y dos.
+@ Vargas Llosa | mario vargas llosa
+- Mario Vargas Llosa fue un escritor peruano que ganó el Nobel de Literatura en dos mil diez.
+@ Shakespeare | shakespeare
+- William Shakespeare fue el dramaturgo inglés que escribió Hamlet, Macbeth y Romeo y Julieta.
+@ música | musica
+- La música es el arte de combinar sonidos en el tiempo con ritmo, melodía y armonía.
+@ pintura
+- La pintura es el arte de representar imágenes con color sobre una superficie.
+@ cine
+- El cine es el arte de contar historias con imágenes en movimiento y sonido.
+@ idioma | idiomas | lengua
+- Un idioma es un sistema de signos orales y escritos que usa una comunidad para comunicarse.
+@ español | espanol | castellano
+- El español es una lengua romance que hablan unos quinientos millones de personas como lengua materna.
+@ inglés | ingles
+- El inglés es una lengua germánica que sirve hoy como lengua común en el mundo.
+@ ironía | ironia
+- La ironía es decir algo para dar a entender lo contrario.

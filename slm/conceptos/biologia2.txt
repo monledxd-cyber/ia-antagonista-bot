@@ -1,0 +1,24 @@
+@ depredador | depredadores
+- Un depredador es un animal que caza a otros para alimentarse.
+@ cloroplasto | cloroplastos
+- El cloroplasto es el orgánulo de las plantas donde ocurre la fotosíntesis gracias a la clorofila.
+@ clorofila
+- La clorofila es el pigmento verde que absorbe la luz para hacer la fotosíntesis.
+@ mamífero | mamiferos | mamíferos
+- Los mamíferos son animales de sangre caliente que tienen pelo y alimentan a sus crías con leche.
+@ reptil | reptiles
+- Los reptiles son animales de sangre fría con escamas, como las serpientes y los lagartos.
+@ insecto | insectos
+- Los insectos son animales con seis patas y el cuerpo dividido en tres partes; son el grupo de animales más numeroso.
+@ dinosaurio | dinosaurios
+- Los dinosaurios fueron reptiles que dominaron la Tierra durante unos ciento sesenta millones de años y casi todos se extinguieron hace sesenta y seis millones de años.
+@ extinción | extincion
+- Una extinción es la desaparición total de una especie.
+@ fotosíntesis y respiración celular
+- La respiración celular usa oxígeno para sacar energía de la glucosa y produce dióxido de carbono, agua y ATP.
+@ parásito | parasito | parásitos
+- Un parásito es un organismo que vive a costa de otro y le causa daño.
+@ simbiosis
+- La simbiosis es la relación estrecha entre dos especies distintas que conviven.
+@ bioma | biomas
+- Un bioma es una gran región de clima parecido con plantas y animales propios, como el desierto o la selva.

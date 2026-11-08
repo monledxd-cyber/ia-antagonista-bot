@@ -1,38 +1,6 @@
-@ ecuación | ecuacion | ecuaciones
-- Una ecuación es una igualdad con una incógnita que se cumple solo para ciertos valores.
 @ incógnita | incognita
 - Una incógnita es el valor desconocido que se busca en una ecuación, casi siempre llamado equis.
 @ ecuación de primer grado | ecuacion de primer grado | ecuación lineal
 - En una ecuación de primer grado la incógnita no tiene exponente; se resuelve pasando los términos a un lado hasta dejarla sola.
 @ ecuación de segundo grado | ecuacion cuadratica | ecuación cuadrática
 - Una ecuación de segundo grado tiene la incógnita al cuadrado y puede tener dos soluciones; se resuelve con la fórmula general.
-@ función | funcion | funciones
-- Una función es una regla que a cada valor de entrada le asigna un único valor de salida.
-@ derivada | derivadas
-- La derivada mide qué tan rápido cambia una función en cada punto, o sea la pendiente de su tangente.
-@ integral | integrales
-- La integral suma cantidades infinitamente pequeñas y sirve para calcular áreas bajo una curva.
-@ límite | limite | límites
-- Un límite es el valor al que se acerca una función cuando su variable se acerca a un punto.
-@ logaritmo | logaritmos
-- El logaritmo de un número es el exponente al que hay que elevar la base para obtenerlo.
-@ factorial
-- El factorial de un número es el producto de todos los enteros positivos hasta él; el de cinco es ciento veinte.
-@ número primo | numero primo | números primos
-- Un número primo es mayor que uno y solo se puede dividir exactamente entre uno y él mismo.
-@ teorema de Pitágoras | pitagoras | pitágoras
-- En un triángulo rectángulo, el cuadrado de la hipotenusa es igual a la suma de los cuadrados de los catetos.
-@ porcentaje | porcentajes
-- Un porcentaje es una fracción de cien partes; el veinte por ciento de algo es su quinta parte.
-@ probabilidad
-- La probabilidad es un número entre cero y uno que mide qué tan posible es un suceso.
-@ media | promedio
-- El promedio de un conjunto de números es la suma de todos dividida entre cuántos son.
-@ matriz | matrices
-- Una matriz es una tabla rectangular de números organizada en filas y columnas.
-@ vector | vectores
-- Un vector es una cantidad con magnitud y dirección, como una velocidad o una fuerza.
-@ seno | coseno | tangente
-- El seno, el coseno y la tangente relacionan los ángulos de un triángulo rectángulo con la razón entre sus lados.
-@ pi | número pi | numero pi
-- Pi es la razón entre la circunferencia de un círculo y su diámetro, unos tres coma catorce.

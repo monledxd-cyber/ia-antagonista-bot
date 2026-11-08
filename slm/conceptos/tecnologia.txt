@@ -1,0 +1,52 @@
+@ computadora | ordenador | computador
+- Una computadora es una máquina que procesa datos siguiendo instrucciones guardadas en su memoria.
+@ disco duro | SSD | ssd
+- Un disco duro o un SSD guarda los datos de forma permanente, incluso con la computadora apagada.
+@ programa | programas | software
+- Un programa es un conjunto de instrucciones que le dicen a una computadora qué hacer.
+@ lenguaje de programación | lenguajes de programación
+- Un lenguaje de programación es un conjunto de reglas para escribir instrucciones que entiende una máquina.
+@ Python | python
+- Python es un lenguaje de programación de sintaxis sencilla, muy usado en ciencia de datos e inteligencia artificial.
+@ JavaScript | javascript
+- JavaScript es el lenguaje de programación de las páginas web y también funciona en servidores con Node.
+@ nube | la nube | computación en la nube
+- La nube son servidores remotos que guardan datos y ejecutan programas por internet en lugar de tu equipo.
+@ contraseña | contrasena | password
+- Una contraseña es un secreto que demuestra que eres quien dices ser; una larga y única es más segura.
+@ hacker | hackers
+- Un hacker es una persona con grandes conocimientos de sistemas que busca entender o romper sus defensas.
+@ malware | virus informático
+- El malware es un programa creado para dañar o espiar un dispositivo sin permiso de su dueño.
+@ bug | error de programa
+- Un bug es un fallo en un programa que hace que se comporte distinto de lo esperado.
+@ git
+- Git es un sistema que guarda el historial de cambios de un proyecto y permite que varias personas trabajen en él.
+@ Linux | linux
+- Linux es un sistema operativo libre basado en Unix que corre desde teléfonos hasta supercomputadoras.
+@ blockchain | cadena de bloques
+- Una cadena de bloques es un registro compartido de operaciones enlazadas con criptografía que no se puede alterar sin que se note.
+@ criptomoneda | criptomonedas | bitcoin
+- Una criptomoneda es dinero digital que usa criptografía y una cadena de bloques para registrar sus operaciones.
+@ modelo de lenguaje | LLM | SLM
+- Un modelo de lenguaje es una red neuronal que aprende a predecir la siguiente palabra a partir de mucho texto.
+@ token | tokens
+- Un token es un trozo de texto, a veces una palabra y a veces solo una sílaba, que un modelo de lenguaje procesa como unidad.
+@ gradiente | descenso del gradiente
+- El descenso del gradiente ajusta los pesos de una red poco a poco en la dirección que más reduce el error.
+@ GPU | gpu | tarjeta gráfica
+- Una GPU es un chip con miles de núcleos pequeños, muy bueno para los cálculos en paralelo que necesita entrenar una red.
+@ robot | robots
+- Un robot es una máquina programable que puede sentir y actuar sobre su entorno.
+@ bot | bots
+- Un bot es un programa que realiza tareas automáticas, como jugar o chatear en lugar de una persona.
+@ mineflayer
+- Mineflayer es una biblioteca de JavaScript para crear bots que se conectan y juegan en servidores de Minecraft.
+@ Minecraft | minecraft
+- Minecraft es un videojuego de bloques en que se explora, se construye y se sobrevive; lo creó Markus Persson y hoy es de Microsoft.
+@ videojuego | videojuegos
+- Un videojuego es un programa interactivo en el que el jugador controla lo que ocurre en la pantalla.
+@ Godot | godot
+- Godot es un motor libre para crear videojuegos en dos y tres dimensiones.
+@ motor de videojuegos | game engine
+- Un motor de videojuegos es el software que gestiona gráficos, física y sonido para que un juego funcione.

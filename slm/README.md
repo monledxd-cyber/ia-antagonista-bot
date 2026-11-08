@@ -45,3 +45,6 @@ Las competencias ya no esquivan al SLM. Intenciones nuevas calculo, ecuacion, ph
 
 ### sividi toile v3.000.102
 - 84 conceptos nuevos (juego2, quimica2, mate2, general), 11 plantillas de pregunta, 22 remates.
+
+### sividi toile v3.000.103
+- Conceptos: 337 -> 576 (cuerpo, biologia2, fisica2, historia, geografia, tecnologia, lengua, minecraft3, general); duplicados eliminados.

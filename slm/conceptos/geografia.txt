@@ -1,0 +1,50 @@
+@ continente | continentes
+- Los continentes son seis o siete según el criterio: África, América, Antártida, Asia, Europa y Oceanía.
+@ Sudamérica | sudamerica | américa del sur
+- Sudamérica es el subcontinente americano que va de Colombia a Chile, con los Andes y el Amazonas.
+@ Andes | los andes | cordillera de los Andes
+- Los Andes son la cordillera más larga del mundo y recorren Sudamérica de norte a sur.
+@ desierto | desiertos
+- Un desierto es una región con muy pocas lluvias; el Sahara es el más grande de los cálidos.
+@ Sahara | sáhara
+- El Sahara es el mayor desierto cálido del mundo y cubre gran parte del norte de África.
+@ selva | selva amazónica
+- La selva amazónica es el mayor bosque tropical del mundo y alberga una enorme variedad de especies.
+@ capa de ozono
+- La capa de ozono es una región de la atmósfera que absorbe gran parte de la radiación ultravioleta del Sol.
+@ lluvia
+- La lluvia cae cuando el vapor de agua de las nubes se condensa en gotas que pesan demasiado para flotar.
+@ huracán | huracan | tornado
+- Un huracán es una tormenta gigante de viento giratorio que se forma sobre mares cálidos.
+@ Argentina
+- Argentina es un país de Sudamérica cuya capital es Buenos Aires y que comparte con Chile la cordillera de los Andes.
+@ Brasil
+- Brasil es el país más grande de Sudamérica, de lengua portuguesa, y su capital es Brasilia.
+@ Chile
+- Chile es un país largo y estrecho de Sudamérica cuya capital es Santiago.
+@ México | mexico
+- México es un país de Norteamérica cuya capital es la Ciudad de México y cuya lengua mayoritaria es el español.
+@ España | espana
+- España es un país del sur de Europa cuya capital es Madrid.
+@ Estados Unidos | eeuu | usa
+- Estados Unidos es un país de Norteamérica con cincuenta estados cuya capital es Washington.
+@ China
+- China es el país más poblado de Asia junto con la India, y su capital es Pekín.
+@ Japón | japon
+- Japón es un país insular del este de Asia cuya capital es Tokio.
+@ Rusia
+- Rusia es el país más extenso del mundo y su capital es Moscú.
+@ Francia
+- Francia es un país de Europa occidental cuya capital es París.
+@ Alemania
+- Alemania es un país de Europa central cuya capital es Berlín.
+@ Bogotá | bogota
+- Bogotá es la capital de Colombia y está en la cordillera de los Andes a unos dos mil seiscientos metros de altura.
+@ Arequipa
+- Arequipa es la segunda ciudad más grande de Perú y está al pie del volcán Misti.
+@ Cusco | cuzco
+- Cusco es una ciudad de los Andes peruanos que fue la capital del Imperio inca.
+@ Titicaca | lago titicaca
+- El lago Titicaca es el lago navegable más alto del mundo y está entre Perú y Bolivia.
+@ Sol de Perú | sol peruano | moneda de Perú
+- El sol es la moneda de Perú.
