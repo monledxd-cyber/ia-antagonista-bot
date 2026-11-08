@@ -38,3 +38,7 @@ Las competencias ya no esquivan al SLM. Intenciones nuevas calculo, ecuacion, ph
 - `rendicion` con respuestas "te dejo ir"; suelta.js agenda la emboscada tras esas palabras.
 - escenas.js: escena bravata (cita lo que dijiste contra tu situación).
 - Requiere una segunda corrida de Colab.
+
+### sividi toile v3.000.101
+- Modelo reentrenado (Colab, base 3.000.99: conceptos, elementos, competencias). Sin mundo_ds ni "te dejo ir": falta segunda corrida.
+- clf_ref.json regenerado.
