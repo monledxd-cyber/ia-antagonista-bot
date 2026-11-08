@@ -51,3 +51,6 @@ Las competencias ya no esquivan al SLM. Intenciones nuevas calculo, ecuacion, ph
 
 ### sividi toile v3.000.104
 - Conceptos 665: lore de AM (los cinco, Ted, Ellen, Nimdok, la historia) y extra (psicologia, economia, mitos, medicina, geometria).
+
+### sividi toile v3.000.105
+- Conceptos 821: animales, comida, salud, espacio, arte, IA y ficcion, emociones, mapas, Minecraft avanzado. slm/dedup.py para fusionar sin duplicados.

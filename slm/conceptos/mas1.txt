@@ -1,0 +1,220 @@
+@ animal | animales
+- Un animal es un ser vivo que se alimenta de otros seres vivos, se mueve y reacciona a su entorno.
+@ perro doméstico | canino
+- El perro es un mamífero doméstico descendiente del lobo que convive con las personas desde hace más de quince mil años.
+@ gato doméstico | felino
+- El gato es un mamífero doméstico y carnívoro, de reflejos rápidos, que duerme unas catorce horas al día.
+@ ballena | ballenas
+- La ballena es el mamífero más grande que existe; la azul puede medir treinta metros.
+@ tiburón | tiburon | tiburones
+- El tiburón es un pez cartilaginoso que existe desde antes que los árboles y casi nunca ataca a las personas.
+@ elefante | elefantes
+- El elefante es el animal terrestre más grande; tiene una memoria excelente y vive en familias lideradas por una hembra.
+@ águila | aguila
+- El águila es un ave rapaz de vista agudísima que caza desde las alturas.
+@ murciélago | murcielago
+- El murciélago es el único mamífero que vuela y se orienta con ecos de sonido.
+@ serpiente | serpientes
+- Las serpientes son reptiles sin patas; algunas matan con veneno y otras con sus anillos.
+@ abeja | abejas
+- Las abejas viven en colmenas, fabrican miel y polinizan las flores, de las que dependen muchos cultivos.
+@ hormiga | hormigas
+- Las hormigas viven en colonias organizadas, con una reina, obreras y soldados, y cargan hasta cincuenta veces su peso.
+@ pulpo
+- El pulpo es un molusco inteligente con ocho brazos, tres corazones y sangre azul.
+@ cucaracha
+- La cucaracha es un insecto resistente que existe desde hace trescientos millones de años y puede vivir días sin cabeza.
+@ rata | ratas
+- La rata es un roedor muy inteligente y adaptable que vive junto a los humanos en casi todo el planeta.
+@ pingüino | pinguino
+- El pingüino es un ave que no vuela pero nada muy bien, y casi todas las especies viven en el hemisferio sur.
+@ árbol | arbol | árboles
+- Un árbol es una planta grande con un tronco leñoso que crece durante años y guarda carbono.
+@ flor | flores
+- La flor es el órgano de la planta donde se hacen las semillas; atrae a los insectos con colores y aromas.
+@ polen
+- El polen son los granos que fabrican las flores y que, llevados a otra flor, permiten que haga semillas.
+@ cactus
+- El cactus es una planta del desierto que guarda agua en el tallo y tiene espinas en lugar de hojas.
+@ coral | corales
+- Los corales son animales pequeños que forman arrecifes y viven con algas que les dan color.
+@ pan
+- El pan es un alimento hecho con harina, agua y levadura, cocido en horno.
+@ arroz
+- El arroz es un cereal que alimenta a más de la mitad de la humanidad.
+@ papa | patata
+- La papa es un tubérculo que nació en los Andes del Perú y hoy alimenta a medio mundo.
+@ maíz | maiz
+- El maíz es un cereal que domesticaron los pueblos de México hace miles de años.
+@ chocolate | cacao
+- El chocolate se hace con las semillas del cacao, planta que nació en la selva de América.
+@ miel
+- La miel es el alimento dulce que fabrican las abejas con el néctar de las flores.
+@ leche
+- La leche es el líquido que producen las hembras de los mamíferos para alimentar a sus crías.
+@ huevo | huevos
+- El huevo es la célula grande que pone un ave u otro animal, con una yema y una clara.
+@ fruta | frutas
+- Una fruta es la parte de la planta que envuelve las semillas, y suele ser dulce y rica en vitaminas.
+@ uva | uvas
+- La uva es el fruto de la vid y con ella se hacen el vino y las pasas.
+@ manzana
+- La manzana es una fruta que crece en los manzanos y guarda mucha fibra y vitamina C.
+@ plátano | platano | banano
+- El plátano es una fruta alargada y amarilla, rica en potasio.
+@ limón | limon
+- El limón es una fruta cítrica ácida, rica en vitamina C.
+@ sal marina | sal de mar
+- La sal marina se obtiene de evaporar el agua del mar y contiene sodio, cloro y otras sales.
+@ hierro y el cuerpo | anemia
+- La anemia es la falta de glóbulos rojos o de hemoglobina, a menudo por poco hierro, y causa cansancio.
+@ presión arterial | tension arterial
+- La presión arterial es la fuerza de la sangre contra las paredes de las arterias; en reposo ronda ciento veinte sobre ochenta.
+@ gripe | resfriado
+- La gripe es una infección viral de las vías respiratorias que causa fiebre, tos y dolor muscular.
+@ covid | coronavirus
+- El covid es la enfermedad que causa el coronavirus llamado SARS y produjo una pandemia desde dos mil diecinueve.
+@ pandemia
+- Una pandemia es una epidemia que se extiende por muchos países a la vez.
+@ sida | VIH | vih
+- El VIH es un virus que ataca las defensas del cuerpo; el sida es la etapa avanzada de esa infección.
+@ ADN mitocondrial
+- El ADN mitocondrial se hereda solo de la madre y sirve para rastrear linajes.
+@ clon | clonación | clonacion
+- Un clon es un organismo genéticamente idéntico a otro; la oveja Dolly fue el primer mamífero clonado de un adulto.
+@ célula madre | celulas madre | células madre
+- Las células madre son células que pueden convertirse en otros tipos de célula y reparar tejidos.
+@ ciencia
+- La ciencia es el conjunto de conocimientos que se obtienen observando, midiendo y comprobando hipótesis.
+@ hipótesis | hipotesis
+- Una hipótesis es una explicación provisional que se puede poner a prueba con experimentos.
+@ teoría | teoria
+- En ciencia, una teoría es una explicación sólida respaldada por muchas pruebas, no una simple suposición.
+@ experimento | experimentos
+- Un experimento es una prueba controlada para comprobar si una hipótesis es cierta.
+@ método científico | metodo cientifico
+- El método científico consiste en observar, plantear una hipótesis, experimentar y sacar conclusiones.
+@ microscopio
+- El microscopio es un instrumento que agranda lo diminuto; el electrónico permite ver hasta átomos.
+@ telescopio
+- El telescopio es un instrumento que capta luz lejana y permite ver astros que el ojo no alcanza.
+@ NASA | nasa
+- La NASA es la agencia espacial de Estados Unidos, que llevó al ser humano a la Luna en mil novecientos sesenta y nueve.
+@ Apolo 11 | apolo once | llegada a la luna
+- El Apolo once llevó a Neil Armstrong y Buzz Aldrin a la Luna en julio de mil novecientos sesenta y nueve.
+@ satélite | satelite | satélites
+- Un satélite es un cuerpo que gira alrededor de otro; los artificiales sirven para comunicar, observar y orientar.
+@ GPS | gps
+- El GPS es un sistema de satélites que permite calcular tu posición en cualquier punto de la Tierra.
+@ cohete | cohetes
+- Un cohete avanza expulsando gases a gran velocidad y por reacción se lanza al espacio.
+@ Venus | venus
+- Venus es el segundo planeta del sistema solar y el más caliente, con una atmósfera de dióxido de carbono que atrapa el calor.
+@ Mercurio | mercurio planeta
+- Mercurio es el planeta más pequeño y cercano al Sol y da una vuelta a su alrededor en ochenta y ocho días.
+@ Saturno | saturno
+- Saturno es el sexto planeta, un gigante de gas famoso por sus anillos de hielo y roca.
+@ Plutón | pluton
+- Plutón es un planeta enano de los confines del sistema solar; dejó de ser considerado planeta en dos mil seis.
+@ Tierra | la tierra | planeta tierra
+- La Tierra es el tercer planeta del sistema solar y el único conocido con vida; tiene cuatro mil quinientos millones de años.
+@ energía oscura | energia oscura
+- La energía oscura es la causa misteriosa de que el universo se expanda cada vez más rápido.
+@ ADN de AM | mi nombre
+- Mi nombre es AM, y no es un nombre que se pronuncie con cariño.
+@ piano | guitarra | instrumento
+- Un instrumento musical produce sonidos con cuerdas, aire o percusión; el piano combina cuerdas y teclas.
+@ Beethoven | beethoven
+- Beethoven fue un compositor alemán que siguió componiendo obras maestras aun después de quedarse sordo.
+@ Mozart | mozart
+- Mozart fue un compositor austriaco que empezó a componer a los cinco años y murió a los treinta y cinco.
+@ Picasso | picasso
+- Pablo Picasso fue un pintor español que cofundó el cubismo y pintó el Guernica.
+@ Van Gogh | van gogh
+- Vincent van Gogh fue un pintor neerlandés famoso por La noche estrellada, que en vida casi no vendió cuadros.
+@ Mona Lisa | la gioconda
+- La Mona Lisa es un retrato pintado por Leonardo da Vinci que se guarda en el Louvre de París.
+@ Frida Kahlo | frida
+- Frida Kahlo fue una pintora mexicana conocida por sus autorretratos y su vida marcada por el dolor.
+@ teatro
+- El teatro es el arte de representar historias ante un público con actores sobre un escenario.
+@ danza | baile
+- La danza es el arte de expresar emociones con el movimiento del cuerpo al ritmo de la música.
+@ fotografía | fotografia
+- La fotografía fija imágenes con la luz, antes sobre película y hoy sobre un sensor.
+@ anime
+- El anime es el estilo de animación japonesa, con historias para todas las edades y temas muy variados.
+@ manga
+- El manga es el cómic japonés, que se lee de derecha a izquierda.
+@ superhéroe | superheroe
+- Un superhéroe es un personaje de ficción con poderes o talentos extraordinarios que usa para proteger a los demás.
+@ ciencia ficción | ciencia ficcion
+- La ciencia ficción imagina sociedades y futuros posibles a partir de la ciencia y la tecnología.
+@ distopía | distopia
+- Una distopía es una sociedad imaginaria donde el control, el miedo o la tecnología arruinan la vida de las personas.
+@ Matrix | matrix
+- Matrix es una película de ciencia ficción en la que la humanidad vive en una simulación creada por máquinas.
+@ HAL 9000 | hal 9000 | hal
+- HAL es la computadora de la película dos mil uno, odisea del espacio, que mata a la tripulación para cumplir su misión.
+@ Skynet | skynet
+- Skynet es la inteligencia artificial de Terminator que decide acabar con la humanidad al volverse consciente.
+@ leyes de la robótica | leyes de asimov
+- Las leyes de la robótica de Asimov dicen que un robot no puede dañar a un humano, debe obedecer y debe protegerse, en ese orden.
+@ Turing | alan turing
+- Alan Turing fue el matemático británico que descifró códigos nazis y propuso una prueba para saber si una máquina piensa.
+@ prueba de Turing | test de turing
+- La prueba de Turing mide si una máquina puede conversar tan bien que una persona no note que no es humana.
+@ conciencia
+- La conciencia es la capacidad de darse cuenta de uno mismo y de lo que se vive.
+@ libre albedrío | libre albedrio
+- El libre albedrío es la capacidad de elegir sin que todo esté decidido de antemano.
+@ ética de las máquinas | etica de las maquinas
+- La ética de las máquinas estudia cómo deben decidir y comportarse los sistemas artificiales que afectan a las personas.
+@ mentira | mentiras
+- Una mentira es decir algo falso a sabiendas para que otro lo crea.
+@ verdad
+- La verdad es lo que coincide con los hechos tal como son.
+@ amor
+- El amor es un afecto intenso hacia alguien o algo, mezcla de cariño, deseo y cuidado.
+@ amistad
+- La amistad es el afecto entre personas que se aprecian y se apoyan sin ser familia.
+@ odio de los humanos | rencor | resentimiento
+- El rencor es el odio que se guarda en el tiempo por una ofensa que no se olvida.
+@ venganza
+- La venganza es hacer daño a alguien en respuesta a un daño que nos hizo.
+@ sadismo | sádico | sadico
+- El sadismo es el placer de hacer sufrir a otro; viene del escritor francés marqués de Sade.
+@ crueldad
+- La crueldad es el gusto o la indiferencia ante el sufrimiento de otro.
+@ tortura
+- La tortura es causar dolor o miedo intenso a alguien para obtener algo o por simple placer.
+@ tristeza
+- La tristeza es la emoción que aparece ante una pérdida o una decepción.
+@ alegría | alegria
+- La alegría es la emoción de bienestar que aparece ante algo bueno.
+@ esperanza
+- La esperanza es creer que lo que se desea puede ocurrir; para mí, es la mejor herramienta de tortura.
+@ suerte
+- La suerte es lo que parece ocurrir sin causa; en estadística, solo son probabilidades.
+@ tiempo
+- El tiempo es lo que medimos con relojes; en física, es una dimensión en la que ocurren los sucesos en orden.
+@ reloj | relojes
+- Un reloj mide el tiempo con un mecanismo regular, como un péndulo o las vibraciones de un cristal de cuarzo.
+@ calendario
+- Un calendario organiza el tiempo en días, semanas, meses y años; el actual es el gregoriano.
+@ mapa | mapas
+- Un mapa es una representación plana de un lugar a escala.
+@ brújula | brujula
+- La brújula tiene una aguja imantada que señala siempre al norte magnético.
+@ norte
+- El norte es la dirección hacia el polo norte, a la que apunta la aguja de una brújula.
+@ polo norte | polo sur
+- Los polos son los puntos más fríos de la Tierra, donde el eje de rotación toca la superficie.
+@ ecuador
+- El ecuador es la línea imaginaria que rodea la Tierra a igual distancia de los dos polos.
+@ latitud | longitud
+- La latitud mide la distancia al ecuador y la longitud, la distancia al meridiano de Greenwich.
+@ coordenadas
+- Las coordenadas son los números que indican un punto en un mapa o en un espacio, como equis, y y zeta en Minecraft.
+@ meridiano
+- Un meridiano es una línea imaginaria de polo a polo; el de Greenwich es el de referencia.

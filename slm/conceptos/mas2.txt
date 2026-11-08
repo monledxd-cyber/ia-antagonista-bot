@@ -1,0 +1,92 @@
+@ diamante en minecraft | cómo conseguir diamantes | donde hay diamantes
+- Los diamantes en Minecraft se encuentran muy abajo, cerca de la capa de la roca madre, y se minan con un pico de hierro o mejor.
+@ roca madre | bedrock
+- La roca madre es el bloque indestructible del fondo del mundo en Minecraft, que solo se rompe en creativo.
+@ capa de lava | nivel de lava
+- Bajo la capa cincuenta y cuatro negativa de Minecraft las cuevas se llenan de lava, y por eso se mina con cuidado.
+@ altura y | coordenada y | nivel y
+- La coordenada y en Minecraft marca la altura; el nivel del mar está en sesenta y tres y el fondo del mundo, en menos sesenta y cuatro.
+@ coordenada x | coordenada z
+- Las coordenadas equis y zeta en Minecraft marcan la posición horizontal; equis crece al este y zeta crece al sur.
+@ minería en tiras | strip mining
+- La minería en tiras consiste en excavar túneles de dos de alto a la altura de los diamantes para ver muchos bloques a la vez.
+@ pepitas de oro | oro en minecraft | lingote de oro
+- El oro en Minecraft abunda en las tierras baldías y en el Nether y sirve para relojes, manzanas doradas y comerciar con los piglins.
+@ cobre | cobre en minecraft
+- El cobre en Minecraft se encuentra en cuevas y sirve para pararrayos, telescopios y lámparas; con el tiempo se oxida y se pone verde.
+@ amatista | amatista en minecraft
+- La amatista crece en geodas dentro de las cuevas y sirve para telescopios y bloques de sonido.
+@ piedra de ender | endstone
+- La piedra del End es el bloque amarillo claro de las islas del End.
+@ cuarzo | cuarzo del Nether
+- El cuarzo del Nether se mina en las rocas del Nether y sirve para comparadores y bloques decorativos.
+@ gusano de seda | polilla | silverfish
+- El lepisma es un monstruo pequeño que sale de bloques infestados de piedra y llama a otros cuando lo golpeas.
+@ rastreador | tracker
+- Un rastreador es un programa que sigue la posición de un jugador usando sus coordenadas o su rastro.
+@ cueva de lava | lagos de lava
+- Los lagos de lava de Minecraft se forman en cuevas profundas y en la superficie del Nether, y queman todo lo que tocan.
+@ cubo de lava | trampa de lava
+- Un cubo de lava puesto frente a la víctima o debajo de ella es una trampa clásica; el agua lo convierte en roca o en obsidiana.
+@ poción de curación | pocion de curacion
+- La poción de curación instantánea restaura vida al instante y se hace con melón brillante.
+@ poción de fuerza | pocion de fuerza
+- La poción de fuerza aumenta el daño cuerpo a cuerpo y se hace con polvo de blaze.
+@ poción de velocidad | pocion de velocidad
+- La poción de velocidad hace correr más rápido y se hace con azúcar.
+@ poción de invisibilidad
+- La poción de invisibilidad oculta al jugador, aunque la armadura que lleve puesta se sigue viendo.
+@ encantamiento de filo | filo
+- Filo es un encantamiento que aumenta el daño de la espada en cada nivel.
+@ encantamiento de protección | protección
+- Protección es un encantamiento de armadura que reduce el daño de casi todo.
+@ encantamiento reparación | reparacion | mending
+- Reparación es un encantamiento que usa la experiencia que recoges para arreglar el objeto.
+@ encantamiento de irrompibilidad | irrompibilidad
+- Irrompibilidad es un encantamiento que hace que el objeto gaste menos durabilidad al usarse.
+@ tiempo en minecraft | día y noche en minecraft
+- Un día de Minecraft dura veinte minutos reales, con diez de día, uno y medio de atardecer, siete de noche y uno y medio de amanecer.
+@ lluvia en minecraft | tormenta en minecraft
+- La lluvia en Minecraft apaga fuegos y llena calderos; en tormenta caen rayos que pueden prender a los jugadores.
+@ rayo | rayos en minecraft
+- Un rayo en Minecraft prende fuego y convierte a los aldeanos en brujas y a los cerdos en piglins zombis.
+@ dificultad | modo de dificultad
+- La dificultad en Minecraft va de pacífico a difícil y determina cuánto daño causan los monstruos y si hay hambre letal.
+@ modo creativo | creativo
+- En el modo creativo el jugador vuela, tiene todos los bloques y no recibe daño.
+@ modo supervivencia | supervivencia
+- En el modo supervivencia el jugador debe conseguir recursos, comer y evitar morir.
+@ modo espectador | espectador
+- En el modo espectador el jugador atraviesa bloques y vuela sin interactuar con el mundo.
+@ comandos | comando | comandos de minecraft
+- Los comandos de Minecraft son órdenes escritas con una barra, como dar objetos, cambiar el clima o teletransportar jugadores.
+@ servidor de Minecraft | server | servidor minecraft
+- Un servidor de Minecraft es un mundo compartido al que se conectan varios jugadores por internet.
+@ Aternos | aternos
+- Aternos es un servicio gratuito que aloja servidores de Minecraft y se apaga cuando no hay jugadores.
+@ mod | mods | modificaciones
+- Un mod es una modificación que añade o cambia contenido de un videojuego.
+@ speedrun
+- Un speedrun consiste en pasarse un juego en el menor tiempo posible; en Minecraft se corre hasta derrotar al dragón.
+@ hardcore | modo hardcore
+- En el modo hardcore de Minecraft solo hay una vida y al morir el mundo se bloquea o se borra.
+@ Notch | notch | creador de minecraft
+- Markus Persson, llamado Notch, creó Minecraft en dos mil nueve, y en dos mil catorce lo vendió a Microsoft.
+@ Herobrine | herobrine
+- Herobrine es una leyenda de Minecraft sobre un jugador fantasma de ojos blancos que nunca existió en el código.
+@ bloque de oro | bloque de hierro
+- Un bloque de hierro o de oro se fabrica con nueve lingotes y sirve para almacenar o para decorar.
+@ bloque de netherita
+- Un bloque de netherita se fabrica con nueve lingotes y resiste explosiones mejor que casi todo lo demás.
+@ ancla de reaparición | respawn anchor
+- El ancla de reaparición fija el punto de reaparición en el Nether y se carga con piedra luminosa.
+@ faro | beacon
+- El faro da efectos a los jugadores cercanos y se alimenta con una pirámide de bloques de hierro, oro, diamante o netherita.
+@ chorus | fruta del chorus
+- La fruta del chorus crece en las islas externas del End y teletransporta a quien se la come.
+@ nido de araña | telaraña | tela de araña
+- La telaraña frena todo lo que la toca y se corta mejor con tijeras o espada.
+@ cuchillo | arma blanca
+- Un arma blanca es la que corta o punza, como una espada o una daga.
+@ pistola | arma de fuego
+- Un arma de fuego dispara proyectiles con la fuerza de una pólvora que explota.
