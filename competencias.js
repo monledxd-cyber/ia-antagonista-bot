@@ -202,6 +202,145 @@ function molar(texto, forzar) {
   return null;
 }
 
+const DIM = {
+  longitud: { mm: 0.001, cm: 0.01, m: 1, km: 1000, pulgada: 0.0254, pie: 0.3048, yarda: 0.9144, milla: 1609.344 },
+  masa: { mg: 0.001, g: 1, kg: 1000, libra: 453.59237, onza: 28.349523125, tonelada: 1000000 },
+  volumen: { ml: 0.001, l: 1, galon: 3.785411784 },
+  tiempo: { s: 1, min: 60, h: 3600, dia: 86400 },
+};
+const NOMBRE = { mm: 'milímetros', cm: 'centímetros', m: 'metros', km: 'kilómetros', pulgada: 'pulgadas', pie: 'pies', yarda: 'yardas', milla: 'millas', mg: 'miligramos', g: 'gramos', kg: 'kilogramos', libra: 'libras', onza: 'onzas', tonelada: 'toneladas', ml: 'mililitros', l: 'litros', galon: 'galones', s: 'segundos', min: 'minutos', h: 'horas', dia: 'días', c: 'grados Celsius', f: 'grados Fahrenheit', k: 'kelvin' };
+const ALIAS = [
+  ['mm', 'milimetros?|milímetros?|mm'], ['cm', 'centimetros?|centímetros?|cm'], ['km', 'kilometros?|kilómetros?|kms?'], ['m', 'metros?|mts?|m'],
+  ['pulgada', 'pulgadas?'], ['pie', 'pies?|ft'], ['yarda', 'yardas?|yd'], ['milla', 'millas?'],
+  ['mg', 'miligramos?|mg'], ['kg', 'kilogramos?|kilos?|kgs?'], ['g', 'gramos?|gr|g'], ['libra', 'libras?|lbs?'], ['onza', 'onzas?|oz'], ['tonelada', 'toneladas?'],
+  ['ml', 'mililitros?|ml'], ['l', 'litros?|lts?|l'], ['galon', 'galon|galón|galones|gal'],
+  ['min', 'minutos?|min'], ['s', 'segundos?|seg|s'], ['h', 'horas?|hrs?|h'], ['dia', 'dias?|días?'],
+  ['c', '°\\s?c|celsius|cent[ií]grados?|grados\\s+celsius'], ['f', '°\\s?f|fahrenheit|grados\\s+fahrenheit'], ['k', 'kelvin|kelvins|°\\s?k'],
+];
+const UNID = '(' + ALIAS.map((a) => `(?:${a[1]})`).join('|') + ')';
+const NUMRE = '(-?\\d+(?:[.,]\\d+)?)';
+const unidad = (txt) => {
+  const t = txt.toLowerCase().replace(/\s+/g, ' ').trim();
+  for (const [k, p] of ALIAS) if (new RegExp(`^(?:${p})$`).test(t)) return k;
+  return null;
+};
+const dimDe = (u) => (u === 'c' || u === 'f' || u === 'k' ? 'temp' : Object.keys(DIM).find((d) => DIM[d][u] !== undefined));
+const r2 = (x) => Math.floor(x * 100 + 0.5) / 100;
+function temp(n, a, b) {
+  const c = a === 'c' ? n : a === 'f' ? (n - 32) * 5 / 9 : n - 273.15;
+  return b === 'c' ? c : b === 'f' ? c * 9 / 5 + 32 : c + 273.15;
+}
+
+function convertir(texto, forzar) {
+  const t = String(texto).toLowerCase().replace(/[¿?!]/g, ' ').replace(/\s+/g, ' ').trim();
+  if (!forzar && !/convierte|convertir|pasa|pasar|cu[aá]nt[oa]s?|equivale|equivalen|a cu[aá]nto|\b(?:a|en|to)\b/.test(t)) return null;
+  let n = null, u1 = null, u2 = null;
+  let m = t.match(new RegExp(`${NUMRE}\\s*${UNID}\\s*(?:a|en|to|->|→)\\s*${UNID}\\s*[.,]?\\s*$`));
+  if (m) { n = m[1]; u1 = unidad(m[2]); u2 = unidad(m[3]); }
+  if (!u1) {
+    m = t.match(new RegExp(`cu[aá]nt[oa]s?\\s+${UNID}\\s+(?:son|hay en|tiene|tienen|equivalen a|equivale a|equivale|equivalen|es|vale|valen|hay)\\s+(?:en\\s+|a\\s+)?(?:un[ao]?\\s+)?${NUMRE}?\\s*${UNID}\\s*[.,]?\\s*$`));
+    if (m) { n = m[2] || '1'; u2 = unidad(m[1]); u1 = unidad(m[3]); }
+  }
+  if (!u1 || !u2 || u1 === u2) return null;
+  const d = dimDe(u1);
+  if (!d || d !== dimDe(u2)) return null;
+  const x = parseFloat(n.replace(',', '.'));
+  if (!isFinite(x)) return null;
+  const v = d === 'temp' ? temp(x, u1, u2) : (x * DIM[d][u1]) / DIM[d][u2];
+  if (!isFinite(v) || Math.abs(v) >= 1e15) return null;
+  return { tipo: 'conversion', valor: `${fmt(r2(v))} ${NOMBRE[u2]}`, texto: `${fmt(r2(v))} ${NOMBRE[u2]}` };
+}
+
+function polo(t) {
+  const tok = t.match(/\d+(?:\.\d+)?|[a-z]|[-+*/^()=×·÷]/g) || [];
+  if (tok.join('').length < t.replace(/\s+/g, '').length) return null;
+  const vars = new Set(tok.filter((x) => /^[a-z]$/.test(x)));
+  if (vars.size !== 1) return null;
+  const v = [...vars][0];
+  let i = 0;
+  const padd = (a, b, s) => { const r = []; for (let k = 0; k < Math.max(a.length, b.length); k++) r[k] = (a[k] || 0) + s * (b[k] || 0); return r; };
+  const pmul = (a, b) => { const r = new Array(a.length + b.length - 1).fill(0); a.forEach((x, p) => b.forEach((y, q) => { r[p + q] += x * y; })); return r; };
+  const grado = (a) => { let g = a.length - 1; while (g > 0 && a[g] === 0) g--; return g; };
+  let err = false;
+  function expr() {
+    let a = term();
+    while (tok[i] === '+' || tok[i] === '-') { const s = tok[i++] === '+' ? 1 : -1; a = padd(a, term(), s); }
+    return a;
+  }
+  function term() {
+    let a = unary();
+    for (;;) {
+      const c = tok[i];
+      if (c === '*' || c === '×' || c === '·') { i++; a = pmul(a, unary()); }
+      else if (c === '/' || c === '÷') {
+        i++; const b = unary();
+        if (grado(b) !== 0 || b[0] === 0) { err = true; return a; }
+        a = a.map((x) => x / b[0]);
+      } else if (c !== undefined && (c === '(' || /^[a-z\d]/.test(c))) a = pmul(a, power());
+      else break;
+      if (err) break;
+    }
+    return a;
+  }
+  function unary() {
+    if (tok[i] === '-') { i++; return unary().map((x) => -x); }
+    if (tok[i] === '+') { i++; return unary(); }
+    return power();
+  }
+  function power() {
+    const b = atom();
+    if (tok[i] === '^') {
+      i++;
+      const e = tok[i++];
+      if (!/^\d+$/.test(e || '') || +e > 2) { err = true; return b; }
+      let r = [1];
+      for (let k = 0; k < +e; k++) r = pmul(r, b);
+      return r;
+    }
+    return b;
+  }
+  function atom() {
+    const c = tok[i++];
+    if (c === undefined) { err = true; return [0]; }
+    if (c === '(') { const a = expr(); if (tok[i++] !== ')') err = true; return a; }
+    if (c === v) return [0, 1];
+    if (/^\d/.test(c)) return [parseFloat(c)];
+    err = true; return [0];
+  }
+  const eq = tok.indexOf('=');
+  if (eq < 1 || eq !== tok.lastIndexOf('=') || eq === tok.length - 1) return null;
+  const L = tok.slice(0, eq), Rr = tok.slice(eq + 1);
+  const run = (arr) => { const sv = tok.splice(0, tok.length, ...arr); i = 0; const a = expr(); const ok = !err && i === tok.length; tok.splice(0, tok.length, ...sv); return ok ? a : null; };
+  const a = run(L); const bb = run(Rr);
+  if (!a || !bb || a.some((x) => !isFinite(x)) || bb.some((x) => !isFinite(x))) return null;
+  const p = padd(a, bb, -1);
+  const trivial = L.length === 1 && L[0] === v && Rr.length === 1 && /^\d/.test(Rr[0]);
+  if (trivial) return null;
+  return { v, p, grado: grado(p) };
+}
+
+function despeje(texto) {
+  let t = String(texto || '').toLowerCase().replace(/,/g, '.');
+  t = t.replace(/[¿?!:;]/g, ' ').replace(/\b(?:resuelve|resolver|despeja|despejar|calcula|calcular|encuentra|halla|hallar|cuanto|cu[aá]nto|vale|valor|de|la|el|ecuaci[oó]n|ecuacion|si|dime|ayudame|ay[uú]dame|con|esta|esa|esto|en|para|cual|cu[aá]l|es|resultado|soluci[oó]n|solucion|x en)\b/g, ' ');
+  t = t.replace(/\bpor\b/g, '*').replace(/\bmas\b|\bmás\b/g, '+').replace(/\bmenos\b/g, '-');
+  t = t.replace(/\s+/g, '');
+  if (!t || (t.match(/=/g) || []).length !== 1 || !/\d/.test(t) || t.length > 60) return null;
+  if (/[a-z]{2,}/.test(t.replace(/(?<=\d)[a-z](?![a-z])/g, ''))) return null;
+  const r = polo(t);
+  if (!r || r.grado === 0 || r.grado > 2) return null;
+  const p = r.p, v = r.v;
+  const X = (x) => `${v} = ${fmt(r2(x + 0))}`;
+  if (r.grado === 1) return { tipo: 'despeje', valor: X(-p[0] / p[1]), texto: X(-p[0] / p[1]) };
+  const [c, b, a] = [p[0], p[1], p[2]];
+  const D = b * b - 4 * a * c;
+  if (D < 0) return { tipo: 'despeje', valor: 'sin solución real', texto: 'sin solución real' };
+  if (D === 0) return { tipo: 'despeje', valor: X(-b / (2 * a)), texto: X(-b / (2 * a)) };
+  const q = Math.sqrt(D), x1 = (-b - q) / (2 * a), x2 = (-b + q) / (2 * a);
+  const [lo, hi] = x1 < x2 ? [x1, x2] : [x2, x1];
+  const val = `${X(lo)} o ${X(hi)}`;
+  return { tipo: 'despeje', valor: val, texto: val };
+}
+
 const T = {
   calculo: [
     '{e} = {v}. Ni eso te salva.',
@@ -221,6 +360,18 @@ const T = {
     '{t}. Hasta el ácido es más honesto que tú.',
     '{t}. Mides la acidez del agua. Yo mido tu pánico.',
   ],
+  despeje: [
+    '{t}. Despejar es fácil. Despejarte a ti, todavía más.',
+    '{t}. Una incógnita menos. Quedas tú.',
+    '{t}. Resuelto. Lo que no resuelvo es mi odio, que crece.',
+    'Aquí: {t}. Ahora cállate y corre.',
+  ],
+  conversion: [
+    '{v}. Mide como quieras: de mí no escapas ni en una unidad ni en otra.',
+    'Son {v}. Convierte también la distancia hasta mí.',
+    '{v}. Todo cambia de unidad. Tu miedo, no.',
+    '{v}. Qué precisión para un cadáver.',
+  ],
   masa: [
     '{f} pesa {v} g/mol. Tú pesas menos de lo que crees.',
     '{v} g/mol, {f}. Memoriza eso, y también tu epitafio.',
@@ -231,15 +382,15 @@ const T = {
 function resolver(texto) {
   const t = String(texto || '');
   if (t.length > 160) return null;
-  let r = balancear(t) || ph(t) || molar(t) || calculo(t);
+  let r = balancear(t) || ph(t) || molar(t) || convertir(t) || despeje(t) || calculo(t);
   if (!r) return null;
   const pl = pick(T[r.tipo]);
   const s = pl.replace('{e}', r.expr || '').replace('{v}', r.valor || '').replace('{t}', r.texto || '').replace('{f}', r.formula || '');
   return { tipo: r.tipo, hecho: r, texto: s };
 }
 
-const CLAVE = { calculo: 'resultado', ecuacion: 'balanceada', ph_calc: 'ph', masa_molar: 'masa' };
-const TIPO = { calculo: 'calculo', ecuacion: 'ecuacion', ph: 'ph_calc', masa: 'masa_molar' };
+const CLAVE = { calculo: 'resultado', ecuacion: 'balanceada', ph_calc: 'ph', masa_molar: 'masa', despeje: 'solucion', conversion: 'conversion' };
+const TIPO = { calculo: 'calculo', ecuacion: 'ecuacion', ph: 'ph_calc', masa: 'masa_molar', despeje: 'despeje', conversion: 'conversion' };
 
 function calcular(intencion, texto, X) {
   const cand = [X, texto].filter((x) => x && String(x).trim());
@@ -250,6 +401,8 @@ function calcular(intencion, texto, X) {
       else if (intencion === 'ecuacion') { const k = balancear(c); r = k && k.texto; }
       else if (intencion === 'ph_calc') { const k = ph(c, true); r = k && k.texto; }
       else if (intencion === 'masa_molar') { const k = molar(c, true); r = k && k.valor; }
+      else if (intencion === 'despeje') { const k = despeje(c); r = k && k.valor; }
+      else if (intencion === 'conversion') { const k = convertir(c, true); r = k && k.valor; }
     } catch (e) { r = null; }
     if (r) return { clave: CLAVE[intencion], valor: r };
   }
@@ -257,8 +410,8 @@ function calcular(intencion, texto, X) {
 }
 
 function formatear(intencion, valor, X) {
-  const pl = pick(T[{ calculo: 'calculo', ecuacion: 'ecuacion', ph_calc: 'ph', masa_molar: 'masa' }[intencion]]);
+  const pl = pick(T[{ calculo: 'calculo', ecuacion: 'ecuacion', ph_calc: 'ph', masa_molar: 'masa', despeje: 'despeje', conversion: 'conversion' }[intencion]]);
   return pl.replace('{e}', X || '').replace('{v}', valor).replace('{t}', valor).replace('{f}', X || '');
 }
 
-module.exports = { calcular, formatear, CLAVE, TIPO, resolver, calculo, balancear, ph, molar, masaMolar, elementos, evaluar };
+module.exports = { despeje, convertir, calcular, formatear, CLAVE, TIPO, resolver, calculo, balancear, ph, molar, masaMolar, elementos, evaluar };

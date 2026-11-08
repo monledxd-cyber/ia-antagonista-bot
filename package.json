@@ -1,13 +1,13 @@
 {
   "name": "ia-antagonista-bot",
-  "version": "3.000.106",
+  "version": "3.000.107",
   "description": "Bot mineflayer que conecta antagonista de IA (OpenRouter) al server Aternos",
   "main": "index.js",
   "type": "commonjs",
   "scripts": {
     "start": "MALLOC_ARENA_MAX=2 MALLOC_TRIM_THRESHOLD_=65536 node --max-old-space-size=200 index.js",
     "clave": "node api_clave.js",
-    "test": "node test/smoke.js && node test/arranque.js && node test/forja.js && node test/respaldo.js && node test/reflejos.js && node test/aldeanos.js && node test/memoria.js && node test/adorno.js && node test/estructuras.js && node test/slm.js && node test/nn.js && node test/psique.js && node test/sitio.js && node test/habitos.js && node test/bucle.js && node test/clf.js && node test/slm_leer.js && node test/api.js && node test/escenas.js && node test/fuera.js && node test/kv_cache.js && node test/competencias.js && node test/definicion.js && node test/persist.js && node test/suelta.js",
+    "test": "node test/smoke.js && node test/arranque.js && node test/forja.js && node test/respaldo.js && node test/reflejos.js && node test/aldeanos.js && node test/memoria.js && node test/adorno.js && node test/estructuras.js && node test/slm.js && node test/nn.js && node test/psique.js && node test/sitio.js && node test/habitos.js && node test/bucle.js && node test/clf.js && node test/slm_leer.js && node test/api.js && node test/escenas.js && node test/fuera.js && node test/kv_cache.js && node test/competencias.js && node test/definicion.js && node test/persist.js && node test/suelta.js && node test/referencia.js",
     "chat": "node chat.js"
   },
   "dependencies": {

@@ -1,0 +1,116 @@
+@ cooldown de ataque | recarga de ataque | barra de ataque
+- Si golpeas con el arma antes de que se recargue su indicador, haces mucho menos daño, así que conviene esperar a que esté llena.
+@ strafe | moverse en círculos
+- Moverse de lado alrededor del rival en un combate cuerpo a cuerpo dificulta que te acierte y facilita que le des tú.
+@ w-tap | golpe con tecla adelante
+- Soltar y volver a pulsar la tecla de avance justo al golpear aumenta el empuje que recibe el rival y mantiene la distancia.
+@ rodar de escudo | bloqueo con escudo
+- Al levantar el escudo justo cuando el enemigo golpea, bloqueas el daño por completo, pero un hacha lo desactiva durante unos segundos.
+@ hacha contra escudo | desactivar escudo
+- En combate contra jugadores, un golpe de hacha desactiva el escudo del rival durante unos segundos y te deja abrirle la defensa.
+@ combate de arco | consejos de arco
+- Con el arco, apunta por encima del objetivo a distancia y espera a la carga completa, que hace salir la flecha con mayor daño.
+@ disparo anticipado | adelantar el tiro
+- Contra objetivos que se mueven debes disparar un poco por delante de su trayectoria, porque la flecha tarda en llegar.
+@ combate contra creeper | derrotar creeper
+- Para vencer a un creeper golpéalo y retrocede, o ataca con arco desde lejos; si te alejas lo suficiente, no llega a explotar.
+@ combate contra esqueleto | derrotar esqueleto
+- Contra esqueletos acércate zigzagueando o escóndete tras un bloque, porque sus flechas pierden precisión en movimiento.
+@ combate contra zombi | derrotar zombi
+- Los zombis son lentos y fáciles; golpéalos con espada, pero cuidado con los bebés rápidos y los jinetes de gallina.
+@ combate contra araña | derrotar araña
+- Las arañas escalan paredes y son agresivas de noche; un bloque sobre tu cabeza y una espada con barrido bastan para evitarlas.
+@ combate contra enderman | derrotar enderman
+- Para pelear con un enderman ponte bajo un techo de dos bloques de alto, mira sus pies y golpea cuando se acerque.
+@ combate contra bruja | derrotar bruja
+- Las brujas lanzan pociones dañinas, así que acércate rápido, bebe leche si te envenenan y rematarlas con la espada.
+@ combate contra phantom | derrotar phantom
+- Los phantoms aparecen si pasas tres noches sin dormir, y se evitan durmiendo en una cama; también caen con arco o espada.
+@ combate contra ghast | derrotar ghast
+- A un ghast se le devuelve la bola de fuego con un golpe, lo que lo mata de un solo disparo, o se le dispara con arco.
+@ combate contra blaze | derrotar blaze
+- Los blazes disparan bolas de fuego en ráfagas; usa bolas de nieve, arco y un escudo, y combate cerca de cobertura.
+@ combate contra wither skeleton | esqueleto wither combate
+- El esqueleto wither inflige un efecto de marchitamiento; mátalo con una espada con saqueo para soltar calaveras raras.
+@ combate contra guardián | derrotar guardián
+- Los guardianes del monumento oceánico disparan rayos; la poción de respiración acuática y un escudo ayudan en los combates.
+@ combate contra ahogado | derrotar ahogado
+- Los ahogados atacan en agua y lanzan tridentes; ponte fuera del agua o usa un escudo para enfrentarlos con menos riesgo.
+@ combate contra warden | derrotar warden
+- Al warden no se le debe enfrentar: esquiva sus sentidos moviéndote agachado, y si lo ves no pelees porque mata muy rápido.
+@ sentido del warden | evitar warden
+- El warden detecta vibraciones, así que usa lana bajo los pies para silenciar tus pasos y camina agachado en ciudades antiguas.
+@ escapar de la lava | salir de lava
+- Si caes en lava, usa cubos de agua para apagar el fuego o bloquea el flujo con bloques, pues el fuego y la lava hacen mucho daño.
+@ pilar hacia arriba | pillar up | subir con bloques
+- Para subir sin escaleras salta y coloca un bloque debajo de ti repetidamente, lo que sirve para escapar de hoyos y ríos.
+@ puenteo | bridging | puente rápido
+- Para cruzar vacíos agáchate al borde y coloca bloques hacia atrás, avanzando sin caerte porque agachado no te deslizas.
+@ minería segura | minar seguro
+- Al minar no caves en línea recta hacia abajo ni sobre lava; mira donde pisas y lleva agua, un cubo y bloques de relleno.
+@ minería en escalera | escalera de minería
+- La minería en escalera baja en diagonal por una escalera, lo que te permite subir o volver con facilidad y evita caer en cuevas.
+@ minería en rama | branch mining
+- La minería en rama traza túneles paralelos separados por dos bloques en la capa adecuada, para ver muchos minerales sin romper de más.
+@ capa de diamantes | altura de diamantes
+- Los diamantes aparecen con más frecuencia en las capas más profundas del mundo, justo por encima del lecho de roca y debajo de las cuevas.
+@ cuevas peligrosas | explorar cuevas
+- En cuevas lleva antorchas, agua, comida y armadura, e ilumina los rincones para impedir que aparezcan monstruos a tu alrededor.
+@ nivel de luz | luz y monstruos
+- Los monstruos solo aparecen con luz baja, por lo que iluminar con antorchas todo alrededor de tu base evita ataques.
+@ ruta del Nether | viaje por el Nether
+- Un bloque en el Nether equivale a ocho en el mundo normal, así que se puede usar para recorrer distancias largas con portales.
+@ estrategia de bastión
+- En un bastión busca primero la sala del tesoro, mantén los pies sobre bloques sólidos y lleva oro puesto para que los piglins no ataquen.
+@ oro y piglin | armadura de oro piglin
+- Llevar al menos una pieza de armadura de oro evita que los piglins te ataquen a menos que abras cofres o rompas oro.
+@ brutos piglin | piglin bruto
+- Los brutos piglin son agresivos aunque lleves oro, así que lucha contra ellos con armadura fuerte y espada con filo.
+@ buscar fortaleza | encontrar fortaleza
+- La fortaleza del Nether se localiza a menudo avanzando en dirección este u oeste desde el portal, recorriendo galerías de ladrillos.
+@ ojos de ender | localizar fortaleza
+- Los ojos de ender, lanzados al aire, flotan hacia la fortaleza más cercana, y con varios lanzamientos puedes ubicar el portal del Fin.
+@ portal del Fin | activar portal
+- El portal del Fin tiene doce marcos de portal; coloca ojos de ender en todos los huecos y salta al centro para viajar al Fin.
+@ derrotar al dragón | dragón del Fin
+- Para vencer al dragón destruye los cristales del Fin primero y luego ataca cuando baje a la fuente con arco o espada de filo.
+@ cristales del Fin | cristales de curación
+- Los cristales del Fin curan al dragón; algunos están protegidos con jaulas, así que dispara con arco o sube con bloques.
+@ cama contra el dragón
+- Una cama colocada en el Fin explota con mucha fuerza y es una táctica habitual para causar daño alto al dragón al posarse.
+@ combate del Fin | enderman del Fin
+- Durante el combate del Fin evita mirar a los endermen, lleva una calabaza tallada puesta y cuida los bordes para no caer al vacío.
+@ derrotar al wither | wither jefe
+- Para vencer al wither pelea en un espacio cerrado con techo bajo, usa arco y espada fuerte, y mantente cerca de bloques de protección.
+@ invocar al wither | construir wither
+- El wither se invoca con cuatro bloques de arena de almas y tres calaveras de esqueleto wither, colocados en forma de te mayúscula.
+@ estrella del Nether | estrella wither
+- El wither suelta una estrella del Nether al morir, y esta sirve para fabricar una baliza.
+@ incursión | incursiones | raid
+- Una incursión empieza cuando un jugador con mal presagio entra en una aldea y la defienden golems y jugadores contra oleadas.
+@ mal presagio | omen
+- El mal presagio lo da matar a un capitán de patrulla con estandarte; al entrar en una aldea provoca una incursión.
+@ defensa de aldea | defender aldea
+- Para frenar incursiones protege la aldea con iluminación, vallas y trampas, y combate con ballesta o espada afilada.
+@ trueque para speedrun | perlas de ender speedrun
+- En un speedrun se obtienen perlas de ender mediante trueque con piglins, y madera para fabricar con rapidez.
+@ blindaje de base | seguridad de base
+- Para proteger tu base ilumina el perímetro, usa puertas de hierro, cierra entradas y no dejes huecos que dejen entrar monstruos.
+@ foso de lava
+- Un foso con lava rodea una base y evita incursiones de mobs terrestres, aunque debes cuidar no caer tú mismo en él.
+@ defensa contra creeper | proteger de creeper
+- Para impedir que un creeper dañe tu base, ilumina el lugar y colócate lejos; usa obsidiana donde proteger lo valioso.
+@ comida en combate | comer en pelea
+- Antes de una pelea come comida con mucha saciedad; con el hambre llena regeneras vida de forma natural durante el combate.
+@ escudo contra explosión | aguantar explosión
+- Un escudo no detiene las explosiones del todo, pero reduce el daño de las flechas y de los golpes de criaturas hostiles.
+@ ahogamiento y caída
+- Para evitar el daño por caída aterriza en agua o en una bala de heno, y usa botas con caída de pluma para reducirlo.
+@ poción de caída lenta | caída lenta
+- La poción de caída lenta evita el daño de las caídas y permite bajar con tranquilidad desde alturas peligrosas.
+@ combate en las alturas | pelea en vertical
+- Al pelear arriba de una torre, pon bloques a tu alrededor para evitar ser empujado y no caer al vacío.
+@ explosión de ancla
+- El ancla de reaparición explota si la usas fuera del Nether, y sirve como punto de reaparición dentro de esa dimensión.
+@ tienda del jefe | preparación para jefe
+- Antes de un jefe lleva armadura de diamante, comida, pociones de curación y arcos, y prepara una cama y bloques de repuesto.

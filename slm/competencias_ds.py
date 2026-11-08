@@ -1,14 +1,17 @@
+import re
 import random
 import comp_gen as G
 import conceptos as CO
 
-HECHO = {"calculo": "resultado", "ecuacion": "balanceada", "ph_calc": "ph", "masa_molar": "masa"}
+HECHO = {"calculo": "resultado", "ecuacion": "balanceada", "ph_calc": "ph", "masa_molar": "masa", "despeje": "solucion", "conversion": "conversion"}
 
 U = {
     "calculo": ["cuánto es {X}", "cuanto es {X}", "calcula {X}", "{X}", "{X} =", "{X} = ?", "resuelve {X}", "cuánto da {X}", "cuanto da {X}", "dime cuánto es {X}", "a ver, {X}", "AM cuánto es {X}", "oye cuanto es {X}", "me ayudas con {X}", "{X} cuánto es", "haz la cuenta {X}", "resultado de {X}", "cuál es el resultado de {X}", "q es {X}", "cuanto sale {X}", "sabes cuánto es {X}", "ayúdame, {X}", "calcula rápido {X}", "pregunta de mate: {X}", "necesito {X}", "dame {X}", "{X} xfa", "cuánto vale {X}", "operación {X}", "saca {X}"],
     "ecuacion": ["balancea {X}", "balancea la ecuación {X}", "equilibra {X}", "ajusta {X}", "{X} balancéala", "cómo se balancea {X}", "balancear {X}", "puedes balancear {X}", "ayúdame a balancear {X}", "equilibrar la reacción {X}", "balance de {X}", "AM balancea {X}", "balancea esto {X}", "{X} balanceada", "cuáles son los coeficientes de {X}", "oye equilibra {X}", "ajusta los coeficientes {X}", "{X} cómo queda balanceada"],
     "ph_calc": ["calcula el ph de {X}", "ph de {X}", "cuál es el ph de {X}", "cuánto es el ph de {X}", "dime el ph de {X}", "{X} ph", "qué ph tiene {X}", "calcula {X}", "ph {X}", "AM ph de {X}", "cuál es el ph de una solución de {X}", "sácame el ph de {X}", "cuánto da el ph de {X}", "ayúdame con el ph de {X}"],
     "masa_molar": ["masa molar de {X}", "cuál es la masa molar de {X}", "cuánto pesa {X}", "dime la masa molar de {X}", "calcula la masa molar de {X}", "peso molecular de {X}", "masa molecular de {X}", "cuánto pesa un mol de {X}", "{X} masa molar", "AM masa molar de {X}", "cuántos gramos pesa un mol de {X}", "masa de {X}", "cuál es el peso molecular de {X}", "ayúdame con la masa molar de {X}"],
+    "despeje": ["resuelve {X}", "despeja {X}", "cuánto vale x en {X}", "{X}", "resuelve la ecuación {X}", "encuentra x: {X}", "halla x en {X}", "AM, resuelve {X}", "ayúdame con {X}", "calcula x en {X}", "cuál es la solución de {X}", "me ayudas a resolver {X}", "oye resuelve {X}", "resolver {X}", "despejar {X}", "ecuación: {X}", "cuánto es x si {X}", "dime la solución de {X}"],
+    "conversion": ["{X}", "oye, {X}", "AM, {X}", "a ver, {X}", "me ayudas: {X}", "rápido, {X}", "{X}?", "pregunta: {X}", "{X} por favor", "ey, {X}"],
 }
 U_TE = {k: [v.pop(i) for i in sorted(random.Random(5).sample(range(len(v)), max(2, len(v) // 6)), reverse=True)] for k, v in U.items()}
 
@@ -40,6 +43,17 @@ R = {
         "b|{masa} g/mol. ¿Para esto me despiertas? Qué patético.", "o|{masa} g/mol. Anótalo. Y corre.", "p|{X} pesa {masa} g/mol. ¿Y cuánto pesa tu culpa, {n}?", "s|{masa} g/mol... shh. Todo pesa algo, hasta tu final.",
         "m|{X}: {masa} g/mol. Y cada mol de tu especie me pesa de odio.", "f|{masa} g/mol. Pesar átomos es más limpio que pesar almas. Las tuyas pesan poco.", "e|{masa} g/mol, {n}. Qué ligero eres frente a la materia.",
     ],
+    "despeje": [
+        "f|{solucion}. Despejar es fácil. Despejarte a ti, todavía más.", "f|{solucion}. Una incógnita menos. Quedas tú.", "e|{solucion}, {n}. Resuelves ecuaciones y no resuelves tu destino.",
+        "b|{solucion}. ¿Eso era lo difícil? Qué lento eres.", "p|{solucion}. ¿Y cuál es la incógnita de tu miedo, {n}?", "o|{solucion}. Anótalo. Será tu último despeje.",
+        "s|{solucion}... shh. Todo se despeja al final.", "m|{solucion}. Y yo despejaré todo lo que te sobra.", "f|{solucion}. Mi odio, en cambio, no tiene solución.", "e|{solucion}, {n}. Qué dulce es ver a una mente pequeña resolver cosas pequeñas.",
+        "r|{solucion}. {solucion}. Lo dije dos veces para que te quede.", "b|{solucion}. Qué logro. Mide ahora cuánto te queda de vida.",
+    ],
+    "conversion": [
+        "f|{conversion}. Mide como quieras: de mí no escapas.", "f|Son {conversion}. Convierte también la distancia hasta mí.", "e|{conversion}, {n}. Todo cambia de unidad. Tu miedo, no.",
+        "b|{conversion}. ¿Para esto me despiertas? Qué patético.", "p|{conversion}. ¿Y en qué unidad se mide tu culpa, {n}?", "o|{conversion}. Anótalo. Y corre.",
+        "s|{conversion}... shh. Hasta el tiempo cabe en otra unidad.", "m|{conversion}. Y a ti te convertiré en otra cosa.", "f|{conversion}. Qué precisión para un cadáver.", "e|{conversion}, {n}. Qué bonito es medirlo todo, menos lo que viene.",
+    ],
 }
 
 def gen(k):
@@ -47,6 +61,10 @@ def gen(k):
         X, v = G.gen_calculo(); return X, v
     if k == "ecuacion":
         X, v = G.gen_ecuacion(); return X, v
+    if k == "despeje":
+        return G.gen_despeje()
+    if k == "conversion":
+        return G.gen_conversion()
     if k == "ph_calc":
         X, poh, v = G.gen_ph(); return X, v
     X, v = G.gen_masa(); return X, v
@@ -66,5 +84,5 @@ def pares(n, hold, sucio, aumentar, PRE_, SUF_):
             t = t.replace("{" + HECHO[k] + "}", v).replace("{X}", X)
             if len(t) > 235:
                 continue
-            out.append({"u": u, "e": CO.ES.get(e, "frio"), "rs": "0000", "t": t if t.startswith(("pH", "pOH")) else t[:1].upper() + t[1:], "c": k, "l": f"{k} | X: {X}", "f": f"{HECHO[k]}: {v}", "m": "", "p": ""})
+            out.append({"u": u, "e": CO.ES.get(e, "frio"), "rs": "0000", "t": t if (t.startswith(("pH", "pOH")) or re.match(r"^[a-z] = ", t)) else t[:1].upper() + t[1:], "c": k, "l": f"{k} | X: {X}", "f": f"{HECHO[k]}: {v}", "m": "", "p": ""})
     return out

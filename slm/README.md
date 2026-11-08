@@ -57,3 +57,9 @@ Las competencias ya no esquivan al SLM. Intenciones nuevas calculo, ecuacion, ph
 
 ### sividi toile v3.000.106
 - Conceptos 922: quimica de compuestos, unidades, cientificos, matematicas. Elementos solo desde elementos.py (sin duplicados). Dataset completo verificado (generacion sin errores).
+
+### sividi toile v3.000.107
+- Competencias nuevas: despeje (ecuaciones de primer y segundo grado) y conversion (longitud, masa, volumen, tiempo, temperatura), con paridad Python/JS (250 casos).
+- referencia.js: "y eso?", "para que sirve", "otra vez" reutilizan el ultimo concepto. suelta.traicion: respuesta a "me mentiste" tras un "te dejo ir".
+- 175 conceptos de Minecraft (recetas, estrategia, comercio). Conceptos: 1097.
+- SLM_CONCEPTOS baja a 22 por concepto para que definicion no pase del 25% de los datos.

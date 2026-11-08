@@ -202,6 +202,100 @@ def gen_calculo():
         return gen_calculo()
     return X, fmt(v)
 
+FACT = {
+    "longitud": {"mm": 0.001, "cm": 0.01, "m": 1, "km": 1000, "pulgada": 0.0254, "pie": 0.3048, "yarda": 0.9144, "milla": 1609.344},
+    "masa": {"mg": 0.001, "g": 1, "kg": 1000, "libra": 453.59237, "onza": 28.349523125, "tonelada": 1000000},
+    "volumen": {"ml": 0.001, "l": 1, "galon": 3.785411784},
+    "tiempo": {"s": 1, "min": 60, "h": 3600, "dia": 86400},
+}
+NOMB = {"mm": "milímetros", "cm": "centímetros", "m": "metros", "km": "kilómetros", "pulgada": "pulgadas", "pie": "pies", "yarda": "yardas", "milla": "millas", "mg": "miligramos", "g": "gramos", "kg": "kilogramos", "libra": "libras", "onza": "onzas", "tonelada": "toneladas", "ml": "mililitros", "l": "litros", "galon": "galones", "s": "segundos", "min": "minutos", "h": "horas", "dia": "días", "c": "grados Celsius", "f": "grados Fahrenheit", "k": "kelvin"}
+AL = {"mm": ["mm", "milímetros"], "cm": ["cm", "centímetros"], "m": ["metros", "m"], "km": ["km", "kilómetros", "kilometros"], "pulgada": ["pulgadas"], "pie": ["pies", "ft"], "yarda": ["yardas"], "milla": ["millas"], "mg": ["mg", "miligramos"], "g": ["gramos", "g"], "kg": ["kg", "kilos", "kilogramos"], "libra": ["libras", "lb"], "onza": ["onzas", "oz"], "tonelada": ["toneladas"], "ml": ["ml", "mililitros"], "l": ["litros", "l"], "galon": ["galones", "galón"], "s": ["segundos"], "min": ["minutos", "min"], "h": ["horas", "h"], "dia": ["días", "dias"], "c": ["°C", "celsius", "grados celsius"], "f": ["°F", "fahrenheit", "grados fahrenheit"], "k": ["kelvin"]}
+
+def gen_conversion():
+    d = random.choice(["longitud", "longitud", "masa", "masa", "volumen", "tiempo", "temp", "temp"])
+    us = ["c", "f", "k"] if d == "temp" else list(FACT[d])
+    u1, u2 = random.sample(us, 2)
+    if d == "temp":
+        n = str(random.choice([0, 10, 20, 25, 30, 37, 50, 100, -10, -40, 15, 40, 60, 80, 212, 32, 273, 300]))
+    else:
+        n, _ = num_(True, 1, random.choice([20, 100, 500]))
+    x = float(n.replace(",", "."))
+    if d == "temp":
+        c = x if u1 == "c" else (x - 32) * 5 / 9 if u1 == "f" else x - 273.15
+        v = c if u2 == "c" else c * 9 / 5 + 32 if u2 == "f" else c + 273.15
+    else:
+        v = (x * FACT[d][u1]) / FACT[d][u2]
+    if not math.isfinite(v) or abs(v) >= 1e15 or (d != "temp" and redondea(v, 2) == 0):
+        return gen_conversion()
+    a1, a2 = random.choice(AL[u1]), random.choice(AL[u2])
+    f = random.choice(["N a B", "N a B", "convierte N a B", "pasa N a B", "N en B", "cuántos B son N", "cuantos B hay en N", "cuántos B equivalen a N"])
+    if "cuánt" in f or "cuant" in f:
+        n_ = n
+        X = f.replace("B", a2).replace("N", n_ + " " + a1)
+    else:
+        X = f.replace("N", n + " " + a1).replace("B", a2)
+    if a1[0] == "°" or a2[0] == "°":
+        X = X.replace("° ", "°")
+    return X, fmt(redondea(v, 2)) + " " + NOMB[u2]
+
+def _poly(cs, var, sp):
+    out = ""
+    for p in (2, 1, 0):
+        c = cs.get(p, 0)
+        if c == 0:
+            continue
+        a = abs(c)
+        k = "" if (a == 1 and p > 0) else str(a)
+        body = k + ("" if p == 0 else var if p == 1 else var + "^2")
+        if not out:
+            out = ("-" if c < 0 else "") + body
+        else:
+            out += (" " if sp else "") + ("-" if c < 0 else "+") + (" " if sp else "") + body
+    return out or "0"
+
+def gen_despeje():
+    var = random.choice(["x"] * 6 + ["y", "n", "z"])
+    sp = random.random() < 0.7
+    t = random.random()
+    eq = " = " if sp else "="
+    if t < 0.55:
+        a = random.randint(2, 9)
+        s = random.choice([random.randint(-9, 12), random.randint(-9, 12), random.randint(-9, 12) + 0.5])
+        if s != int(s):
+            a = random.choice([2, 4, 6, 8])
+        form = random.choice(["ax+b", "ax-b", "ax", "x/a", "a(x+b)", "ax+b=dx+e", "x+b"])
+        if form == "ax+b":
+            b = random.randint(1, 20); c = a * s + b
+            X = _poly({1: a, 0: b}, var, sp) + eq + str(int(c))
+        elif form == "ax-b":
+            b = random.randint(1, 20); c = a * s - b
+            X = _poly({1: a, 0: -b}, var, sp) + eq + str(int(c))
+        elif form == "ax":
+            X = _poly({1: a}, var, sp) + eq + str(int(a * s))
+        elif form == "x/a":
+            s = random.randint(-9, 12); X = var + ("/" if not sp else " / ") + str(a) + eq + str(s); s = a * s
+        elif form == "a(x+b)":
+            s = random.randint(-9, 12); b = random.randint(1, 9)
+            X = f"{a}({var}+{b})" + eq + str(a * (s + b)) if sp else f"{a}({var}+{b})={a * (s + b)}"
+        elif form == "x+b":
+            s = random.randint(-9, 12); b = random.randint(1, 30)
+            X = _poly({1: 1, 0: b}, var, sp) + eq + str(s + b)
+        else:
+            s = random.randint(-9, 12)
+            d = random.randint(1, 8)
+            while d == a:
+                d = random.randint(1, 8)
+            b = random.randint(1, 15); e = (a - d) * s + b
+            X = _poly({1: a, 0: b}, var, sp) + eq + _poly({1: d, 0: e}, var, sp)
+        return X, f"{var} = " + fmt(redondea(s + 0.0, 2))
+    r1, r2 = sorted(random.sample(range(-9, 10), 2))
+    a = random.choice([1, 1, 1, 2, 3])
+    cs = {2: a, 1: -a * (r1 + r2), 0: a * r1 * r2}
+    X = _poly(cs, var, sp) + eq + "0"
+    if random.random() < 0.25:
+        X = _poly({2: a}, var, sp) + eq + _poly({1: a * (r1 + r2), 0: -a * r1 * r2}, var, sp)
+    return X, f"{var} = {r1} o {var} = {r2}"
+
 if __name__ == "__main__":
     import json, sys
     random.seed(7)
@@ -214,5 +308,9 @@ if __name__ == "__main__":
         X, poh, v = gen_ph(); ref.append({"i": "ph_calc", "x": X, "v": v})
     for _ in range(40):
         X, v = gen_masa(); ref.append({"i": "masa_molar", "x": X, "v": v})
+    for _ in range(40):
+        X, v = gen_despeje(); ref.append({"i": "despeje", "x": X, "v": v})
+    for _ in range(40):
+        X, v = gen_conversion(); ref.append({"i": "conversion", "x": X, "v": v})
     json.dump(ref, open(sys.argv[1] if len(sys.argv) > 1 else "comp_ref.json", "w", encoding="utf8"), ensure_ascii=False, indent=0)
     print(len(ref))

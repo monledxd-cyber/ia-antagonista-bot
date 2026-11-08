@@ -1,0 +1,106 @@
+@ hacha de piedra | hachas de piedra
+- La hacha se fabrica con tres unidades de material y dos palos, y corta madera más rápido que la mano o la hacha de madera.
+@ azada | azadas
+- La azada se fabrica con dos unidades de material y dos palos, y sirve para labrar tierra, cortar hojas y bloques de heno más rápido.
+@ pala | palas
+- La pala se fabrica con una unidad de material y dos palos, y excava tierra, arena, grava y nieve mucho más rápido que a mano.
+@ pico de hierro | picos de hierro
+- El pico de hierro se fabrica con tres lingotes de hierro y dos palos, y es el mínimo necesario para minar diamantes y oro.
+@ mejora de netherita | mejorar a netherita | mesa de herrería
+- La mejora de netherita se hace en una mesa de herrería con una pieza de diamante, un lingote de netherita y una plantilla de mejora.
+@ lingote de netherita | netherita lingote
+- El lingote de netherita se fabrica con cuatro fragmentos de escombros antiguos y cuatro lingotes de oro.
+@ casco de hierro | cascos
+- El casco se fabrica con cinco lingotes del material y da dos puntos de armadura en el caso del hierro.
+@ peto | petos | pechera
+- El peto se fabrica con ocho unidades del material y es la pieza de armadura que más protección aporta.
+@ pantalones de armadura | grebas
+- Los pantalones se fabrican con siete unidades del material y protegen las piernas de forma intermedia.
+@ botas | botas de armadura
+- Las botas se fabrican con cuatro unidades del material y son la pieza más barata de armadura; las de cuero se tiñen con tintes.
+@ armadura de cuero | cuero armadura
+- La armadura de cuero se fabrica con cuero de vaca o conejo, se puede teñir y es la que menos protección da de todas.
+@ ballesta | ballestas
+- La ballesta se fabrica con tres palos, dos hilos, un lingote de hierro y un gancho de cuerda, y se carga antes de disparar.
+@ tridente receta
+- El tridente no se fabrica: solo lo sueltan los ahogados con poca probabilidad, y sirve para lanzar y con encantamientos volver.
+@ losas | losa | medio bloque
+- Tres bloques iguales en una fila dan seis losas, que ocupan medio bloque y se pueden poner arriba o abajo.
+@ valla | vallas
+- La valla se fabrica con cuatro tablones y dos palos, y no se puede saltar porque mide un bloque y medio de alto.
+@ portillo | puerta de valla
+- El portillo se fabrica con dos tablones y cuatro palos, y se abre como una puerta pero encaja con las vallas.
+@ muro de piedra | muros
+- El muro se fabrica con seis bloques de piedra, adoquín o ladrillo, y también mide un bloque y medio de alto.
+@ puerta de madera
+- Seis tablones en dos columnas dan tres puertas de madera, que los zombis pueden romper en dificultad difícil.
+@ trampilla | trampillas
+- Seis tablones en dos filas dan dos trampillas, que sirven como escotilla o para subir si se ponen junto a una escalera.
+@ barril | barriles
+- El barril se fabrica con seis tablones y dos losas de madera, y guarda veintisiete objetos pero se abre aunque haya un bloque encima.
+@ ender chest receta | cofre de ender
+- El cofre de ender se fabrica con ocho bloques de obsidiana y un ojo de ender, y comparte inventario entre todos los cofres de ender del jugador.
+@ shulker box
+- La caja de shulker se fabrica con dos cáscaras de shulker y un cofre, y conserva su contenido al romperse.
+@ carril | rieles | railes
+- Seis lingotes de hierro y un palo dan dieciséis carriles normales, sobre los que circulan las vagonetas.
+@ carril propulsado | riel propulsado
+- El carril propulsado se fabrica con seis lingotes de oro, un palo y polvo de redstone, y acelera las vagonetas al activarse.
+@ bote
+- El bote se fabrica con cinco tablones y una pala, y permite cruzar agua rápido y transportar un par de pasajeros.
+@ tijeras | tijeras de hierro
+- Las tijeras se fabrican con dos lingotes de hierro y esquilan ovejas, cortan telarañas y recogen hojas enteras.
+@ encendedor | mechero | pedernal y acero
+- El encendedor se fabrica con un lingote de hierro y un pedernal, y enciende fuegos, portales del Nether y dinamita.
+@ botón | botones
+- El botón se fabrica con un solo bloque de piedra o madera y emite señal de redstone durante un tiempo corto.
+@ placa de presión | placas de presión
+- La placa de presión se fabrica con dos bloques de piedra o madera y emite señal cuando alguien se pone encima.
+@ pistón pegajoso | pistón adhesivo
+- El pistón pegajoso se hace con un pistón y una bola de slime, y puede tirar de los bloques al retraerse.
+@ observador | observadores
+- El observador se fabrica con seis adoquines, dos polvos de redstone y un cuarzo, y emite un pulso al detectar cambios en el bloque de enfrente.
+@ soltador | soltadores
+- El soltador se fabrica con siete adoquines y redstone, y sencillamente suelta los objetos que contiene sin dispararlos.
+@ bloque de redstone | bloque de redstone receta
+- El bloque de redstone se fabrica con nueve polvos de redstone y da una señal permanente en todo momento.
+@ lámpara de redstone | lámpara
+- La lámpara de redstone se fabrica con una piedra luminosa y cuatro polvos de redstone, y se enciende al recibir señal.
+@ piedra luminosa | glowstone
+- Cuatro polvos de piedra luminosa forman un bloque de piedra luminosa, que da un nivel alto de luz y se consigue en el Nether.
+@ linterna | linternas
+- La linterna se fabrica con ocho pepitas de hierro y una antorcha, y se puede colgar del techo o poner en el suelo.
+@ fogata | hoguera
+- La fogata se fabrica con tres palos, un carbón y tres troncos, y cocina hasta cuatro alimentos a la vez sin gastar combustible.
+@ ahumador | ahumadores
+- El ahumador se fabrica con un horno y cuatro troncos, y cocina comida el doble de rápido que un horno normal.
+@ alto horno | altos hornos
+- El alto horno funde minerales y armas de metal el doble de rápido que un horno y lo usa el herrero como puesto de trabajo.
+@ atril | lectern
+- El atril se fabrica con cuatro losas de madera y una estantería, y sirve a los bibliotecarios como puesto de trabajo y para leer libros.
+@ soporte para pociones | alambique | destiladora
+- El soporte para pociones se fabrica con una vara de blaze y tres adoquines, y usa polvo de blaze como combustible.
+@ caldero | calderos
+- El caldero se fabrica con siete lingotes de hierro y almacena agua, lava, nieve en polvo o pociones, y también lava la armadura de cuero.
+@ baliza | balizas
+- La baliza se fabrica con una estrella del Nether, cinco cristales y tres bloques de obsidiana, y da efectos sobre una pirámide.
+@ pirámide de baliza | base de baliza
+- La pirámide de baliza se construye con bloques de hierro, oro, esmeralda o diamante en capas, y a más niveles, más alcance y poderes.
+@ brújula magnetizada | brújula de magnetita
+- La brújula magnetizada se obtiene al usar una brújula con una magnetita y apunta hacia ese bloque en lugar del punto de reaparición.
+@ mesa de cartografía | cartógrafo mesa
+- La mesa de cartografía se fabrica con dos papeles y cuatro tablones, y permite ampliar, clonar y bloquear mapas.
+@ pancarta | pancartas | estandarte
+- La pancarta se fabrica con seis lanas del mismo color y un palo, y se personaliza con tintes y patrones en un telar.
+@ telar | telares
+- El telar se fabrica con dos hilos y dos tablones, y aplica patrones de tintes a una pancarta, siendo el puesto del pastor.
+@ cohete de fuegos artificiales | fuegos artificiales
+- El cohete se fabrica con papel, pólvora y opcionalmente estrellas de fuegos artificiales, y también impulsa a quien vuela con élitros.
+@ estrella de fuegos artificiales
+- La estrella se fabrica con pólvora y un tinte, y con otros extras como diamante o luminosa cambia la forma o el brillo.
+@ pólvora receta
+- La pólvora la sueltan los creepers, las brujas y los ghasts, y se usa para fabricar dinamita, fuegos artificiales y pociones lanzables.
+@ poción de respiración acuática | respiración acuática
+- La poción de respiración acuática se prepara con una poción extraña y un pez globo, y evita ahogarte bajo el agua durante tres minutos.
+@ poción de visión nocturna | visión nocturna
+- La poción de visión nocturna se prepara con una poción extraña y una zanahoria dorada, y permite ver bien en cuevas y bajo el agua.

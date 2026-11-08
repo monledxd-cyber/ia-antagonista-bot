@@ -1,0 +1,128 @@
+@ aldeano agricultor | agricultor
+- El agricultor usa un compostador como puesto de trabajo y compra trigo, zanahorias, patatas y remolachas a cambio de esmeraldas.
+@ aldeano bibliotecario | bibliotecario
+- El bibliotecario usa un atril y vende libros encantados, además de cristal, y es clave para conseguir encantamientos a bajo precio.
+@ aldeano herrero | armero
+- El armero usa un alto horno y vende armaduras, desde piezas de hierro hasta de diamante con posibles encantamientos.
+@ aldeano forjador de armas | armero de armas
+- El forjador de armas usa una piedra de afilar y vende espadas, hachas y herramientas, además de ofrecer encantamientos.
+@ aldeano herramientero | herramientero
+- El herramientero usa una mesa de herrería y vende picos, palas, hachas y azadas, algunas con encantamientos.
+@ aldeano pastor | pastor
+- El pastor usa un telar y compra lana a cambio de esmeraldas, y vende tintes, camas, pancartas y tijeras.
+@ aldeano pescador | pescador
+- El pescador usa un barril y compra hilo y pescado, y vende cañas de pescar, botes y comida cocinada.
+@ aldeano flechero | flechero
+- El flechero usa una mesa de flechas y compra hilo y palos, y vende arcos, ballestas, flechas y pedernal.
+@ aldeano carnicero | carnicero
+- El carnicero usa un ahumador y compra carne cruda, y vende carne cocinada y cuero a cambio de esmeraldas.
+@ aldeano curtidor | peletero
+- El peletero usa un caldero y compra cuero, y vende armaduras de cuero teñidas, monturas y sillas de caballo.
+@ aldeano albañil | albañil
+- El albañil usa un cortapiedras y compra arcilla y piedra, y vende ladrillos, terracota y bloques decorativos.
+@ aldeano cartógrafo | cartógrafo
+- El cartógrafo usa una mesa de cartografía y vende mapas de exploración que llevan a monumentos o mansiones.
+@ aldeano clérigo | clérigo
+- El clérigo usa un soporte de pociones y compra carne podrida y varas de blaze, y vende perlas de ender y redstone.
+@ aldeano sin trabajo | desempleado
+- El aldeano sin trabajo se reconoce por la túnica marrón y adopta una profesión cuando tiene cerca un puesto libre.
+@ aldeano nitwit | tonto
+- El nitwit lleva túnica verde, no tiene profesión y no puede comerciar ni trabajar, aunque sí reproducirse.
+@ nivel de aldeano | subir de nivel
+- Los aldeanos suben de nivel al comerciar, cada nivel desbloquea tratos nuevos y el rango se ve en la insignia de su túnica.
+@ precio de tratos | rebaja de aldeano
+- Curar a un aldeano zombi baja los precios de forma duradera, mientras que atacarlos los sube mucho en su aldea.
+@ descuento héroe | héroe de la aldea
+- El efecto héroe de la aldea se obtiene al vencer una incursión y rebaja mucho los precios de todos los aldeanos cercanos.
+@ curar aldeano zombi | cura aldeano
+- Para curar a un aldeano zombi lánzale una poción de debilidad y dale una manzana dorada, y quedará curado tras un rato.
+@ aldeano zombi
+- Un aldeano zombi tarda un tiempo en transformarse y, al curarse, ofrece descuentos permanentes a quien lo sanó.
+@ bloque de esmeralda | bloque esmeralda
+- El bloque de esmeralda se fabrica con nueve esmeraldas y sirve para almacenar la moneda o decorar construcciones.
+@ economía de esmeraldas | farmear esmeraldas
+- Una forma estable de obtener esmeraldas es vender trigo, carbón, papel o carne a aldeanos con tratos que los compran.
+@ sala de comercio | sala de intercambio
+- Una sala de comercio guarda aldeanos en celdas con su puesto de trabajo y una cama, para repetir los tratos con facilidad.
+@ celda de aldeano | celda de comercio
+- Cada aldeano necesita su propia celda con puesto de trabajo y cama; si los separas por una trampilla evitas que huyan.
+@ reinicio de tratos | reiniciar tratos
+- Si un aldeano no ha comerciado aún, romper y volver a colocar su puesto de trabajo cambia sus tratos disponibles.
+@ comercio de libros encantados | libro mendigo
+- Un bibliotecario de nivel bajo puede ofrecer libros como mendigo o reparación, y se sustituye el puesto hasta salir el que quieres.
+@ reparación libro | libro de reparación
+- El libro de reparación arregla el objeto con la experiencia que recoges, por lo que es un encantamiento muy buscado en el comercio.
+@ cría de aldeanos | reproducir aldeanos
+- Los aldeanos se reproducen si tienen camas libres y comida, que se les da lanzando pan, zanahorias, patatas o remolachas.
+@ comerciante errante | vendedor errante
+- El comerciante errante aparece de forma ocasional junto a llamas, vende objetos raros y cambia tus esmeraldas por ellos.
+@ llama del comerciante | llamas comerciante
+- Las llamas que acompañan al comerciante errante van atadas a él, y desaparecen junto a su amo cuando se marcha.
+@ trueque con piglin | trueque piglin
+- Lanzar lingotes de oro a un piglin hace que te entregue objetos al azar, como perlas, obsidiana llorona o bolas de slime.
+@ objetos de trueque | botín piglin
+- El trueque con piglins puede dar obsidiana, grava, cuero, cuarzo, fuego, perlas de ender y libros con alma veloz.
+@ perlas de ender trueque | perlas de ender piglin
+- Las perlas de ender son uno de los botines que dan los piglins y se necesitan para fabricar ojos de ender.
+@ pepita de oro
+- Nueve pepitas de oro forman un lingote, y los piglins aceptan lingotes en su trueque pero no pepitas ni bloques.
+@ granja de oro | granja de piglins zombi
+- La granja de oro se hace en el Nether, donde los piglins zombificados soltan oro al morir en una trampa de caída.
+@ zombi piglin | piglin zombificado
+- El piglin zombificado suelta pepitas de oro y a veces lingotes, y es la base de las granjas de oro de gran escala.
+@ encantamiento inmejorable | encantamiento de nivel treinta
+- Con una mesa rodeada de quince estanterías se llega al nivel de encantamiento más alto, treinta, para ofertas mejores.
+@ afilado
+- El filo es un encantamiento de espada que aumenta el daño que inflige el arma, y se aplica en la mesa o con yunque.
+@ protección encantamiento
+- La protección es un encantamiento de armadura que reduce el daño de casi todos los tipos y se puede combinar con otros.
+@ suerte encantamiento | fortuna
+- Fortuna en un pico aumenta la cantidad de ciertos minerales que suelta cada bloque, como diamantes o carbón.
+@ toque de seda | silk touch
+- El toque de seda deja recoger bloques enteros, como cristal, hielo o minerales sin romperse, aunque no sirve para fortuna a la vez.
+@ eficiencia | eficiencia encantamiento
+- La eficiencia hace que tu herramienta mine más rápido, y a nivel alto rompe casi cualquier bloque casi al instante.
+@ granja de experiencia | granja de xp
+- Una granja de experiencia mata muchos monstruos en un spawner o trampa y recoge las esferas de experiencia con un colector.
+@ esfera de experiencia | orbe de experiencia
+- Las esferas de experiencia se obtienen matando mobs, minando, fundiendo y criando animales, y suben el nivel de tu barra.
+@ granja de mobs | trampa de monstruos
+- Una granja de mobs aprovecha la aparición de monstruos en oscuridad total y los lleva a una caída o trampa para matarlos.
+@ spawner de zombi | generador de zombis
+- Un spawner de zombi rodeado de agua y trampillas se aprovecha para recoger carne podrida y para obtener experiencia con facilidad.
+@ granja de hierro | granja de golems
+- La granja de hierro usa aldeanos asustados para crear golems, que al morir sueltan lingotes de hierro sin cesar.
+@ granja de trigo | trigo cultivo
+- Una granja de trigo se hace con tierra labrada, agua cerca y semillas, y se recolecta cuando la planta alcanza su altura máxima.
+@ harina y pan | pan receta
+- Tres unidades de trigo en una fila dan pan, que repone hambre de forma notable y es una comida barata y fácil.
+@ granja de caña de azúcar
+- La caña de azúcar crece junto al agua en arena o tierra, se recolecta rompiendo desde el segundo bloque, y se replanta sola.
+@ granja automática | granja de pistón
+- Una granja automática usa observadores y pistones para romper cañas o melones cuando crecen, y los lleva a un cofre.
+@ granja de bambú | bambú
+- El bambú crece rápido y se puede recoger con pistones y observadores, además de servir como combustible y para andamios.
+@ granja de calabazas | calabaza melón
+- Las calabazas y los melones crecen junto a un tallo en tierra labrada, y se pueden automatizar con pistones y observadores.
+@ granja de ganado | cría de vacas
+- Criar vacas, ovejas o gallinas con trigo, semillas y zanahorias produce comida, cuero y lana de forma constante.
+@ granja de pollos | granja de huevos
+- Los huevos lanzados nacen pollos, que se cocinan con un horno para conseguir carne y plumas, y se automatizan con una tolva.
+@ granja de creepers | granja de pólvora
+- La granja de creepers atrae creepers con gatos o los hace caer, y sirve para recoger pólvora de forma segura.
+@ granja de ahogados | granja de tridentes
+- La granja de ahogados usa una cámara con agua y una trampa de caída, y da tridentes, cobre y nautilos de forma ocasional.
+@ granja de blaze | granja de varas
+- Los blazes del spawner de la fortaleza se atrapan en una trampa y dan varas de blaze para pociones y combustible.
+@ granja de slime | granja de slimes
+- Los slimes aparecen en pantanos y en ciertos trozos del mundo, y dan bolas de slime con las que se hacen pistones adhesivos.
+@ granja de oro del Nether | oro nether
+- El oro del Nether se consigue minando mineral de oro del Nether, que suelta pepitas y se funde en lingotes con un horno.
+@ granja de aldeanos | cría masiva
+- Una granja de aldeanos mantiene a muchos en celdas conectadas, permitiendo criarlos y cambiar sus tratos con rapidez.
+@ compostador | compostadores
+- El compostador convierte restos vegetales en harina de huesos y es el puesto de trabajo del agricultor.
+@ harina de huesos | abono
+- La harina de huesos acelera el crecimiento de plantas, y se obtiene con huesos o en un compostador lleno.
+@ piedra de afilar | rueda de afilar
+- La piedra de afilar quita los encantamientos de un objeto y devuelve parte de la experiencia que costaron.

@@ -848,5 +848,405 @@
 "i": "masa_molar",
 "x": "Al2O3",
 "v": "101,96"
+},
+{
+"i": "despeje",
+"x": "x^2 + x - 2 = 0",
+"v": "x = -2 o x = 1"
+},
+{
+"i": "despeje",
+"x": "2x^2-14x+24=0",
+"v": "x = 3 o x = 4"
+},
+{
+"i": "despeje",
+"x": "2x - 17 = -19",
+"v": "x = -1"
+},
+{
+"i": "despeje",
+"x": "z^2 + 10z + 21 = 0",
+"v": "z = -7 o z = -3"
+},
+{
+"i": "despeje",
+"x": "6y + 1 = 8y - 11",
+"v": "y = 6"
+},
+{
+"i": "despeje",
+"x": "2x^2 = 24x - 70",
+"v": "x = 5 o x = 7"
+},
+{
+"i": "despeje",
+"x": "2x + 5 = -8",
+"v": "x = -6,5"
+},
+{
+"i": "despeje",
+"x": "8x + 2 = 2x - 34",
+"v": "x = -6"
+},
+{
+"i": "despeje",
+"x": "x^2 - 2x - 3 = 0",
+"v": "x = -1 o x = 3"
+},
+{
+"i": "despeje",
+"x": "x / 9 = 7",
+"v": "x = 63"
+},
+{
+"i": "despeje",
+"x": "8x - 16 = 72",
+"v": "x = 11"
+},
+{
+"i": "despeje",
+"x": "8y + 6 = 7y + 7",
+"v": "y = 1"
+},
+{
+"i": "despeje",
+"x": "y^2 - 49 = 0",
+"v": "y = -7 o y = 7"
+},
+{
+"i": "despeje",
+"x": "x^2 - 3x - 10 = 0",
+"v": "x = -2 o x = 5"
+},
+{
+"i": "despeje",
+"x": "2x^2 + 12x + 16 = 0",
+"v": "x = -4 o x = -2"
+},
+{
+"i": "despeje",
+"x": "x/4=-8",
+"v": "x = -32"
+},
+{
+"i": "despeje",
+"x": "7x - 6 = -55",
+"v": "x = -7"
+},
+{
+"i": "despeje",
+"x": "8z+1=17",
+"v": "z = 2"
+},
+{
+"i": "despeje",
+"x": "x + 27 = 27",
+"v": "x = 0"
+},
+{
+"i": "despeje",
+"x": "3y^2 + 3y - 18 = 0",
+"v": "y = -3 o y = 2"
+},
+{
+"i": "despeje",
+"x": "2x^2 = -6x + 108",
+"v": "x = -9 o x = 6"
+},
+{
+"i": "despeje",
+"x": "2(y+6) = 14",
+"v": "y = 1"
+},
+{
+"i": "despeje",
+"x": "x^2 + 9x + 8 = 0",
+"v": "x = -8 o x = -1"
+},
+{
+"i": "despeje",
+"x": "x^2 = -16x - 63",
+"v": "x = -9 o x = -7"
+},
+{
+"i": "despeje",
+"x": "6n-1=35",
+"v": "n = 6"
+},
+{
+"i": "despeje",
+"x": "x^2+x-2=0",
+"v": "x = -2 o x = 1"
+},
+{
+"i": "despeje",
+"x": "x / 2 = 8",
+"v": "x = 16"
+},
+{
+"i": "despeje",
+"x": "z^2 + 13z + 42 = 0",
+"v": "z = -7 o z = -6"
+},
+{
+"i": "despeje",
+"x": "x / 9 = 10",
+"v": "x = 90"
+},
+{
+"i": "despeje",
+"x": "x^2+6x=0",
+"v": "x = -6 o x = 0"
+},
+{
+"i": "despeje",
+"x": "x^2 = 2x + 15",
+"v": "x = -3 o x = 5"
+},
+{
+"i": "despeje",
+"x": "x^2 = 6x + 27",
+"v": "x = -3 o x = 9"
+},
+{
+"i": "despeje",
+"x": "5x+4=-26",
+"v": "x = -6"
+},
+{
+"i": "despeje",
+"x": "x^2 - 7x + 10 = 0",
+"v": "x = 2 o x = 5"
+},
+{
+"i": "despeje",
+"x": "x / 5 = 10",
+"v": "x = 50"
+},
+{
+"i": "despeje",
+"x": "3x^2+45x+162=0",
+"v": "x = -9 o x = -6"
+},
+{
+"i": "despeje",
+"x": "4(x+4) = 60",
+"v": "x = 11"
+},
+{
+"i": "despeje",
+"x": "7x-2=-30",
+"v": "x = -4"
+},
+{
+"i": "despeje",
+"x": "3n + 11 = 2n + 19",
+"v": "n = 8"
+},
+{
+"i": "despeje",
+"x": "6x = 72",
+"v": "x = 12"
+},
+{
+"i": "conversion",
+"x": "pasa 12 dias a min",
+"v": "17280 minutos"
+},
+{
+"i": "conversion",
+"x": "cuántos centímetros equivalen a 15 yardas",
+"v": "1371,6 centímetros"
+},
+{
+"i": "conversion",
+"x": "convierte 18,7 g a mg",
+"v": "18700 miligramos"
+},
+{
+"i": "conversion",
+"x": "cuántos segundos equivalen a 88 horas",
+"v": "316800 segundos"
+},
+{
+"i": "conversion",
+"x": "16 kilogramos a g",
+"v": "16000 gramos"
+},
+{
+"i": "conversion",
+"x": "convierte 208 toneladas a g",
+"v": "208000000 gramos"
+},
+{
+"i": "conversion",
+"x": "cuántos cm son 418 metros",
+"v": "41800 centímetros"
+},
+{
+"i": "conversion",
+"x": "71 yardas en pulgadas",
+"v": "2556 pulgadas"
+},
+{
+"i": "conversion",
+"x": "189 lb a toneladas",
+"v": "0,09 toneladas"
+},
+{
+"i": "conversion",
+"x": "cuántos km equivalen a 15 millas",
+"v": "24,14 kilómetros"
+},
+{
+"i": "conversion",
+"x": "cuántos kelvin son 30 celsius",
+"v": "303,15 kelvin"
+},
+{
+"i": "conversion",
+"x": "337,3 millas a pulgadas",
+"v": "21371328 pulgadas"
+},
+{
+"i": "conversion",
+"x": "0 kelvin a grados celsius",
+"v": "-273,15 grados Celsius"
+},
+{
+"i": "conversion",
+"x": "cuántos libras son 22 gramos",
+"v": "0,05 libras"
+},
+{
+"i": "conversion",
+"x": "141 mililitros en litros",
+"v": "0,14 litros"
+},
+{
+"i": "conversion",
+"x": "cuántos fahrenheit son 273 °C",
+"v": "523,4 grados Fahrenheit"
+},
+{
+"i": "conversion",
+"x": "cuantos centímetros hay en 21 kilómetros",
+"v": "2100000 centímetros"
+},
+{
+"i": "conversion",
+"x": "25 kilos a miligramos",
+"v": "25000000 miligramos"
+},
+{
+"i": "conversion",
+"x": "convierte 409 galón a l",
+"v": "1548,23 litros"
+},
+{
+"i": "conversion",
+"x": "cuántos segundos son 30,1 h",
+"v": "108360 segundos"
+},
+{
+"i": "conversion",
+"x": "cuántos centímetros son 10 milímetros",
+"v": "1 centímetros"
+},
+{
+"i": "conversion",
+"x": "20 metros a km",
+"v": "0,02 kilómetros"
+},
+{
+"i": "conversion",
+"x": "convierte 183 h a segundos",
+"v": "658800 segundos"
+},
+{
+"i": "conversion",
+"x": "21.4 kilos a onzas",
+"v": "754,86 onzas"
+},
+{
+"i": "conversion",
+"x": "cuántos kilogramos son 34 toneladas",
+"v": "34000 kilogramos"
+},
+{
+"i": "conversion",
+"x": "100 kelvin a °F",
+"v": "-279,67 grados Fahrenheit"
+},
+{
+"i": "conversion",
+"x": "17 g en libras",
+"v": "0,04 libras"
+},
+{
+"i": "conversion",
+"x": "cuantos ft hay en 16 pulgadas",
+"v": "1,33 pies"
+},
+{
+"i": "conversion",
+"x": "37 °C en °F",
+"v": "98,6 grados Fahrenheit"
+},
+{
+"i": "conversion",
+"x": "11 toneladas en mg",
+"v": "11000000000 miligramos"
+},
+{
+"i": "conversion",
+"x": "-40 kelvin a °F",
+"v": "-531,67 grados Fahrenheit"
+},
+{
+"i": "conversion",
+"x": "pasa 104 kilogramos a g",
+"v": "104000 gramos"
+},
+{
+"i": "conversion",
+"x": "cuántos grados celsius equivalen a 60 grados fahrenheit",
+"v": "15,56 grados Celsius"
+},
+{
+"i": "conversion",
+"x": "pasa 0 kelvin a grados celsius",
+"v": "-273,15 grados Celsius"
+},
+{
+"i": "conversion",
+"x": "300,3 ml a litros",
+"v": "0,3 litros"
+},
+{
+"i": "conversion",
+"x": "15.3 kilogramos a gramos",
+"v": "15300 gramos"
+},
+{
+"i": "conversion",
+"x": "391 cm a yardas",
+"v": "4,28 yardas"
+},
+{
+"i": "conversion",
+"x": "cuántos mililitros son 4 litros",
+"v": "4000 mililitros"
+},
+{
+"i": "conversion",
+"x": "cuántos min equivalen a 12,5 dias",
+"v": "18000 minutos"
+},
+{
+"i": "conversion",
+"x": "cuántos mililitros equivalen a 4 galones",
+"v": "15141,65 mililitros"
 }
 ]

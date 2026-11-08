@@ -212,7 +212,7 @@ function crearChat(dir) {
     const ent = new Set(palabras(extra));
     return palabras(f).every((w) => permitidas.has(w) || ent.has(w) || w === 'n');
   };
-  const EXACTOS = new Set(['resultado', 'balanceada', 'ph', 'masa']);
+  const EXACTOS = new Set(['resultado', 'balanceada', 'ph', 'masa', 'solucion', 'conversion']);
   async function responder(texto, info) {
     await cargar();
     if (!sesion) return null;

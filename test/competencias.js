@@ -45,6 +45,27 @@ for (let i = 0; i < 40; i++) {
   assert(r && /61/.test(r.texto) && !/[{}]/.test(r.texto), r && r.texto);
 }
 assert.strictEqual(c.resolver('uvas'), null);
+const d = (t) => { const r = c.despeje(t); return r && r.valor; };
+assert.strictEqual(d('2x+3=7'), 'x = 2');
+assert.strictEqual(d('3x - 5 = 2x + 4'), 'x = 9');
+assert.strictEqual(d('5(x-1)=20'), 'x = 5');
+assert.strictEqual(d('x^2-5x+6=0'), 'x = 2 o x = 3');
+assert.strictEqual(d('x^2+1=0'), 'sin solución real');
+assert.strictEqual(d('resuelve 2x + 1 = 9'), 'x = 4');
+assert.strictEqual(d('estoy en x=100'), null);
+assert.strictEqual(d('x=5'), null);
+assert.strictEqual(d('x+y=3'), null);
+assert.strictEqual(d('hola=2'), null);
+assert.strictEqual(d('tengo x=1 y z=2'), null);
+assert.strictEqual(d('cuanto es 2+3'), null);
+const cv = (t) => { const r = c.convertir(t); return r && r.valor; };
+assert.strictEqual(cv('5 km a millas'), '3,11 millas');
+assert.strictEqual(cv('cuantos gramos hay en 2 libras'), '907,18 gramos');
+assert.strictEqual(cv('100 °C a °F'), '212 grados Fahrenheit');
+assert.strictEqual(cv('10 km a mi base'), null);
+assert.strictEqual(cv('5 m a la base'), null);
+assert.strictEqual(cv('tengo 5 kg de hierro'), null);
+assert.strictEqual(cv('1 metro a segundos'), null);
 console.log('competencias ok');
 const ref = require('./comp_ref.json');
 let malos = [];

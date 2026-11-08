@@ -8,11 +8,14 @@ const MANO = [[/netherite_sword/, 'una espada de netherita'], [/diamond_sword/, 
 const BIOMA = [[/desert|badlands/, 'el desierto'], [/swamp|mangrove/, 'el pantano'], [/beach|ocean/, 'la playa'], [/peaks|mountain|hills|slopes/, 'la montaña'], [/forest|taiga|jungle|grove/, 'el bosque']];
 
 const CP = require('./competencias');
+const SU = require('./suelta');
+const REF = require('./referencia');
 function crearCharla(bot, o) {
   const chat = require('./slm_chat').compartido(path.join(__dirname, 'slm', 'chat'));
   const ruta = o.ruta;
   let mem = {}, sucio = false;
   const ultimo = {};
+  const def = {};
   const esc = o.memoria ? require('./escenas').crearEscenas(o.memoria) : null;
   try { mem = JSON.parse(fs.readFileSync(ruta, 'utf8')); } catch (e) { mem = {}; }
   const guardar = () => { if (!sucio) return; try { fs.writeFileSync(ruta, JSON.stringify(mem)); sucio = false; } catch (e) { /* ignorar */ } };
@@ -88,6 +91,10 @@ function crearCharla(bot, o) {
 
   async function responder(usuario, texto) {
     await chat.cargar();
+    const tr = SU.traicion(texto, usuario);
+    if (tr) return tr;
+    const rw = REF.reescribir(texto, def[usuario]);
+    if (rw) texto = rw;
     const leg = CP.resolver(texto);
     if (leg && !(chat.conoce && chat.conoce(CP.TIPO[leg.tipo]))) return leg.texto;
     if (!chat.listo()) return null;
@@ -109,6 +116,7 @@ function crearCharla(bot, o) {
     const lectura = await chat.leer(actual, prev);
     if (!lectura) return null;
     ultimo[usuario] = { r: chat.resumen(lectura), t: ahora };
+    if (lectura.intencion === 'definicion' && lectura.slots.X) def[usuario] = { X: lectura.slots.X, t: ahora };
     const antes = Object.assign({}, mem[usuario]);
     const md = MEM_DE[lectura.intencion];
     if (md && lectura.slots[md[1]]) { mem[usuario] = Object.assign(mem[usuario] || {}, { [md[0]]: lectura.slots[md[1]] }); sucio = true; }
