@@ -63,3 +63,4 @@ Las competencias ya no esquivan al SLM. Intenciones nuevas calculo, ecuacion, ph
 - referencia.js: "y eso?", "para que sirve", "otra vez" reutilizan el ultimo concepto. suelta.traicion: respuesta a "me mentiste" tras un "te dejo ir".
 - 175 conceptos de Minecraft (recetas, estrategia, comercio). Conceptos: 1097.
 - SLM_CONCEPTOS baja a 22 por concepto para que definicion no pase del 25% de los datos.
+- slm/kaggle_grande.ipynb: mismo entrenamiento para Kaggle (internet y GPU T4 activados); sale en /kaggle/working/salida/parte_*.
