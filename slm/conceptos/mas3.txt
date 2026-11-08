@@ -1,0 +1,206 @@
+@ ácido sulfúrico | acido sulfurico
+- El ácido sulfúrico es un ácido fuerte y corrosivo que deshidrata la materia orgánica y es el producto químico industrial más usado.
+@ ácido nítrico | acido nitrico
+- El ácido nítrico es un ácido fuerte y oxidante que se usa para fabricar fertilizantes y explosivos.
+@ lejía | lejia | blanqueador | hipoclorito
+- La lejía es una disolución de hipoclorito de sodio que desinfecta y blanquea, y que nunca debe mezclarse con amoníaco.
+@ bicarbonato | bicarbonato de sodio
+- El bicarbonato de sodio es una sal ligeramente básica que neutraliza ácidos y suelta dióxido de carbono al reaccionar con ellos.
+@ cal | óxido de calcio | cal viva
+- La cal viva es óxido de calcio, que al tocar el agua se calienta mucho y forma cal apagada.
+@ cemento | concreto | hormigón | hormigon
+- El cemento es un polvo que al mezclarse con agua, arena y grava fragua y forma hormigón.
+@ vidrio químico | cristal químico
+- El vidrio es un material duro y transparente que se obtiene fundiendo arena de sílice con sosa y cal.
+@ bronce
+- El bronce es una aleación de cobre y estaño, más dura que el cobre solo, que dio nombre a toda una edad.
+@ latón | laton
+- El latón es una aleación de cobre y zinc de color dorado.
+@ mercurio metal | azogue
+- El mercurio es el único metal líquido a temperatura ambiente y es muy tóxico.
+@ diamante químico | diamante carbono
+- El diamante es carbono puro con los átomos en una red muy rígida que lo hace el mineral natural más duro.
+@ grafito
+- El grafito es carbono puro con átomos en capas que resbalan, por eso se usa en lápices y como lubricante.
+@ cobre químico
+- El cobre es un metal rojizo, buen conductor de electricidad, de número atómico veintinueve.
+@ cuarzo mineral
+- El cuarzo es un mineral de dióxido de silicio, duro y transparente, que forma la arena.
+@ sal gema
+- La sal gema es sal común que se extrae de minas porque antiguos mares se evaporaron.
+@ arcilla
+- La arcilla es una tierra fina que se amasa con agua y se cuece para hacer ladrillos y cerámica.
+@ roca ígnea | roca igneas | roca metamórfica | roca sedimentaria
+- Las rocas se clasifican en ígneas, que nacen del magma enfriado, sedimentarias, de capas compactadas, y metamórficas, transformadas por calor y presión.
+@ petroleo y gas | gas natural
+- El gas natural es una mezcla de gases, sobre todo metano, que se usa para cocinar y generar electricidad.
+@ propano | butano
+- El propano y el butano son gases licuados que se usan como combustible en estufas y encendedores.
+@ gasolina
+- La gasolina es un combustible líquido derivado del petróleo que se quema en los motores de los coches.
+@ explosivo | explosivos
+- Un explosivo es una sustancia que se descompone muy rápido y libera gran cantidad de gas y calor.
+@ pólvora negra | polvora negra
+- La pólvora negra es un explosivo antiguo que se inventó en China hace más de mil años.
+@ nitroglicerina
+- La nitroglicerina es un líquido explosivo muy inestable que Alfred Nobel estabilizó en la dinamita.
+@ Alfred Nobel | nobel
+- Alfred Nobel fue el químico sueco que inventó la dinamita y fundó con su fortuna los premios Nobel.
+@ química orgánica | quimica organica
+- La química orgánica estudia los compuestos de carbono, que forman todo ser vivo.
+@ azúcar química
+- La glucosa es el azúcar simple que usan las células como fuente de energía.
+@ almidón | almidon
+- El almidón es la reserva de glucosa de las plantas, y abunda en papas, arroz y trigo.
+@ celulosa
+- La celulosa es el polímero de glucosa que forma las paredes de las células de las plantas y el papel.
+@ aminoácidos y proteínas | colágeno
+- El colágeno es la proteína más abundante del cuerpo y sostiene la piel, los huesos y los tendones.
+@ detergente
+- Un detergente es una sustancia que limpia atrapando la grasa y la suciedad gracias a moléculas con una parte afín al agua.
+@ perfume
+- Un perfume es una mezcla de aceites aromáticos en alcohol que se evaporan poco a poco.
+@ explosión | explosion
+- Una explosión es una liberación brusca de energía que expande el gas con gran presión y ruido.
+@ veneno | venenos
+- Un veneno es una sustancia que daña o mata a un organismo aun en pequeñas dosis.
+@ cianuro
+- El cianuro es un veneno de acción rápida que impide que las células usen el oxígeno.
+@ ácido láctico | acido lactico
+- El ácido láctico se acumula en los músculos al hacer esfuerzo intenso sin suficiente oxígeno.
+@ pH de la sangre | ph sanguineo
+- La sangre humana mantiene un pH muy estable de siete coma cuatro; unas décimas de diferencia ya son peligrosas.
+@ pH del estómago | ph gastrico
+- El jugo gástrico tiene un pH cercano a dos por el ácido clorhídrico, tan ácido como el jugo de limón.
+@ lluvia ácida | lluvia acida
+- La lluvia ácida es la que baja de pH por los óxidos de azufre y nitrógeno de la contaminación y daña bosques y estatuas.
+@ unidad | unidades | sistema internacional
+- El sistema internacional fija las unidades base: metro, kilogramo, segundo, amperio, kelvin, mol y candela.
+@ metro | kilómetro | kilometro
+- El metro es la unidad de longitud y un kilómetro son mil metros.
+@ kilogramo | gramo
+- El kilogramo es la unidad de masa y equivale a mil gramos.
+@ litro
+- El litro es una unidad de volumen que equivale a un decímetro cúbico.
+@ grado Celsius | celsius | centígrado | centigrado
+- El grado Celsius es la escala de temperatura en la que el agua se congela a cero y hierve a cien.
+@ kelvin
+- El kelvin es la unidad de temperatura absoluta; cero kelvin es el cero absoluto.
+@ Fahrenheit | fahrenheit
+- Fahrenheit es una escala de temperatura en la que el agua se congela a treinta y dos y hierve a doscientos doce.
+@ julio | joule
+- El julio es la unidad de energía, equivalente al trabajo de una fuerza de un newton a lo largo de un metro.
+@ vatio | watt
+- El vatio es la unidad de potencia, un julio por segundo.
+@ hercio | hertz
+- El hercio mide la frecuencia, o sea cuántas veces por segundo se repite un fenómeno.
+@ decibelio | decibel | decibelios
+- El decibelio es la unidad con que se mide la intensidad del sonido; a partir de ochenta y cinco ya daña con el tiempo.
+@ batería de litio | bateria de litio
+- Una batería de litio almacena energía moviendo iones de litio entre dos electrodos y puede incendiarse si se daña.
+@ láser | laser
+- Un láser es una luz de un solo color y muy concentrada, producida por átomos excitados.
+@ radar | sónar | sonar
+- El radar usa ondas de radio y el sónar usa sonido para detectar objetos por el eco que devuelven.
+@ ultrasonido
+- El ultrasonido es un sonido más agudo de lo que oye el oído humano, usado en ecografías.
+@ motor | motores
+- Un motor es una máquina que transforma una energía en movimiento.
+@ rueda
+- La rueda es una pieza circular que gira sobre un eje y reduce la fricción al mover cargas.
+@ polea | poleas
+- Una polea es una rueda con una cuerda que cambia la dirección de una fuerza o la reduce.
+@ imprenta
+- La imprenta de tipos móviles la popularizó Gutenberg hacia mil cuatrocientos cincuenta y difundió el saber por Europa.
+@ electricidad estática | estatica
+- La electricidad estática es la carga que se acumula en un objeto por frotamiento y se descarga con una chispa.
+@ rayo natural | relámpago | relampago | trueno
+- El rayo es una gran descarga eléctrica entre nubes y suelo; el trueno es el sonido del aire que se expande por su calor.
+@ Tesla | nikola tesla
+- Nikola Tesla fue un inventor serbio que desarrolló la corriente alterna y el motor de inducción.
+@ Edison | edison
+- Thomas Edison fue un inventor estadounidense que perfeccionó la bombilla y fundó una de las primeras empresas de inventos.
+@ Galileo | galileo galilei
+- Galileo Galilei fue el astrónomo italiano que defendió que la Tierra gira alrededor del Sol y fue juzgado por ello.
+@ Copérnico | copernico
+- Copérnico fue el astrónomo polaco que propuso que los planetas giran alrededor del Sol y no de la Tierra.
+@ Kepler | kepler
+- Johannes Kepler fue el astrónomo alemán que descubrió que los planetas giran en elipses.
+@ Hawking | stephen hawking
+- Stephen Hawking fue un físico británico que estudió los agujeros negros y el origen del universo.
+@ Feynman | richard feynman
+- Richard Feynman fue un físico estadounidense, Nobel de mil novecientos sesenta y cinco, famoso por explicar ideas difíciles con sencillez.
+@ Mendeléyev | mendeleev | mendeleyev
+- Dmitri Mendeléyev fue el químico ruso que ordenó los elementos en la tabla periódica y predijo algunos aún no descubiertos.
+@ Lavoisier | lavoisier
+- Antoine Lavoisier fue el químico francés que demostró que la materia no se crea ni se destruye, solo se transforma.
+@ Pasteur | louis pasteur
+- Louis Pasteur fue el científico francés que demostró que los microbios causan enfermedades e inventó la vacuna contra la rabia.
+@ Fleming | alexander fleming
+- Alexander Fleming fue el biólogo escocés que descubrió la penicilina en mil novecientos veintiocho.
+@ Mendel | gregor mendel
+- Gregor Mendel fue el monje austriaco que descubrió las leyes de la herencia con guisantes.
+@ Watson y Crick | watson y crick | doble hélice
+- Watson y Crick describieron en mil novecientos cincuenta y tres la estructura de doble hélice del ADN.
+@ Ada Lovelace | ada lovelace
+- Ada Lovelace fue la matemática británica que escribió el primer programa para una máquina de cálculo.
+@ Euclides | euclides
+- Euclides fue el matemático griego que ordenó la geometría en el libro Elementos.
+@ Gauss | gauss
+- Carl Friedrich Gauss fue un matemático alemán, llamado príncipe de las matemáticas, que sumó los números del uno al cien siendo niño.
+@ Euler | euler
+- Leonhard Euler fue un matemático suizo que aportó a casi todas las ramas de las matemáticas, incluida la notación de la función.
+@ Cantor | cantor
+- Georg Cantor fue el matemático alemán que demostró que hay infinitos de distinto tamaño.
+@ Gödel | godel
+- Kurt Gödel fue el lógico que demostró que en cualquier sistema matemático hay verdades que no se pueden probar.
+@ paradoja | paradojas
+- Una paradoja es una afirmación que parece contradictoria pero encierra una verdad, o que lleva a una contradicción lógica.
+@ conjunto | conjuntos
+- Un conjunto es una colección de elementos bien definidos, sin repetirse ni importar el orden.
+@ número entero | numero entero | enteros
+- Los números enteros son los naturales, sus negativos y el cero.
+@ número real | numero real | reales
+- Los números reales son todos los que están en la recta numérica, incluidos los decimales y los irracionales.
+@ número imaginario | numero imaginario | números complejos
+- La unidad imaginaria es la raíz de menos uno; un número complejo suma una parte real y una imaginaria.
+@ polinomio | polinomios
+- Un polinomio es una suma de términos con potencias de una variable multiplicadas por números.
+@ gráfico | grafica | gráfica
+- Una gráfica muestra datos o una función sobre unos ejes para ver patrones de un vistazo.
+@ pendiente
+- La pendiente de una recta mide su inclinación: cuánto sube por cada unidad que avanza.
+@ esfera
+- Una esfera es el cuerpo en que todos los puntos de su superficie están a igual distancia del centro.
+@ cubo geométrico
+- Un cubo es un cuerpo de seis caras cuadradas iguales, doce aristas y ocho vértices.
+@ polígono | poligono
+- Un polígono es una figura plana cerrada formada por segmentos rectos.
+@ simetría | simetria
+- La simetría es la propiedad de una figura de verse igual al reflejarla o girarla.
+@ cálculo | calculo diferencial
+- El cálculo estudia el cambio y la acumulación con derivadas e integrales.
+@ aritmética | aritmetica
+- La aritmética es la parte de las matemáticas que estudia las operaciones básicas con los números.
+@ suma | sumar
+- La suma junta cantidades en una sola; el resultado se llama total.
+@ resta | restar
+- La resta quita una cantidad de otra; el resultado se llama diferencia.
+@ multiplicación | multiplicacion
+- La multiplicación suma un número tantas veces como indique otro; el resultado se llama producto.
+@ división | division
+- La división reparte una cantidad en partes iguales; el resultado se llama cociente.
+@ prioridad de operaciones | orden de operaciones
+- Primero se resuelven los paréntesis, luego las potencias, después multiplicaciones y divisiones, y al final sumas y restas.
+@ MCD | máximo común divisor | maximo comun divisor
+- El máximo común divisor de dos números es el mayor que divide a los dos sin resto.
+@ MCM | mínimo común múltiplo | minimo comun multiplo
+- El mínimo común múltiplo de dos números es el menor que es múltiplo de ambos.
+@ decimal | números decimales
+- Un número decimal tiene una parte entera y una fraccionaria separadas por una coma.
+@ porcentaje de descuento | descuento
+- Para calcular un descuento se multiplica el precio por el porcentaje y se divide entre cien, y se resta del precio.
+@ regla de tres
+- La regla de tres calcula un valor desconocido que mantiene una proporción con otros tres conocidos.
+@ proporción | proporcion
+- Una proporción es la igualdad entre dos razones, como dos sobre cuatro y tres sobre seis.

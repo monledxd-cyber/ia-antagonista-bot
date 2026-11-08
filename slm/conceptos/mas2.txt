@@ -12,8 +12,6 @@
 - La minería en tiras consiste en excavar túneles de dos de alto a la altura de los diamantes para ver muchos bloques a la vez.
 @ pepitas de oro | oro en minecraft | lingote de oro
 - El oro en Minecraft abunda en las tierras baldías y en el Nether y sirve para relojes, manzanas doradas y comerciar con los piglins.
-@ cobre | cobre en minecraft
-- El cobre en Minecraft se encuentra en cuevas y sirve para pararrayos, telescopios y lámparas; con el tiempo se oxida y se pone verde.
 @ amatista | amatista en minecraft
 - La amatista crece en geodas dentro de las cuevas y sirve para telescopios y bloques de sonido.
 @ piedra de ender | endstone
@@ -90,3 +88,5 @@
 - Un arma blanca es la que corta o punza, como una espada o una daga.
 @ pistola | arma de fuego
 - Un arma de fuego dispara proyectiles con la fuerza de una pólvora que explota.
+@ cobre en minecraft
+- El cobre en Minecraft se encuentra en cuevas y sirve para pararrayos, telescopios y lámparas; con el tiempo se oxida y se pone verde.

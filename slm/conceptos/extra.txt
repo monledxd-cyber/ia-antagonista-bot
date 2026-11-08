@@ -48,10 +48,6 @@
 - El azúcar es un carbohidrato dulce que el cuerpo convierte en glucosa para obtener energía.
 @ sal de cocina
 - La sal de cocina es cloruro de sodio y da sabor a la comida, pero en exceso sube la presión arterial.
-@ oxígeno | oxigeno
-- El oxígeno es el elemento de número atómico ocho, que respiramos y que mantiene la combustión.
-@ hidrógeno | hidrogeno
-- El hidrógeno es el elemento más ligero y abundante del universo, con un solo protón.
 @ plástico | plastico | plásticos
 - El plástico es un polímero hecho sobre todo de petróleo, ligero y resistente, que tarda siglos en degradarse.
 @ petróleo | petroleo

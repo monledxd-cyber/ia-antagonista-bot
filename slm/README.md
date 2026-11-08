@@ -54,3 +54,6 @@ Las competencias ya no esquivan al SLM. Intenciones nuevas calculo, ecuacion, ph
 
 ### sividi toile v3.000.105
 - Conceptos 821: animales, comida, salud, espacio, arte, IA y ficcion, emociones, mapas, Minecraft avanzado. slm/dedup.py para fusionar sin duplicados.
+
+### sividi toile v3.000.106
+- Conceptos 922: quimica de compuestos, unidades, cientificos, matematicas. Elementos solo desde elementos.py (sin duplicados). Dataset completo verificado (generacion sin errores).
