@@ -42,3 +42,6 @@ Las competencias ya no esquivan al SLM. Intenciones nuevas calculo, ecuacion, ph
 ### sividi toile v3.000.101
 - Modelo reentrenado (Colab, base 3.000.99: conceptos, elementos, competencias). Sin mundo_ds ni "te dejo ir": falta segunda corrida.
 - clf_ref.json regenerado.
+
+### sividi toile v3.000.102
+- 84 conceptos nuevos (juego2, quimica2, mate2, general), 11 plantillas de pregunta, 22 remates.

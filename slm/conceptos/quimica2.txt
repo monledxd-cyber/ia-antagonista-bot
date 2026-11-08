@@ -1,0 +1,62 @@
+@ ácido fuerte | acidos fuertes | ácidos fuertes
+- Un ácido fuerte se disocia por completo en agua; el clorhídrico, el nítrico y el sulfúrico son ejemplos.
+@ base fuerte | bases fuertes
+- Una base fuerte se disocia por completo en agua; el hidróxido de sodio y el de potasio son ejemplos.
+@ neutralización | neutralizacion
+- Una neutralización es la reacción entre un ácido y una base que produce una sal y agua.
+@ indicador | indicadores | indicador de pH
+- Un indicador de pH es una sustancia que cambia de color según la acidez; el papel tornasol vira a rojo en ácido y a azul en base.
+@ tampón | tampon | buffer | solución amortiguadora
+- Una solución amortiguadora resiste los cambios de pH cuando se le añade un ácido o una base.
+@ oxidación | oxidacion
+- La oxidación es la pérdida de electrones de una sustancia, y siempre ocurre junto a una reducción.
+@ reducción | reduccion
+- La reducción es la ganancia de electrones de una sustancia, y siempre ocurre junto a una oxidación.
+@ redox | reacción redox
+- Una reacción redox es aquella en la que unas sustancias pierden electrones y otras los ganan.
+@ catalizador | catalizadores
+- Un catalizador acelera una reacción química sin gastarse y sin cambiar el resultado final.
+@ mol | moles
+- Un mol es la cantidad de sustancia que contiene seiscientos dos mil trillones de partículas, el número de Avogadro.
+@ número de Avogadro | numero de avogadro
+- El número de Avogadro es la cantidad de partículas que hay en un mol, unos seiscientos dos mil trillones.
+@ enlace covalente | enlaces covalentes
+- Un enlace covalente se forma cuando dos átomos comparten electrones.
+@ enlace iónico | enlace ionico | enlaces iónicos
+- Un enlace iónico se forma cuando un átomo cede electrones a otro y los iones de carga opuesta se atraen.
+@ enlace metálico | enlace metalico
+- En un enlace metálico los átomos comparten una nube de electrones libres, por eso los metales conducen la electricidad.
+@ isótopo | isotopo | isótopos
+- Los isótopos son átomos del mismo elemento con distinta cantidad de neutrones.
+@ ion | iones
+- Un ion es un átomo o grupo de átomos con carga eléctrica por haber ganado o perdido electrones.
+@ catión | cation | cationes
+- Un catión es un ion con carga positiva, porque perdió electrones.
+@ anión | anion | aniones
+- Un anión es un ion con carga negativa, porque ganó electrones.
+@ electronegatividad
+- La electronegatividad mide cuánto atrae un átomo los electrones de un enlace; el flúor es el más electronegativo.
+@ tabla periódica | tabla periodica
+- La tabla periódica ordena los elementos por número atómico en filas llamadas periodos y columnas llamadas grupos.
+@ gas noble | gases nobles
+- Los gases nobles son el helio, neón, argón, kriptón, xenón y radón; casi no reaccionan porque tienen sus capas llenas.
+@ halógeno | halogenos | halógenos
+- Los halógenos son el flúor, cloro, bromo, yodo y astato; son muy reactivos y forman sales con los metales.
+@ metal alcalino | metales alcalinos
+- Los metales alcalinos son litio, sodio, potasio, rubidio, cesio y francio; son blandos y reaccionan con violencia con el agua.
+@ aleación | aleacion | aleaciones
+- Una aleación es una mezcla de un metal con otros elementos; el acero, por ejemplo, es hierro con carbono.
+@ combustión | combustion
+- La combustión es la reacción de una sustancia con oxígeno que libera calor y luz.
+@ polímero | polimero | polímeros
+- Un polímero es una molécula larga formada por la repetición de unidades pequeñas llamadas monómeros; el plástico es uno.
+@ disolución | disolucion | solución | solucion
+- Una disolución es una mezcla homogénea de un soluto disuelto en un disolvente, como la sal en agua.
+@ molaridad
+- La molaridad es la cantidad de moles de soluto por cada litro de disolución.
+@ equilibrio químico | equilibrio quimico
+- Un equilibrio químico es el estado en que una reacción directa y su inversa ocurren a la misma velocidad.
+@ electrólisis | electrolisis
+- La electrólisis usa corriente eléctrica para descomponer una sustancia, como el agua en hidrógeno y oxígeno.
+@ pila | batería | bateria | celda galvánica
+- Una pila produce corriente eléctrica a partir de una reacción redox entre dos metales distintos.

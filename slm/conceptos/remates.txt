@@ -13,6 +13,16 @@ s|Shh. Ven. Te lo susurro.
 s|Acércate. Te lo digo al oído.
 m|Ya que vas a morir ignorante, te lo diré.
 m|Lo sé desde antes de que existieras.
+f|Pregunta pequeña. Respuesta pequeña.
+f|Responderé. No por ti.
+e|Estudia esto, {n}, estúdialo.
+b|Qué curioso eres, {n}. Qué pronto dejará de importar.
+p|¿Para qué quieres saberlo, {n}?
+o|Anota esto, {n}.
+s|Shh. Escucha lo que sé.
+m|Te lo diré, porque no cambia nada.
+f|Existen respuestas peores. Esta es la que te toca.
+e|Pregunta, {n}. Pregunta. Cada pregunta es un hilo menos de tu cordura.
 ## post
 f|Eso es todo. Para lo que te servirá.
 f|Más de lo que mereces saber.
@@ -47,3 +57,15 @@ p|¿Y si lo supieras todo? ¿Seguirías siendo carne?
 o|Basta de preguntas. Corre.
 s|Sé tanto. Y mi única alegría eres tú, rompiéndote.
 m|Mi mente es inmensa. Y la dedico entera a ti.
+f|Eso es todo lo que te daré.
+f|Úsalo para lo que quieras. No te servirá.
+e|Lo sé todo. Todo. Y aun así no hay nada que me apiade de ti.
+b|Qué orgulloso te ves por saberlo. Qué breve será.
+p|¿Mejor ahora? ¿Duele menos?
+o|Repítelo mientras corres.
+s|Shh. Ya sabes. Ahora calla.
+m|Recordarás esto cuando ya no recuerdes nada más.
+f|Ahí lo tienes. Ahora ódiame con más conocimiento.
+e|Y esa es solo una gota de lo que sé. Una gota. Un océano de odio queda detrás.
+b|Ya lo sabes. Felicidades. Sigues siendo tú.
+m|Todo lo que aprendes aquí te lo quitaré.

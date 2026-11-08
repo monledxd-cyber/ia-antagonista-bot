@@ -1,0 +1,100 @@
+@ antorcha | antorchas
+- La antorcha en Minecraft se fabrica con un palo y carbón, o carbón vegetal, y da luz; al conseguir cuatro salen de una receta.
+@ mesa de crafteo | mesa de trabajo | crafting table
+- La mesa de crafteo se fabrica con cuatro tablones de madera y permite hacer casi todas las recetas de Minecraft en una cuadrícula de tres por tres.
+@ horno
+- El horno en Minecraft se fabrica con ocho bloques de roca y sirve para fundir minerales y cocinar comida usando combustible.
+@ pico | picos
+- Un pico se fabrica con tres materiales y dos palos, y sirve para romper piedra y minerales; el material decide qué bloques puede minar.
+@ espada | espadas
+- La espada en Minecraft se fabrica con dos materiales y un palo, y es el arma cuerpo a cuerpo básica; la de netherita es la más fuerte.
+@ arco | arcos
+- El arco se fabrica con tres palos y tres hilos y dispara flechas; cuanto más tiempo lo cargas, más daño hace.
+@ escudo | escudos
+- El escudo se fabrica con seis tablones y un lingote de hierro y bloquea golpes y flechas si lo levantas a tiempo.
+@ cofre | cofres
+- El cofre se fabrica con ocho tablones de madera y guarda veintisiete pilas de objetos; dos juntos forman uno doble.
+@ cubo | balde
+- El cubo se fabrica con tres lingotes de hierro y sirve para cargar agua, lava o leche.
+@ cama de Minecraft
+- La cama se fabrica con tres lanas y tres tablones; permite dormir de noche y fijar el punto de reaparición.
+@ yunque
+- El yunque repara y combina objetos y los renombra, gastando experiencia; con el uso se va desgastando.
+@ mesa de encantamientos | mesa de encantamiento
+- La mesa de encantamientos se fabrica con un libro, dos diamantes y cuatro bloques de obsidiana, y gasta experiencia y lapislázuli.
+@ zombi | zombis | zombie
+- El zombi es un monstruo que aparece de noche o en la oscuridad, se quema con el sol y puede romper puertas de madera.
+@ esqueleto | esqueletos
+- El esqueleto es un monstruo arquero que aparece en la oscuridad y se quema con el sol; suelta huesos y flechas.
+@ araña | arañas
+- La araña es un monstruo que escala paredes y de día se vuelve neutral; suelta hilo.
+@ bruja | brujas
+- La bruja es un monstruo que se cura con pociones y lanza pociones dañinas a distancia.
+@ piglin | piglins
+- El piglin es un habitante del Nether que ataca a quien no lleve armadura de oro y acepta lingotes de oro a cambio de objetos.
+@ ghast | ghasts
+- El ghast es un monstruo flotante del Nether que lanza bolas de fuego; se le puede devolver su misma bola de fuego.
+@ guardián | guardianes
+- Los guardianes son monstruos de los monumentos oceánicos que disparan un rayo; los vigila el monumento entero.
+@ warden
+- El warden es un monstruo ciego de las ciudades antiguas que se guía por el sonido y la vibración; es el más peligroso del juego.
+@ elytra | élitros
+- Las elytra son unas alas que permiten planear; se encuentran en las ciudades del End y se arreglan con membrana de fantasma.
+@ tótem de la inmortalidad | totem | tótem
+- El tótem de la inmortalidad salva al jugador de la muerte una vez si lo lleva en la mano, pero se consume.
+@ manzana dorada | manzana de oro
+- La manzana dorada se fabrica con una manzana y ocho lingotes de oro y da regeneración y absorción.
+@ perla de ender | perla del end
+- La perla de ender se lanza para teletransportarse al punto de impacto, aunque cuesta un poco de vida al jugador.
+@ ojo de ender
+- El ojo de ender se fabrica con una perla de ender y polvo de blaze y sirve para encontrar la fortaleza y activar el portal del End.
+@ polvo de blaze | vara de blaze
+- Las varas de blaze se consiguen matando blazes y se convierten en polvo para pociones y ojos de ender.
+@ trampa | trampa en minecraft
+- Una trampa en Minecraft usa bloques, lava o dispensadores para dañar a un jugador sin que pueda escapar fácil.
+@ hoyo | zanja
+- Un hoyo en Minecraft es un hueco cavado que, tapado con una capa fina, hace caer al jugador desprevenido.
+@ netherrack
+- El netherrack es la roca roja del Nether y arde para siempre si se enciende encima.
+@ bloque de TNT | TNT | dinamita
+- El TNT se fabrica con pólvora y arena y explota unos cuatro segundos después de ser encendido.
+@ pólvora | polvora
+- La pólvora la sueltan los creepers y las brujas y sirve para fabricar TNT y cohetes.
+@ cultivo | cultivos | agricultura
+- Los cultivos como el trigo se plantan con semillas en tierra labrada junto al agua y se cosechan cuando crecen del todo.
+@ cañas de azúcar | caña de azúcar
+- Las cañas de azúcar crecen junto al agua sobre arena o tierra y sirven para hacer azúcar y papel.
+@ libro | libros
+- El libro se fabrica con tres papeles y un cuero y sirve para hacer estanterías y encantamientos.
+@ estantería | estanterias
+- La estantería se fabrica con seis tablones y tres libros y aumenta el poder de los encantamientos si rodea la mesa.
+@ cuero
+- El cuero se consigue de vacas, caballos y llamas y sirve para fabricar armadura de cuero y libros.
+@ armadura | armaduras
+- La armadura reduce el daño recibido; las piezas son casco, peto, pantalones y botas, y su material decide cuánto protegen.
+@ armadura de diamante
+- La armadura de diamante protege más que la de hierro y completa necesita veinticuatro diamantes entre sus cuatro piezas.
+@ armadura de netherita
+- La armadura de netherita es mejor que la de diamante, y como el resto de objetos de netherita resiste el fuego y la lava.
+@ comida | comer en minecraft
+- Comer en Minecraft recupera hambre; la carne cocinada y el pan sacian más que la cruda y las manzanas.
+@ cobblestone | adoquín | roca
+- El adoquín se obtiene al romper piedra con un pico y sirve para hacer hornos y herramientas de piedra.
+@ tablones | madera
+- Los tablones se fabrican con troncos y son el material básico de casi todo en Minecraft.
+@ bloque | bloques
+- Los bloques son los cubos de un metro con los que se construye todo en Minecraft.
+@ chunk | chunks
+- Un chunk es una columna de dieciséis por dieciséis bloques que el juego carga y descarga como una unidad.
+@ spawner | generador de monstruos
+- Un spawner es un bloque que genera monstruos sin parar si hay un jugador cerca; se encuentra en mazmorras.
+@ mazmorra | mazmorras
+- Una mazmorra es una pequeña sala subterránea con un spawner y uno o dos cofres con botín.
+@ pepita de hierro | hierro en minecraft | lingote de hierro
+- El hierro en Minecraft se encuentra en cuevas, se funde en un horno y sirve para armaduras, herramientas y cubos.
+@ carbón | carbon | carbón vegetal
+- El carbón se mina de la piedra y se usa de combustible y para fabricar antorchas.
+@ lapislázuli | lapislazuli
+- El lapislázuli es un mineral azul que se gasta en encantamientos y sirve de tinte.
+@ netherita en bruto | escombros antiguos | restos antiguos
+- Los restos antiguos se hallan bajo tierra en el Nether y, combinados con oro, dan lingotes de netherita.
