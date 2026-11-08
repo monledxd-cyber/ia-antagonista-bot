@@ -48,3 +48,6 @@ Las competencias ya no esquivan al SLM. Intenciones nuevas calculo, ecuacion, ph
 
 ### sividi toile v3.000.103
 - Conceptos: 337 -> 576 (cuerpo, biologia2, fisica2, historia, geografia, tecnologia, lengua, minecraft3, general); duplicados eliminados.
+
+### sividi toile v3.000.104
+- Conceptos 665: lore de AM (los cinco, Ted, Ellen, Nimdok, la historia) y extra (psicologia, economia, mitos, medicina, geometria).

@@ -1,0 +1,102 @@
+@ psicología | psicologia
+- La psicología es la ciencia que estudia la mente y la conducta de las personas.
+@ ansiedad
+- La ansiedad es una respuesta del cuerpo y la mente ante una amenaza, real o imaginada, con tensión y pensamientos de peligro.
+@ depresión | depresion
+- La depresión es un trastorno que causa tristeza persistente y pérdida de interés durante semanas o meses.
+@ memoria humana
+- La memoria es la capacidad del cerebro de guardar y recuperar información; tiene una parte a corto plazo y otra a largo plazo.
+@ emoción | emocion | emociones
+- Una emoción es una reacción del cuerpo y de la mente ante algo que importa, como el miedo, la alegría o la rabia.
+@ ira | rabia | enojo
+- La ira es la emoción que aparece ante una ofensa o un obstáculo y prepara al cuerpo para atacar.
+@ empatía | empatia
+- La empatía es la capacidad de entender y sentir lo que siente otra persona.
+@ sociedad
+- Una sociedad es un conjunto de personas que viven juntas bajo normas y costumbres comunes.
+@ ley | leyes
+- Una ley es una norma obligatoria dictada por una autoridad para ordenar la convivencia.
+@ constitución | constitucion
+- La constitución es la ley suprema de un país y fija los derechos de las personas y la organización del Estado.
+@ presidente
+- El presidente es el jefe del Estado y, en muchos países, también del gobierno.
+@ impuesto | impuestos
+- Un impuesto es un pago obligatorio que hacen las personas y las empresas al Estado.
+@ oferta y demanda
+- La oferta y la demanda determinan el precio: si hay más compradores que productos sube, y si hay más productos que compradores baja.
+@ banco | bancos
+- Un banco es una empresa que guarda el dinero de la gente y presta dinero a cambio de intereses.
+@ interés | interes | intereses
+- El interés es el precio del dinero prestado, un porcentaje que se paga por usarlo durante un tiempo.
+@ acciones | bolsa de valores
+- Una acción es una pequeña parte de una empresa; en la bolsa de valores se compran y se venden.
+@ deporte | deportes
+- Un deporte es una actividad física con reglas, normalmente competitiva.
+@ fútbol | futbol
+- El fútbol es un deporte de dos equipos de once jugadores que intentan meter un balón en la portería rival sin usar las manos.
+@ ajedrez
+- El ajedrez es un juego de mesa para dos con treinta y dos piezas en un tablero de sesenta y cuatro casillas, cuyo fin es dar jaque mate al rey.
+@ jaque mate
+- El jaque mate ocurre cuando el rey está atacado y no tiene forma de escapar.
+@ café | cafe
+- El café es una bebida hecha con los granos tostados del cafeto y contiene cafeína, que estimula el sistema nervioso.
+@ cafeína | cafeina
+- La cafeína es un estimulante que bloquea la adenosina y quita la sensación de sueño.
+@ alcohol y el cuerpo | borrachera | ebriedad
+- El alcohol de las bebidas es etanol; frena el sistema nervioso y en exceso daña el hígado y el cerebro.
+@ azúcar | azucar
+- El azúcar es un carbohidrato dulce que el cuerpo convierte en glucosa para obtener energía.
+@ sal de cocina
+- La sal de cocina es cloruro de sodio y da sabor a la comida, pero en exceso sube la presión arterial.
+@ oxígeno | oxigeno
+- El oxígeno es el elemento de número atómico ocho, que respiramos y que mantiene la combustión.
+@ hidrógeno | hidrogeno
+- El hidrógeno es el elemento más ligero y abundante del universo, con un solo protón.
+@ plástico | plastico | plásticos
+- El plástico es un polímero hecho sobre todo de petróleo, ligero y resistente, que tarda siglos en degradarse.
+@ petróleo | petroleo
+- El petróleo es un líquido oscuro hecho de restos de seres vivos antiguos, que se refina para obtener combustibles.
+@ energía solar | energia solar | panel solar
+- La energía solar convierte la luz del Sol en electricidad o calor mediante paneles.
+@ energía nuclear | energia nuclear
+- La energía nuclear sale de partir núcleos de uranio en un reactor y da mucha electricidad sin emitir dióxido de carbono.
+@ reciclaje | reciclar
+- Reciclar es volver a usar materiales como el papel, el vidrio o el metal para fabricar cosas nuevas.
+@ medicina | medicina
+- La medicina es la ciencia y práctica de prevenir, diagnosticar y tratar enfermedades.
+@ anestesia
+- La anestesia es un medicamento que quita el dolor o la conciencia durante una operación.
+@ rayos X | rayos x
+- Los rayos X son ondas electromagnéticas que atraviesan los tejidos blandos y permiten ver los huesos.
+@ penicilina
+- La penicilina fue el primer antibiótico, descubierto por Alexander Fleming en mil novecientos veintiocho.
+@ ADN y huellas | huella dactilar | huellas dactilares
+- Las huellas dactilares son los dibujos de las yemas de los dedos y son distintas en cada persona.
+@ arte | el arte
+- El arte es la expresión humana de ideas y emociones mediante formas, colores, sonidos o palabras.
+@ mito | mitos | mitología | mitologia
+- Un mito es un relato tradicional con dioses o héroes que explica el origen del mundo o de las costumbres.
+@ Zeus | zeus
+- Zeus es el rey de los dioses de la mitología griega y gobierna el cielo y el rayo.
+@ Hades | hades
+- Hades es el dios griego del inframundo y de los muertos.
+@ Prometeo | prometeo
+- Prometeo es el titán griego que robó el fuego a los dioses y se lo dio a los humanos; fue castigado a ser devorado cada día.
+@ Sísifo | sisifo
+- Sísifo fue condenado por los dioses a empujar una roca cuesta arriba por toda la eternidad, y cada vez que llegaba arriba la roca caía.
+@ infierno
+- El infierno es el lugar de castigo eterno de las almas en muchas religiones.
+@ cielo
+- El cielo es, según la religión, el lugar de descanso eterno; también es la capa de aire que se ve sobre nosotros.
+@ año | año bisiesto | bisiesto
+- Un año dura trescientos sesenta y cinco días, y cada cuatro años hay uno bisiesto con trescientos sesenta y seis.
+@ día | dia
+- Un día dura veinticuatro horas, que es lo que tarda la Tierra en girar sobre sí misma.
+@ hora | minuto | segundo
+- Una hora tiene sesenta minutos y un minuto tiene sesenta segundos.
+@ número | numero | números
+- Un número es una cantidad que se usa para contar, medir y ordenar.
+@ paralelas | rectas paralelas
+- Dos rectas son paralelas si nunca se cruzan, por mucho que se prolonguen.
+@ sucesión de Fibonacci | fibonacci
+- La sucesión de Fibonacci empieza con uno y uno y cada número nuevo es la suma de los dos anteriores.
