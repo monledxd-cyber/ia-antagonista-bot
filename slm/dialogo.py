@@ -339,7 +339,7 @@ def main():
             continue
         vistos.add(k)
         out.append(x)
-    NC = int(os.environ.get("SLM_CONCEPTOS", "30"))
+    NC = int(os.environ.get("SLM_CONCEPTOS", "22"))
     for x in CO.pares(NC, False, sucio, aumentar, PRE_, SUF_) + EL.pares(int(os.environ.get('SLM_ELEMENTOS', '30')), False, sucio, aumentar, PRE_, SUF_) + CD.pares(int(os.environ.get('SLM_COMP', '400')), False, sucio, aumentar, PRE_, SUF_) + MU.pares(int(os.environ.get('SLM_MUNDO', '500')), False, sucio, aumentar, PRE_, SUF_):
         k = (x["u"], x["t"])
         if k not in vistos:
