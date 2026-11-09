@@ -174,17 +174,23 @@ function crearAbasto(bot, o) {
     try { bot.pathfinder.setGoal(null); } catch (e) { /* ignorar */ }
   }
   const alcance = {};
+  let proxBusqueda = 0;
   function buscarVar(nombre, re, min = 24) {
     const r = Math.min(bot._atraso > 250 ? 40 : 64, Math.round(min * (1 + Math.random() * 1.2) + (alcance[nombre] || 0) * 12));
     let ids = idsRe.get(re.source);
     if (!ids) { ids = Object.values(bot.registry.blocksByName).filter((b) => re.test(b.name)).map((b) => b.id); idsRe.set(re.source, ids); }
     if (!ids.length) return null;
     const t0 = Date.now();
+    if (t0 < proxBusqueda) return null;
+    const tope = process.env.RENDER ? 32 : 64;
+    let b = null;
     for (const rr of [16, 32, 48, 64]) {
-      const b = bot.findBlock({ maxDistance: Math.min(rr, r), matching: ids });
-      if (b || rr >= r || Date.now() - t0 > 2500) return b;
+      b = bot.findBlock({ maxDistance: Math.min(rr, r, tope), matching: ids });
+      if (b || rr >= r || rr >= tope || Date.now() - t0 > 2500) break;
     }
-    return null;
+    const gasto = Date.now() - t0;
+    if (gasto > 250) proxBusqueda = Date.now() + gasto * 4;
+    return b;
   }
 
   // ===== Mineria real, obsidiana, base con cofre, recuperacion tras morir y prioridades =====
