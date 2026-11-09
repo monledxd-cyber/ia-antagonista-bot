@@ -64,3 +64,7 @@ Las competencias ya no esquivan al SLM. Intenciones nuevas calculo, ecuacion, ph
 - 175 conceptos de Minecraft (recetas, estrategia, comercio). Conceptos: 1097.
 - SLM_CONCEPTOS baja a 22 por concepto para que definicion no pase del 25% de los datos.
 - slm/kaggle_grande.ipynb: mismo entrenamiento para Kaggle (internet y GPU T4 activados); sale en /kaggle/working/salida/parte_*.
+
+### sividi toile v3.000.108
+- Modelo reentrenado en Kaggle (T4, 88792 pares, 76 categorias, 1097 conceptos). Medido: 87 de 100 conceptos al azar con la respuesta correcta; 11 mezclan datos; 2 sin respuesta valida.
+- Fallos conocidos: alias tipo pregunta del lore (cuentame tu historia, quien es Ted), "que es la entropia", conceptos cortos (botas, reloj).
