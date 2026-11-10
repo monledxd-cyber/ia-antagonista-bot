@@ -253,7 +253,7 @@ function crearChat(dir) {
       }
     } catch (e) { fallos++; console.log('[chat] error:', String(e.message).slice(0, 100)); return null; }
     let f = sal.join('').replace(/\s+/g, ' ').trim();
-    f = nom ? f.replace(/\{n\}/g, nom) : f.replace(/\{n\},\s*/g, '').replace(/,?\s*\{n\}/g, '').replace(/\s+/g, ' ').trim().replace(/^./, (c) => c.toUpperCase());
+    f = nom ? f.replace(/\{n\}/g, nom) : f.replace(/\{n\},\s*/g, '').replace(/,?\s*\{n\}/g, '').replace(/\s+/g, ' ').trim().replace(/^(?![a-z] = |p(?:O)?H = )./, (c) => c.toUpperCase());
     if (lec.intencion === 'definicion' && lec.slots.X && !conTermino([lec.slots.X, lec.slots.X2 || ''].join(' '), f)) return null;
     if (f.length < 4 || /[{}]/.test(f) || !valida(f, extra, Object.fromEntries(claves.filter((k) => hv[k] !== undefined).map((k) => [k, hv[k]])))) return null;
     if (claves.some((k) => EXACTOS.has(k) && hv[k] !== undefined && !f.includes(String(hv[k])))) return null;

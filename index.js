@@ -117,7 +117,7 @@ const VERSION = process.env.MC_VERSION && process.env.MC_VERSION !== 'false' && 
   : '1.21.4'; // version fija: el ping de auto-deteccion (version:false) falla consistentemente
              // contra este server, aunque el login directo con version fija si funciona.
 
-if (!HOST || !(OPENROUTER_KEY || process.env.GEMINI_API_KEY || process.env.GROQ_API_KEY || process.env.XAI_API_KEY)) {
+if (process.env.MODO !== 'api' && (!HOST || !(OPENROUTER_KEY || process.env.GEMINI_API_KEY || process.env.GROQ_API_KEY || process.env.XAI_API_KEY))) {
   console.error('Faltan variables de entorno: MC_HOST y al menos una key (OPENROUTER_API_KEY, GEMINI_API_KEY o GROQ_API_KEY)');
   process.exit(1);
 }
@@ -1934,14 +1934,16 @@ if (process.env.AM_KEYS) { try { require('./api_am').montar(app, express); conso
 app.listen(process.env.PORT || 3000, () => console.log(`[http] servidor de salud escuchando (${BOT_VERSION})`));
 // Render gratis duerme el servicio tras 15 min sin trafico HTTP (y el bot se desconecta): se auto-visita cada 8 min mientras este despierto.
 setInterval(() => { const m = process.memoryUsage(), q = (x) => Math.round(x / 1048576); console.log(`[mem] rss ${q(m.rss)} heap ${q(m.heapUsed)} ext ${q(m.external)} buf ${q(m.arrayBuffers)}`); }, 60_000).unref();
-if (process.env.RENDER_EXTERNAL_URL) setInterval(() => { fetch(process.env.RENDER_EXTERNAL_URL + '/health').catch(() => {}); }, 8 * 60_000);
+const SOLO_API = process.env.MODO === 'api';
+if (process.env.RENDER_EXTERNAL_URL && !SOLO_API) setInterval(() => { fetch(process.env.RENDER_EXTERNAL_URL + '/health').catch(() => {}); }, 8 * 60_000);
 
 // Red de seguridad: si por cualquier bug quedo sin bot ni intento en curso, reintenta.
 setInterval(() => {
-  if (!botConectadoOEnCurso && Date.now() - ultimoEnd > 45_000) {
+  if (!SOLO_API && !botConectadoOEnCurso && Date.now() - ultimoEnd > 45_000) {
     console.log('[bot] red de seguridad: sin bot activo, reintentando');
     crearBot().catch((e) => console.error('[bot] crearBot fallo:', e.message));
   }
 }, 30_000);
 
-crearBot();
+if (!SOLO_API) crearBot();
+else console.log('[modo] solo API: sin bot de Minecraft');

@@ -71,3 +71,8 @@ Las competencias ya no esquivan al SLM. Intenciones nuevas calculo, ecuacion, ph
 
 ### sividi toile v3.000.109
 - abasto.buscarVar: en Render el radio de busqueda de bloques sube como maximo a 32 y, tras una busqueda de mas de 250 ms, se pausa cuatro veces ese tiempo. Con 0.1 CPU las busquedas de 3-4 s bloqueaban el servidor y el chat daba timeout.
+
+### sividi toile v3.000.110
+- abasto.buscarVar guarda la posicion del ultimo bloque hallado por recurso y la reutiliza sin buscar mientras siga valida.
+- MODO=api: solo la API y el chat, sin bot de Minecraft ni autoping. Requiere AM_KEYS.
+- Las variables de ecuaciones ("x = 2") ya no se capitalizan.

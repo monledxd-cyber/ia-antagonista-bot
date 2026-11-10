@@ -175,12 +175,21 @@ function crearAbasto(bot, o) {
   }
   const alcance = {};
   let proxBusqueda = 0;
+  const hallado = {};
   function buscarVar(nombre, re, min = 24) {
     const r = Math.min(bot._atraso > 250 ? 40 : 64, Math.round(min * (1 + Math.random() * 1.2) + (alcance[nombre] || 0) * 12));
     let ids = idsRe.get(re.source);
     if (!ids) { ids = Object.values(bot.registry.blocksByName).filter((b) => re.test(b.name)).map((b) => b.id); idsRe.set(re.source, ids); }
     if (!ids.length) return null;
     const t0 = Date.now();
+    const c = hallado[nombre];
+    if (c) {
+      try {
+        const bl = bot.blockAt(c);
+        if (bl && ids.includes(bl.id) && bot.entity.position.distanceTo(c) <= r) return bl;
+      } catch (e) { /* ignorar */ }
+      delete hallado[nombre];
+    }
     if (t0 < proxBusqueda) return null;
     const tope = process.env.RENDER ? 32 : 64;
     let b = null;
@@ -190,6 +199,7 @@ function crearAbasto(bot, o) {
     }
     const gasto = Date.now() - t0;
     if (gasto > 250) proxBusqueda = Date.now() + gasto * 4;
+    if (b) hallado[nombre] = b.position.clone();
     return b;
   }
 
