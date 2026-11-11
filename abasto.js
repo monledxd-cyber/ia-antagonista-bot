@@ -30,7 +30,7 @@ function crearAbasto(bot, o) {
   const bloqueN = (re, d = 24) => {
     d = Math.min(d, 32);
     const k = re.source + '|' + d, c = cacheB.get(k), ahora = Date.now();
-    if (c && (ahora - c.t < (c.r ? 4000 : 12000) || bot._atraso > 250) && (!c.r || bot.blockAt(c.r.position) === c.r)) return c.r;
+    if (c && (ahora - c.t < (c.r ? 4000 : 12000) || bot._atraso > 100) && (!c.r || bot.blockAt(c.r.position) === c.r)) return c.r;
     let ids = idsRe.get(re.source);
     if (!ids) { ids = Object.values(bot.registry.blocksByName).filter((b) => re.test(b.name)).map((b) => b.id); idsRe.set(re.source, ids); }
     if (c && ahora < (bot._pausaBusq || 0)) return c.r;
@@ -178,7 +178,7 @@ function crearAbasto(bot, o) {
   let proxBusqueda = 0;
   const hallado = {};
   function buscarVar(nombre, re, min = 24) {
-    const r = Math.min(bot._atraso > 250 ? 40 : 64, Math.round(min * (1 + Math.random() * 1.2) + (alcance[nombre] || 0) * 12));
+    const r = Math.min(bot._atraso > 100 ? 40 : 64, Math.round(min * (1 + Math.random() * 1.2) + (alcance[nombre] || 0) * 12));
     let ids = idsRe.get(re.source);
     if (!ids) { ids = Object.values(bot.registry.blocksByName).filter((b) => re.test(b.name)).map((b) => b.id); idsRe.set(re.source, ids); }
     if (!ids.length) return null;
@@ -199,7 +199,7 @@ function crearAbasto(bot, o) {
       if (b || rr >= r || rr >= tope || Date.now() - t0 > 2500) break;
     }
     const gasto = Date.now() - t0;
-    if (gasto > 250) proxBusqueda = Date.now() + gasto * 4;
+    if (gasto > 100) proxBusqueda = Date.now() + gasto * 4;
     if (b) hallado[nombre] = b.position.clone();
     return b;
   }
@@ -928,7 +928,7 @@ function crearAbasto(bot, o) {
     if (!M || M.tengo() >= M.meta) return 'nada';
     if (!items().some((i) => PICO[M.tier].test(i.name))) return 'nada';
     const clave = 'm_' + tipo;
-    const R = Math.min(bot._atraso > 250 ? 48 : 72, 32 + (alcance[clave] || 0) * 16 + Math.round(Math.random() * 16));
+    const R = Math.min(bot._atraso > 100 ? 48 : 72, 32 + (alcance[clave] || 0) * 16 + Math.round(Math.random() * 16));
     const ids = Object.values(bot.registry.blocksByName).filter((b) => M.re.test(b.name)).map((b) => b.id);
     const yo = bot.entity.position;
     const lista = bot.findBlocks({ matching: ids, maxDistance: R, count: 48 }).filter((p) => !peligrosa(p)).sort((p, q) => (p.distanceTo(yo) + 1.5 * Math.abs(p.y - yo.y)) - (q.distanceTo(yo) + 1.5 * Math.abs(q.y - yo.y)));

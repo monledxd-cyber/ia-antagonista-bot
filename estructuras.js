@@ -23,7 +23,7 @@ function crearEstructuras(h) {
   const key = (p) => p.x + ',' + p.y + ',' + p.z;
 
   function escanear() {
-    if (!bot.entity || Date.now() - ultEscan < 12_000 || bot._atraso > 250 || (bot.pvp && bot.pvp.target)) return;
+    if (!bot.entity || Date.now() - ultEscan < 12_000 || bot._atraso > 100 || (bot.pvp && bot.pvp.target)) return;
     ultEscan = Date.now();
     let cofres = [];
     try { cofres = bot.findBlocks({ matching: idsChest, maxDistance: 40, count: 20 }); } catch (e) { return; }

@@ -80,3 +80,6 @@ Las competencias ya no esquivan al SLM. Intenciones nuevas calculo, ecuacion, ph
 ### sividi toile v3.000.111
 - Pausa de busquedas compartida: tras un findBlock de mas de 250 ms, bloqueN, buscarVar y el escaneo de mapa se saltan busquedas por tres veces ese tiempo.
 - En Render findBlock se limita a 24 bloques.
+
+### sividi toile v3.000.112
+- Umbral de atraso del bucle y de pausa de busquedas: de 250 ms a 100 ms.
