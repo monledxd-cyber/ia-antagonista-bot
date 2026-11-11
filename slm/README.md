@@ -83,3 +83,8 @@ Las competencias ya no esquivan al SLM. Intenciones nuevas calculo, ecuacion, ph
 
 ### sividi toile v3.000.112
 - Umbral de atraso del bucle y de pausa de busquedas: de 250 ms a 100 ms.
+
+### sividi toile v3.000.113
+- tactica: la retirada solo cuenta los 5 enemigos mas cercanos; shulker con dano bajo.
+- En Render, sin jugadores a menos de 64 bloques, se pausan mapa, claves y estructuras.
+- En Render: viewDistance 2 y thinkTimeout del pathfinder 800 ms.

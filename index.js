@@ -929,7 +929,7 @@ async function crearBot() {
     username: BOT_USERNAME,
     version: VERSION,
     auth: 'offline', // server cracked / offline-mode
-    viewDistance: process.env.IA_VIEW ? (Number(process.env.IA_VIEW) || process.env.IA_VIEW) : (process.env.RENDER ? 3 : 'normal'),
+    viewDistance: process.env.IA_VIEW ? (Number(process.env.IA_VIEW) || process.env.IA_VIEW) : (process.env.RENDER ? 2 : 'normal'),
     hideErrors: false,
     // El default de la libreria es 30 s sin keep-alive => "timed out" y desconexion. Si
     // Aternos se sobrecarga y se atrasa, el bot se salia solo. Se sube a 180 s.
@@ -1020,7 +1020,7 @@ async function crearBot() {
     movimientos.allowSprinting = true;
     movimientos.allowParkour = process.env.IA_PARKOUR === '1';
     movimientos.allow1by1towers = false;
-    bot.pathfinder.thinkTimeout = Number(process.env.IA_PATH_THINK) || 2500;
+    bot.pathfinder.thinkTimeout = Number(process.env.IA_PATH_THINK) || (process.env.RENDER ? 800 : 2500);
     bot.pathfinder.tickTimeout = Number(process.env.IA_PATH_TICK) || 20;
     for (const n of ['stone_pressure_plate', 'oak_pressure_plate', 'light_weighted_pressure_plate', 'heavy_weighted_pressure_plate', 'tripwire']) {
       const def = bot.registry.blocksByName[n];

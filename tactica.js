@@ -7,7 +7,7 @@ const MOB = {
   skeleton: M(20, 3.5, 2, true), stray: M(20, 3.5, 2, true), bogged: M(16, 3, 2, true), spider: M(16, 2.5, 2.2), cave_spider: M(12, 3, 2),
   witch: M(26, 3, 2, true), pillager: M(24, 4, 2, true), vindicator: M(24, 7, 2.6), evoker: M(24, 4, 2, true), ravager: M(100, 9, 3),
   phantom: M(20, 3, 2), slime: M(16, 2, 2), magma_cube: M(16, 3, 2), blaze: M(20, 4, 2, true), wither_skeleton: M(20, 6, 2.4),
-  hoglin: M(40, 5, 2.5), zoglin: M(40, 5, 2.5), silverfish: M(8, 1, 1.8), endermite: M(8, 1, 1.8), vex: M(14, 6, 2), guardian: M(30, 4, 2, true),
+  hoglin: M(40, 5, 2.5), zoglin: M(40, 5, 2.5), silverfish: M(8, 1, 1.8), endermite: M(8, 1, 1.8), vex: M(14, 6, 2), shulker: M(30, 1, 2, true), guardian: M(30, 4, 2, true),
 };
 const DEF = M(20, 3, 2.5);
 const SW = { wooden: 4, golden: 4, stone: 5, iron: 6, diamond: 7, netherite: 8 };
@@ -76,7 +76,7 @@ function crearTactica(bot, o) {
     for (const x of ne) { x.ttk = Math.max(0.8, x.i.hp / mia); x.tasa = (x.i.dps * (1 - red)) / x.ttk; const al = x.d <= x.i.reach + 1.2; x.pr = x.tasa * (al ? 1 : x.d < 6 ? 0.55 : 0.2) * (x.i.ranged && x.d > 6 ? 0.7 : 1); }
     const orden = ne.filter((x) => x.d < 9).sort((a, b) => b.pr - a.pr);
 
-    const cerca = ne.filter((x) => x.d <= x.i.reach + 2.5 || (x.i.ranged && x.d < 10));
+    const cerca = ne.filter((x) => x.d <= x.i.reach + 2.5 || (x.i.ranged && x.d < 10)).sort((a, b) => a.d - b.d).slice(0, 5);
     if (cerca.length && ahora - ultRet > 2500 && ahora > retHasta) {
       const ord = cerca.slice().sort((a, b) => b.tasa - a.tasa);
       let t = 0, dano = 0;

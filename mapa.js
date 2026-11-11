@@ -60,7 +60,7 @@ function crearMapa(bot, ruta) {
 
   let rot = 0;
   const esc = setInterval(() => {
-    if (!bot.entity || (bot.pvp && bot.pvp.target) || bot._atraso > 100 || Date.now() < (bot._pausaBusq || 0)) return;
+    if (!bot.entity || (process.env.RENDER && bot._sinJugadores) || (bot.pvp && bot.pvp.target) || bot._atraso > 100 || Date.now() < (bot._pausaBusq || 0)) return;
     const ks = Object.keys(FAM);
     try { const t = ks[rot++ % ks.length]; for (const p of bot.findBlocks({ matching: idsDe(t), maxDistance: 20, count: 8 })) anotar(t, p); } catch (e) { /* ignorar */ }
   }, 3_000);

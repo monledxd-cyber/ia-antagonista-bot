@@ -29,6 +29,10 @@ function crearBucle(bot) {
   bot.on('path_update', (r) => {
     if (r && r.time > 800) { diag.log('warn', 'bucle', `ruta ${r.status} calculo ${Math.round(r.time)} ms nodos ${r.visitedNodes}`); console.log(`[bucle] ruta ${r.status} calculo ${Math.round(r.time)} ms nodos=${r.visitedNodes} largo=${r.path ? r.path.length : 0}`); }
   });
+  const sol = setInterval(() => {
+    const yo = bot.entity && bot.entity.position;
+    bot._sinJugadores = !yo || !Object.values(bot.entities).some((e) => e && e.type === 'player' && e !== bot.entity && e.position && e.position.distanceTo(yo) < 64);
+  }, 2000);
   const rep = setInterval(() => { diag.estado.bucle = `max ${max} ms prom ${n ? Math.round(suma / n) : 0} ms`; max = 0; n = 0; suma = 0; }, 30_000);
   for (const nombre of ['findBlocks', 'findBlock']) {
     const orig = bot[nombre];
@@ -41,6 +45,6 @@ function crearBucle(bot) {
       return r;
     };
   }
-  bot.once('end', () => { clearInterval(it); clearInterval(rep); });
+  bot.once('end', () => { clearInterval(it); clearInterval(rep); clearInterval(sol); });
 }
 module.exports = { crearBucle, expandir, _tArea: (v) => { if (v !== undefined) tArea = v; return tArea; } };
