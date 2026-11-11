@@ -34,6 +34,7 @@ function crearBucle(bot) {
     bot._sinJugadores = !yo || !Object.values(bot.entities).some((e) => e && e.type === 'player' && e !== bot.entity && e.position && e.position.distanceTo(yo) < 64);
   }, 2000);
   const rep = setInterval(() => { diag.estado.bucle = `max ${max} ms prom ${n ? Math.round(suma / n) : 0} ms`; max = 0; n = 0; suma = 0; }, 30_000);
+  require('./bloques_rapido').instalar(bot);
   for (const nombre of ['findBlocks', 'findBlock']) {
     const orig = bot[nombre];
     if (typeof orig !== 'function') continue;

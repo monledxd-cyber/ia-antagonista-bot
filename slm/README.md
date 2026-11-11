@@ -88,3 +88,6 @@ Las competencias ya no esquivan al SLM. Intenciones nuevas calculo, ecuacion, ph
 - tactica: la retirada solo cuenta los 5 enemigos mas cercanos; shulker con dano bajo.
 - En Render, sin jugadores a menos de 64 bloques, se pausan mapa, claves y estructuras.
 - En Render: viewDistance 2 y thinkTimeout del pathfinder 800 ms.
+
+### sividi toile v3.000.114
+- bloques_rapido.js: findBlocks propio para busquedas por id. Compara estados con un Set en vez de crear un Block por celda. Mismo resultado que mineflayer (test/bloques_rapido.js), unas 28 veces mas rapido. IA_BUSQ_RAPIDA=0 lo desactiva.
