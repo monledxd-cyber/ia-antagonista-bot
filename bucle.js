@@ -34,7 +34,9 @@ function crearBucle(bot) {
     const orig = bot[nombre];
     if (typeof orig !== 'function') continue;
     bot[nombre] = function (o) {
+      if (process.env.RENDER && o && o.maxDistance > 24) o = Object.assign({}, o, { maxDistance: 24 });
       const t = Date.now(), r = nombre === 'findBlocks' ? expandir(orig, this, o) : orig.apply(this, arguments), d = Date.now() - t;
+      if (d > 250) bot._pausaBusq = Date.now() + d * 3;
       if (d > 150) { const w = String(new Error().stack).split('\n')[2] || ''; diag.log('warn', 'bucle', `${nombre} ${d} ms dist ${o && o.maxDistance} n ${o && o.count} ${w.trim().slice(0, 90)}`); console.log(`[bucle] ${nombre} ${d} ms dist=${o && o.maxDistance} count=${o && o.count} ${w.trim().slice(0, 90)}`); }
       return r;
     };

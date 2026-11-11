@@ -76,3 +76,7 @@ Las competencias ya no esquivan al SLM. Intenciones nuevas calculo, ecuacion, ph
 - abasto.buscarVar guarda la posicion del ultimo bloque hallado por recurso y la reutiliza sin buscar mientras siga valida.
 - MODO=api: solo la API y el chat, sin bot de Minecraft ni autoping. Requiere AM_KEYS.
 - Las variables de ecuaciones ("x = 2") ya no se capitalizan.
+
+### sividi toile v3.000.111
+- Pausa de busquedas compartida: tras un findBlock de mas de 250 ms, bloqueN, buscarVar y el escaneo de mapa se saltan busquedas por tres veces ese tiempo.
+- En Render findBlock se limita a 24 bloques.

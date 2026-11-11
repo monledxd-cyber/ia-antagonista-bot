@@ -33,6 +33,7 @@ function crearAbasto(bot, o) {
     if (c && (ahora - c.t < (c.r ? 4000 : 12000) || bot._atraso > 250) && (!c.r || bot.blockAt(c.r.position) === c.r)) return c.r;
     let ids = idsRe.get(re.source);
     if (!ids) { ids = Object.values(bot.registry.blocksByName).filter((b) => re.test(b.name)).map((b) => b.id); idsRe.set(re.source, ids); }
+    if (c && ahora < (bot._pausaBusq || 0)) return c.r;
     const r = ids.length ? bot.findBlock({ maxDistance: d, matching: ids }) : null;
     cacheB.set(k, { t: ahora, r });
     return r;
@@ -190,7 +191,7 @@ function crearAbasto(bot, o) {
       } catch (e) { /* ignorar */ }
       delete hallado[nombre];
     }
-    if (t0 < proxBusqueda) return null;
+    if (t0 < proxBusqueda || t0 < (bot._pausaBusq || 0)) return null;
     const tope = process.env.RENDER ? 32 : 64;
     let b = null;
     for (const rr of [16, 32, 48, 64]) {
