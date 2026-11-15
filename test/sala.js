@@ -1,0 +1,21 @@
+const assert = require('assert');
+const EventEmitter = require('events');
+const bot = new EventEmitter();
+bot.entity = { position: { x: 0.5, y: 52, z: 4.5 } };
+bot.entities = {}; bot.game = { gameMode: 'survival' };
+require('../bucle').crearBucle(bot);
+let n = 0;
+bot.on('sala_espera', () => n++);
+for (let i = 0; i < 35; i++) bot.emit('path_update', { status: 'noPath', visitedNodes: 129, time: 100 });
+assert.strictEqual(n, 0, 'aun no');
+bot.emit('path_update', { status: 'noPath', visitedNodes: 129, time: 100 });
+assert.strictEqual(n, 1, 'detecta sala');
+for (let i = 0; i < 30; i++) bot.emit('path_update', { status: 'noPath', visitedNodes: 129, time: 100 });
+assert.strictEqual(n, 1, 'una sola vez');
+const b2 = new EventEmitter(); b2.entity = bot.entity; b2.entities = {}; b2.game = {};
+require('../bucle').crearBucle(b2);
+let m = 0; b2.on('sala_espera', () => m++);
+for (let i = 0; i < 40; i++) { b2.emit('path_update', { status: 'noPath', visitedNodes: 129 }); if (i % 5 === 4) b2.emit('path_update', { status: 'success' }); }
+assert.strictEqual(m, 0, 'rutas que a veces llegan no cuentan');
+console.log('OK: sala');
+process.exit(0);

@@ -34,6 +34,7 @@ function crearBucle(bot) {
       if (!atr.n) atr.pos = { x: Math.round(p.x), y: Math.round(p.y), z: Math.round(p.z) };
       atr.n++; atr.t = Date.now(); atr.nodos = r.visitedNodes; atr.modo = String((bot.game && bot.game.gameMode) || '');
       if (atr.n >= 12) { atr.veces++; atr.n = 0; bot._atrapadoHasta = Date.now() + 45000; }
+      if (atr.veces >= 3 && !bot._sala) { bot._sala = true; diag.log('warn', 'bucle', 'sala de espera: rutas sin salida repetidas en ' + atr.pos.x + ',' + atr.pos.y + ',' + atr.pos.z); bot.emit('sala_espera'); }
     } else if (r && r.status === 'success') atr.n = 0;
     if (r && r.time > 800) { diag.log('warn', 'bucle', `ruta ${r.status} calculo ${Math.round(r.time)} ms nodos ${r.visitedNodes}`); console.log(`[bucle] ruta ${r.status} calculo ${Math.round(r.time)} ms nodos=${r.visitedNodes} largo=${r.path ? r.path.length : 0}`); }
   });

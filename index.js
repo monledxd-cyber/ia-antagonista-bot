@@ -368,6 +368,12 @@ function iniciarHuida(bot) {
   { const t = setInterval(() => bandits.guardar(), 60_000); if (t.unref) t.unref(); bot.once('end', () => { clearInterval(t); bandits.guardar(); }); }
   if (process.env.IA_LAG !== '0') require('./lag').crearLag(bot);
   require('./bucle').crearBucle(bot);
+  bot.once('sala_espera', () => {
+    salaVeces++; salaDeEspera = true;
+    console.log('[bot] sala de espera detectada (servidor apagado o mundo cerrado): se desconecta y reintenta mas tarde');
+    diag.estado.conexion.ultimoMotivo = 'sala de espera: el servidor parece apagado';
+    try { bot.end('sala de espera'); } catch (e) { /* ignorar */ }
+  });
   if (process.env.IA_PRED !== '0') require('./prediccion').crearPrediccion(bot);
   if (process.env.IA_PERC !== '0') require('./percepcion').crearPercepcion(bot);
   require('./nn_abasto').crearNNAbasto(bot, require('path').join(__dirname, process.env.IA_NNAB_ARCH || 'nn_abasto_am.json'));
@@ -895,7 +901,9 @@ function protegerAutoAtaque(bot) {
   }
 }
 
+let salaDeEspera = false, salaVeces = 0;
 function proximoDelay() {
+  if (salaDeEspera) return Math.min(5 + 5 * (salaVeces - 1), 15) * 60_000 + Math.floor(Math.random() * 30_000);
   const base = 2_000;
   const tope = hayThrottle ? 30_000 : 12_000; // persistente: nunca espera mas de 12s (30s si Aternos throttlea)
   if (kickDuplicado) return 60_000 + Math.floor(Math.random() * 30_000); // otra instancia usa el mismo usuario: no pelear
@@ -1300,7 +1308,9 @@ async function crearBot() {
     botConectadoOEnCurso = false;
     ultimoEnd = Date.now();
     intentosFallidos++;
+    if (!salaDeEspera && Date.now() - (bot._t0 || Date.now()) > 600_000) salaVeces = 0;
     const delay = proximoDelay();
+    salaDeEspera = false;
     console.log(`[bot] desconectado, reintentando en ${Math.round(delay / 1000)}s (intento fallido #${intentosFallidos})...`);
     console.log(`[diag] estadisticas totales: ${JSON.stringify(stats)}`);
     setTimeout(crearBot, delay);

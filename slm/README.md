@@ -116,3 +116,6 @@ Las competencias ya no esquivan al SLM. Intenciones nuevas calculo, ecuacion, ph
 
 ### sividi toile v3.000.120
 - entorno.js: /panel muestra cada 20 s un mapa de 17x17 bloques alrededor del bot en cuatro capas (y+2 a y-1) y las entidades a menos de 16 bloques.
+
+### sividi toile v3.000.121
+- Sala de espera: tras 3 rachas de 12 rutas noPath (zona cerrada, como la sala de Aternos con el servidor apagado) el bot se desconecta y reintenta a los 5, 10 y 15 min, en vez de gastar CPU sin salida. El panel avisa que el servidor parece apagado.
