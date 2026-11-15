@@ -1077,7 +1077,7 @@ function crearAbasto(bot, o) {
     diag.estado.abastoMotivo = !o.tranquilo() ? 'no tranquilo (combate, objetivo o enemigo a <14)' : jugadorCerca(bot._modoEquipo > Date.now() ? 14 : 24) ? 'jugador cerca' : bot.health <= 12 ? 'vida baja' : ''; // tras un exito sigue enseguida: siempre persigue la siguiente mejora
     bot._abortarPaso = false;
     for (const n of Object.keys(fallosCtx)) { const c = fallosCtx[n]; if ((fallos[n] || 0) > Date.now() && (bot.entity.position.distanceTo(c.p) > 30 || Math.abs(firmaInv() - c.inv) >= 3)) { fallos[n] = 0; delete fallosCtx[n]; } }
-    if (!libre() || bot.health <= 12) return;
+    if (!libre() || bot.health <= 12 || bot._atrapadoHasta > Date.now()) return;
     activo = true; o.ocupar(true); ultimoOk = false;
     try {
       const orden = ordenar();

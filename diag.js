@@ -37,6 +37,8 @@ function diagnosticar(extra = {}) {
   if (estado.erroresCodigo.length && Date.now() - estado.erroresCodigo[estado.erroresCodigo.length - 1].t < 30 * 60_000)
     add('alta', 'Hubo errores de codigo capturados (' + estado.erroresCodigo.length + '): ' + estado.erroresCodigo[estado.erroresCodigo.length - 1].msg.slice(0, 100), 'Copia el stack de "Errores de codigo" y pasamelo.');
   if (process.env.RENDER) add('baja', 'Corre en Render: el disco es efimero', 'Memoria de jugadores, base y planos aprendidos se pierden en cada reinicio; en tu PC si persisten.');
+  const at = estado.atrapado;
+  if (at && at.veces > 0 && Date.now() - at.t < 5 * 60_000) add('alta', 'Parece atrapado: las rutas terminan sin camino tras ~' + at.nodos + ' nodos cerca de (' + at.pos.x + ', ' + at.pos.y + ', ' + at.pos.z + '), modo ' + (at.modo || '?') + ' (' + at.veces + ' rachas)', 'Zona cerrada: spawn/lobby protegido, jaula, isla o modo aventura. Mira si puede romper bloques; si no, muevelo con /tp o cambia su modo de juego.');
   if (!r.length) add('ok', 'No se detecta ningun problema conocido', '');
   return r;
 }

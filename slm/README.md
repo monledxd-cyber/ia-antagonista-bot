@@ -108,3 +108,8 @@ Las competencias ya no esquivan al SLM. Intenciones nuevas calculo, ecuacion, ph
 - camino.js: irCerca camina en linea recta cuando el destino esta a menos de 14 bloques, al mismo nivel y el trayecto esta libre (suelo solido, aire a pie y cabeza, sin lava ni agua). Si no hay camino directo o se atasca, usa el pathfinder como antes. IA_CAMINO_DIRECTO=0 lo desactiva.
 - start: UV_THREADPOOL_SIZE=1, --single-threaded y --single-threaded-gc para que Node no reparta el 0.1 CPU entre hilos.
 - Render: se apagan los plugins de mineflayer title, boss_bar, book, particle, scoreboard, tablist, team, creative y command_block. IA_PLUGINS_OFF=lista los cambia.
+
+### sividi toile v3.000.119
+- Deteccion de atrapado: 12 rutas seguidas noPath con menos de 250 nodos cuentan como una racha. El panel muestra "Parece atrapado" y abasto espera 45 s entre rachas en vez de repetir madera sin parar.
+- /panel: la fila bot incluye modo de juego.
+- perfil.js: el porcentaje se mide desde el arranque (antes salia inflado).

@@ -409,7 +409,7 @@ function iniciarHuida(bot) {
   _botEstado = () => {
     try {
       return {
-        bot: bot.entity ? { vida: bot.health, hambre: bot.food, pos: bot.entity.position.floored(), dim: bot.game && bot.game.dimension } : null,
+        bot: bot.entity ? { vida: bot.health, hambre: bot.food, pos: bot.entity.position.floored(), dim: bot.game && bot.game.dimension, modo: bot.game && bot.game.gameMode, op: bot.player && bot.player.gamemode } : null,
         abasto: bot._abasto ? bot._abasto.estado() : null,
         trampas: bot._trampero ? { armadas: bot._trampero.armadas().map((t) => t.tipo), pendientes: bot._trampero.pendientes(), kRail: bot._trampero.kRail() } : null,
         jugadores: Object.keys(bot.players || {}).filter((n) => n !== BOT_USERNAME).map((n) => ({ n, memoria: memoria.resumen(n) })),

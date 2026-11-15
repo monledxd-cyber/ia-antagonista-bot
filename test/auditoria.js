@@ -10,5 +10,7 @@ assert.ok(r.bien[0].startsWith('madera'));
 const diag = require('../diag');
 diag.estado.auditoria = r;
 assert.ok(diag.html({}).includes('Auditoria de pasos') && diag.html({}).includes('Perfil CPU'));
+diag.estado.atrapado = { n: 0, veces: 2, t: Date.now(), nodos: 129, pos: { x: 0, y: 52, z: 4 }, modo: 'survival' };
+assert.ok(diag.diagnosticar({}).some((x) => /atrapado/.test(x.causa)), 'detecta atrapado');
 console.log('OK: auditoria');
 process.exit(0);

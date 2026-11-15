@@ -1,5 +1,5 @@
 const datos = new Map();
-let instalado = false;
+let instalado = false, t0 = Date.now();
 
 function medir(clave, ms) {
   let d = datos.get(clave);
@@ -28,8 +28,8 @@ function instalar() {
 }
 
 function tabla(n = 15) {
-  const s = (Date.now() - (tabla.t0 || (tabla.t0 = Date.now()))) / 1000 || 1;
+  const s = (Date.now() - t0) / 1000 || 1;
   return [...datos.entries()].sort((a, b) => b[1].ms - a[1].ms).slice(0, n).map(([k, d]) => ({ k, n: d.n, ms: Math.round(d.ms), prom: +(d.ms / d.n).toFixed(2), max: Math.round(d.max), pct: +(d.ms / 10 / s).toFixed(2) }));
 }
-const reiniciar = () => { datos.clear(); tabla.t0 = Date.now(); };
+const reiniciar = () => { datos.clear(); t0 = Date.now(); };
 module.exports = { instalar, medir, tabla, reiniciar };

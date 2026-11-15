@@ -26,7 +26,15 @@ function crearBucle(bot) {
     ult = ahora; bot._atraso = lag; n++; suma += lag; if (lag > max) max = lag;
     if (lag > 500) { const p = bot._abasto && bot._abasto.paso ? bot._abasto.paso() : ''; diag.log('warn', 'bucle', `bloqueado ${lag} ms (paso ${p || '-'})`); console.log(`[bucle] bloqueado ${lag} ms paso=${p || '-'}`); }
   }, 200);
+  const atr = diag.estado.atrapado = { n: 0, veces: 0, t: 0, nodos: 0, pos: null, modo: '' };
   bot.on('path_update', (r) => {
+    if (r && r.status === 'noPath' && r.visitedNodes < 250 && bot.entity) {
+      const p = bot.entity.position;
+      if (atr.pos && Math.hypot(p.x - atr.pos.x, p.z - atr.pos.z) > 12) atr.n = 0;
+      if (!atr.n) atr.pos = { x: Math.round(p.x), y: Math.round(p.y), z: Math.round(p.z) };
+      atr.n++; atr.t = Date.now(); atr.nodos = r.visitedNodes; atr.modo = String((bot.game && bot.game.gameMode) || '');
+      if (atr.n >= 12) { atr.veces++; atr.n = 0; bot._atrapadoHasta = Date.now() + 45000; }
+    } else if (r && r.status === 'success') atr.n = 0;
     if (r && r.time > 800) { diag.log('warn', 'bucle', `ruta ${r.status} calculo ${Math.round(r.time)} ms nodos ${r.visitedNodes}`); console.log(`[bucle] ruta ${r.status} calculo ${Math.round(r.time)} ms nodos=${r.visitedNodes} largo=${r.path ? r.path.length : 0}`); }
   });
   const sol = setInterval(() => {
