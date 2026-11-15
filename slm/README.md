@@ -99,3 +99,7 @@ Las competencias ya no esquivan al SLM. Intenciones nuevas calculo, ecuacion, ph
 ### sividi toile v3.000.116
 - perfil.js: mide el tiempo de CPU de cada setInterval por origen (archivo:linea). /panel muestra el top en "Perfil CPU".
 - auditoria.js: clasifica los pasos de abasto en nunca corrieron, fallan siempre, sin cambio verificable, lentos y funcionan. /panel muestra "Auditoria de pasos". Tambien corre como `node auditoria.js habilidades_am.json`.
+
+### sividi toile v3.000.117
+- bloques_rapido tambien acelera busquedas con funcion como criterio: evalua la funcion una vez por estado de bloque y la confirma solo en las celdas candidatas. Tolera funciones que usan b.position (mineflayer falla con ellas).
+- Render: pathfinder thinkTimeout 3000 ms y tickTimeout 10 ms. Con 800 ms las rutas daban timeout con 40-120 nodos y se recalculaban sin parar.

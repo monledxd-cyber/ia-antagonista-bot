@@ -17,15 +17,29 @@ function estados(bot, ids) {
   return s;
 }
 
+const clasesBloque = new WeakMap();
+function claseBloque(bot) {
+  let c = clasesBloque.get(bot.registry);
+  if (!c) { c = require('prismarine-block')(bot.registry); clasesBloque.set(bot.registry, c); }
+  return c;
+}
+
 function aplica(o) {
   const m = o && o.matching;
   if (o.useExtraInfo) return null;
+  if (typeof m === 'function') return m;
   const a = Array.isArray(m) ? m : typeof m === 'number' ? [m] : null;
   return a && a.every((x) => typeof x === 'number') ? a : null;
 }
 
 function buscar(bot, o, ids) {
-  const set = estados(bot, ids);
+  const fn = typeof ids === 'function' ? ids : null;
+  let set, memo;
+  if (fn) {
+    const Block = claseBloque(bot);
+    memo = new Map();
+    set = { has: (id) => { let v = memo.get(id); if (v === undefined) { try { v = !!fn(Block.fromStateId(id, 0)); } catch (e) { v = true; } memo.set(id, v); } return v; } };
+  } else set = estados(bot, ids);
   const punto = (o.point || bot.entity.position).floored();
   const max = o.maxDistance || 16, cuenta = o.count || 1;
   const inicio = new Vec3(Math.floor(punto.x / 16), Math.floor(punto.y / 16), Math.floor(punto.z / 16));
@@ -49,9 +63,13 @@ function buscar(bot, o, ids) {
           for (let y = 0; y < 16; y++) for (let z = 0; z < 16; z++) {
             const base = (y << 8) | (z << 4);
             for (let x = 0; x < 16; x++) {
-              if (!set.has(data.get(base | x))) continue;
+              const sid = data.get(base | x);
+              if (!set.has(sid)) continue;
               const dx = bx + x - punto.x, dy = by + y - punto.y, dz = bz + z - punto.z;
-              if (dx * dx + dy * dy + dz * dz <= m2) bl.push(new Vec3(bx + x, by + y, bz + z));
+              if (dx * dx + dy * dy + dz * dz > m2) continue;
+              const v = new Vec3(bx + x, by + y, bz + z);
+              if (fn) { let r = false; try { r = !!fn(bot.blockAt(v, false)); } catch (e) { r = false; } if (!r) continue; }
+              bl.push(v);
             }
           }
         }

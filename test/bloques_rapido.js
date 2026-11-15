@@ -39,6 +39,19 @@ const set = async () => {
       assert.deepStrictEqual(db, da);
     }
   }
+  const fns = [(b) => b && b.name === 'oak_log', (b) => b && /^(iron_ore|diamond_ore)$/.test(b.name), (b) => b && b.boundingBox === 'block' && b.name !== 'stone'];
+  for (const p of pos) {
+    bot.entity.position = p;
+    for (const f of fns) for (const [d, c] of [[16, 1], [32, 6], [48, 30]]) {
+      const o = { matching: f, maxDistance: d, count: c };
+      const a = orig(o), b = R.buscar(bot, o, R.aplica(o));
+      assert.deepStrictEqual(b.map((v) => v.distanceTo(p.floored())), a.map((v) => v.distanceTo(p.floored())));
+    }
+  }
+  const fp = (b) => b && b.name === 'stone' && b.position.x > 0;
+  bot.entity.position = pos[0];
+  const rp = R.buscar(bot, { matching: fp, maxDistance: 32, count: 10 }, fp);
+  assert.ok(rp.length > 0 && rp.every((v) => v.x > 0 && bot.world.getBlock(v).name === 'stone'), 'funcion con position');
   const o = { matching: [B.stone.id, B.dirt.id], maxDistance: 32, count: 50 };
   bot.entity.position = pos[0];
   let t = Date.now(); for (let i = 0; i < 20; i++) orig(o); const t1 = Date.now() - t;
