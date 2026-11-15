@@ -41,6 +41,7 @@ function crearBucle(bot) {
     const yo = bot.entity && bot.entity.position;
     bot._sinJugadores = !yo || !Object.values(bot.entities).some((e) => e && e.type === 'player' && e !== bot.entity && e.position && e.position.distanceTo(yo) < 64);
   }, 2000);
+  const ent = setInterval(() => { try { if (bot.entity) diag.estado.entorno = require('./entorno').mapa(bot); } catch (e) { /* ignorar */ } }, 20000);
   const rep = setInterval(() => { diag.estado.bucle = `max ${max} ms prom ${n ? Math.round(suma / n) : 0} ms`; max = 0; n = 0; suma = 0; }, 30_000);
   require('./bloques_rapido').instalar(bot);
   for (const nombre of ['findBlocks', 'findBlock']) {
@@ -54,6 +55,6 @@ function crearBucle(bot) {
       return r;
     };
   }
-  bot.once('end', () => { clearInterval(it); clearInterval(rep); clearInterval(sol); });
+  bot.once('end', () => { clearInterval(it); clearInterval(rep); clearInterval(sol); clearInterval(ent); });
 }
 module.exports = { crearBucle, expandir, _tArea: (v) => { if (v !== undefined) tArea = v; return tArea; } };

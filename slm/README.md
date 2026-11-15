@@ -113,3 +113,6 @@ Las competencias ya no esquivan al SLM. Intenciones nuevas calculo, ecuacion, ph
 - Deteccion de atrapado: 12 rutas seguidas noPath con menos de 250 nodos cuentan como una racha. El panel muestra "Parece atrapado" y abasto espera 45 s entre rachas en vez de repetir madera sin parar.
 - /panel: la fila bot incluye modo de juego.
 - perfil.js: el porcentaje se mide desde el arranque (antes salia inflado).
+
+### sividi toile v3.000.120
+- entorno.js: /panel muestra cada 20 s un mapa de 17x17 bloques alrededor del bot en cuatro capas (y+2 a y-1) y las entidades a menos de 16 bloques.
