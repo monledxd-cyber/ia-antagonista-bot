@@ -25,4 +25,13 @@ for (let i = 0; i < 6; i++) s.resultado(m.pos, -1);
 assert.ok(s.valor(m.pos) < v0 - 0.5, 'castigo baja el valor');
 assert.ok(s.pesos()[0] < w0, 'baja el peso de madera');
 console.log('OK: sitio', JSON.stringify(m.pos), m.valor.toFixed(2), '->', s.valor(m.pos).toFixed(2));
+const cosas = [[-20, 0, 2], [-21, 0, 2], [-20, 0, 4], [-22, 0, 3]].map((a) => ({ x: a[0], y: a[1], z: a[2] }));
+const bot2 = Object.assign({}, bot, {
+  registry: { blocksByName: { chest: { id: 1, name: 'chest' }, crafting_table: { id: 2, name: 'crafting_table' }, stone: { id: 3, name: 'stone' } } },
+  findBlocks: () => cosas,
+});
+const s2 = crearSitio(bot2, '/tmp/sitio_test2.json');
+const m2 = s2.mejor({ x: 0, y: 0, z: 0 }, 40);
+assert.ok(m2.pos.x <= -14, 'se queda donde tiene sus cosas: ' + JSON.stringify(m2.pos));
+console.log('OK: sitio con cosas', JSON.stringify(m2.pos));
 process.exit(0);

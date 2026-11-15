@@ -31,13 +31,12 @@ function crearBase(bot, o) {
   const iniciar = () => {
     const cb = bot._cofreBase && bot._cofreBase();
     if (cb) base = new Vec3(cb.x, cb.y, cb.z);
-    if (!base && bot.entity) base = bot.entity.position.floored();
     setTimeout(() => { try { if (!(bot._cofreBase && bot._cofreBase())) elegir(40); } catch (e) { /* ignorar */ } }, 7000);
   };
   if (bot.entity) iniciar(); else bot.once('spawn', iniciar);
   // Reevaluacion lenta mientras no haya cofre construido: el mundo cargado cambia y el trafico se aprende.
   const eleInt = setInterval(() => {
-    if (!bot.entity || o.ocupado() || o.hayEnemigo(24) || bot.health < 14 || Date.now() - ultElegir < 180_000) return;
+    if (!bot.entity || o.ocupado() || o.hayEnemigo(24) || bot.health < 14 || Date.now() - ultElegir < (base ? 180_000 : 30_000)) return;
     if (bot._cofreBase && bot._cofreBase()) return;
     try { elegir(40); } catch (e) { /* ignorar */ }
   }, 20_000);

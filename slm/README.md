@@ -91,3 +91,7 @@ Las competencias ya no esquivan al SLM. Intenciones nuevas calculo, ecuacion, ph
 
 ### sividi toile v3.000.114
 - bloques_rapido.js: findBlocks propio para busquedas por id. Compara estados con un Set en vez de crear un Block por celda. Mismo resultado que mineflayer (test/bloques_rapido.js), unas 28 veces mas rapido. IA_BUSQ_RAPIDA=0 lo desactiva.
+
+### sividi toile v3.000.115
+- sitio: el valor de un sitio suma las cosas que hay cerca (cofres, mesas, hornos, camas, yunques, etc.). Esos puntos tambien entran como candidatos a hogar.
+- base: ya no toma el spawn como hogar provisional; espera a elegir por valor y reintenta cada 30 s mientras no tenga ninguno.

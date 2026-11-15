@@ -53,10 +53,27 @@ function crearSitio(bot, ruta) {
   }
   const puntaje = (f) => f.reduce((s, v, i) => s + v * d.w[i], 0);
   const llave = (p) => Math.floor(p.x) + ',' + Math.floor(p.y) + ',' + Math.floor(p.z);
+  const COSAS = /^(chest|barrel|crafting_table|furnace|blast_furnace|smoker|enchanting_table|anvil|brewing_stand|ender_chest|.*_bed)$/;
+  let lista = [], tLista = 0;
+  function cosasLista(forzar) {
+    const ahora = Date.now();
+    if (!forzar && ahora - tLista < 15000) return lista;
+    tLista = ahora;
+    try {
+      const ids = Object.values(bot.registry.blocksByName).filter((b) => COSAS.test(b.name)).map((b) => b.id);
+      lista = bot.entity ? bot.findBlocks({ matching: ids, maxDistance: 48, count: 64 }) : [];
+    } catch (e) { lista = []; }
+    return lista;
+  }
+  function cosas(p) {
+    let n = 0;
+    for (const q of cosasLista()) if (Math.abs(q.x - p.x) <= 8 && Math.abs(q.z - p.z) <= 8 && Math.abs(q.y - p.y) <= 5) n++;
+    return Math.min(2.2, n * 0.45);
+  }
   function valor(p, origen) {
     const f = rasgos(p, origen);
     const memo = d.sitios[celda(p.x, p.z)] || 0;
-    return puntaje(f) + 0.35 * memo;
+    return puntaje(f) + 0.35 * memo + cosas(p);
   }
 
   const parado = (x, y, z) => {
@@ -67,6 +84,13 @@ function crearSitio(bot, ruta) {
   function mejor(c, radio) {
     const cx = Math.floor(c.x), cz = Math.floor(c.z), cy = Math.floor(c.y);
     let m = null;
+    const extra = [];
+    for (const q of cosasLista(true).slice(0, 12)) for (const [ax, az] of [[1, 0], [-1, 0], [0, 1], [0, -1], [0, 0]]) {
+      let y = null;
+      for (let dy = 2; dy >= -3; dy--) if (parado(q.x + ax, q.y + dy, q.z + az)) { y = q.y + dy; break; }
+      if (y !== null) { extra.push(new Vec3(q.x + ax, y, q.z + az)); break; }
+    }
+    for (const p of extra) { const v = valor(p, c); if (!m || v > m.valor) m = { pos: p, valor: v }; }
     for (let dx = -radio; dx <= radio; dx += 5) for (let dz = -radio; dz <= radio; dz += 5) {
       const x = cx + dx, z = cz + dz;
       let y = null;
@@ -89,6 +113,6 @@ function crearSitio(bot, ruta) {
   const guardar = () => { if (!sucio || !ruta) return; try { fs.writeFileSync(ruta, JSON.stringify(d)); sucio = false; } catch (e) { /* ignorar */ } };
   const t1 = setInterval(muestrearTrafico, 5000), t2 = setInterval(guardar, 60000);
   bot.once('end', () => { clearInterval(t1); clearInterval(t2); guardar(); });
-  return { valor, mejor, resultado, rasgos, pesos: () => d.w.slice(), guardar, RASGOS, llave };
+  return { valor, mejor, cosas, resultado, rasgos, pesos: () => d.w.slice(), guardar, RASGOS, llave };
 }
 module.exports = { crearSitio, RASGOS };
