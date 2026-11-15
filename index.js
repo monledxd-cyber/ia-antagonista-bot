@@ -1,3 +1,4 @@
+require('./perfil').instalar();
 for (const f of ['/etc/secrets/.env', require('path').join(__dirname, '.env')]) {
   try {
     for (const l of require('fs').readFileSync(f, 'utf8').split(/\r?\n/)) {

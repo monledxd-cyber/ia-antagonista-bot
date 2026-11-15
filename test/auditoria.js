@@ -1,0 +1,14 @@
+const assert = require('assert');
+const { auditar } = require('../auditoria');
+const d = { madera: { ok: 9, fail: 1, dudoso: 0, ms: 8000 }, mina: { ok: 0, fail: 6, dudoso: 0, ms: 5000 }, mesa: { ok: 1, fail: 0, dudoso: 7, ms: 3000 }, nether: { ok: 3, fail: 0, dudoso: 0, ms: 90000 } };
+const r = auditar(d, new Set(['madera', 'mina', 'mesa', 'nether', 'granja']));
+assert.deepStrictEqual(r.nunca, ['granja']);
+assert.ok(r.siempreFalla[0].startsWith('mina'));
+assert.ok(r.dudosos[0].startsWith('mesa'));
+assert.ok(r.lentos[0].startsWith('nether'));
+assert.ok(r.bien[0].startsWith('madera'));
+const diag = require('../diag');
+diag.estado.auditoria = r;
+assert.ok(diag.html({}).includes('Auditoria de pasos') && diag.html({}).includes('Perfil CPU'));
+console.log('OK: auditoria');
+process.exit(0);

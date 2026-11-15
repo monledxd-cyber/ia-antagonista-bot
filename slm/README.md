@@ -95,3 +95,7 @@ Las competencias ya no esquivan al SLM. Intenciones nuevas calculo, ecuacion, ph
 ### sividi toile v3.000.115
 - sitio: el valor de un sitio suma las cosas que hay cerca (cofres, mesas, hornos, camas, yunques, etc.). Esos puntos tambien entran como candidatos a hogar.
 - base: ya no toma el spawn como hogar provisional; espera a elegir por valor y reintenta cada 30 s mientras no tenga ninguno.
+
+### sividi toile v3.000.116
+- perfil.js: mide el tiempo de CPU de cada setInterval por origen (archivo:linea). /panel muestra el top en "Perfil CPU".
+- auditoria.js: clasifica los pasos de abasto en nunca corrieron, fallan siempre, sin cambio verificable, lentos y funcionan. /panel muestra "Auditoria de pasos". Tambien corre como `node auditoria.js habilidades_am.json`.

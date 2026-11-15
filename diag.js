@@ -60,6 +60,8 @@ ${fila('Proceso activo hace', hace(estado.inicio))}
 ${fila('Vida / ultimo dano', (estado.vida.ultima ?? '-') + ' / hace ' + hace(estado.vida.ultimoDano) + (estado.vida.atacante ? ' por ' + estado.vida.atacante : ''))}
 ${estado.autotest ? fila('Autotest (' + hace(estado.autotest.t) + ')', estado.autotest.pasos.map((x) => (x.ok ? 'OK ' : 'FALLA ') + x.n + (x.det ? ' (' + x.det + ')' : '')).join(' | ')) : ''}
 ${Object.entries(extra.estado || {}).map(([k, v]) => fila(k, typeof v === 'object' ? JSON.stringify(v) : v)).join('')}</table>
+<h2>Perfil CPU (temporizadores, % del tiempo real)</h2><table><tr><td class=s>origen</td><td class=s>% | veces | prom ms | max ms</td></tr>${require('./perfil').tabla().map((x) => fila(x.k, x.pct + '% | ' + x.n + ' | ' + x.prom + ' | ' + x.max)).join('')}</table>
+${estado.auditoria ? '<h2>Auditoria de pasos</h2><table>' + [['Nunca corrieron (sin condiciones)', 'nunca'], ['Fallan siempre', 'siempreFalla'], ['Sin cambio verificable', 'dudosos'], ['Lentos', 'lentos'], ['Funcionan', 'bien']].map(([t, k]) => fila(t, estado.auditoria[k].join(', ') || '-')).join('') + '</table>' : ''}
 <h2>Errores de codigo</h2>${estado.erroresCodigo.length ? estado.erroresCodigo.slice(-3).map((x) => `<pre>${esc(new Date(x.t).toISOString() + '\n' + x.msg)}</pre>`).join('') : '<div class=s>ninguno</div>'}
 <h2>Ultimos eventos</h2><table>${eventos.slice(-80).reverse().map((x) => `<tr><td class=s>${new Date(x.t).toISOString().slice(11, 19)}</td><td class="${x.nivel === 'error' ? 'e' : x.nivel === 'warn' ? 'w' : 's'}">${esc(x.modulo)}</td><td>${esc(x.msg)}</td></tr>`).join('')}</table>`;
 }

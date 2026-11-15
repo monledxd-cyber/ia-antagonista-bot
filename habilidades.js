@@ -60,7 +60,7 @@ function crearHabilidades(bot, ruta) {
   function guardar() { if (!sucio) return; try { fs.writeFileSync(ruta, JSON.stringify(d)); sucio = false; } catch (e) { /* ignorar */ } }
   const t = setInterval(guardar, 60_000);
   bot.once('end', () => { clearInterval(t); guardar(); });
-  return { snap, registrar, espera, atascado, tasa, resumen, guardar };
+  return { snap, registrar, espera, atascado, tasa, resumen, guardar, datos: () => d };
 }
 
 module.exports = { crearHabilidades };

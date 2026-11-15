@@ -1061,6 +1061,7 @@ function crearAbasto(bot, o) {
   bot.once('end', () => clearInterval(segundoPlano));
 
   let pasoActual = null;
+  const nombresVistos = new Set();
   const CRIT = new Set(['comida', 'carne', 'dormir', 'recuperar']);
   const vigia = setInterval(() => {
     if (!activo || !pasoActual || bot._abortarPaso || CRIT.has(pasoActual)) return;
@@ -1080,6 +1081,7 @@ function crearAbasto(bot, o) {
     activo = true; o.ocupar(true); ultimoOk = false;
     try {
       const orden = ordenar();
+      for (const x of orden) nombresVistos.add(x[0]);
       diag.estado.metas = orden.filter((x) => (fallos[x[0]] || 0) <= Date.now()).slice(0, 4).map((x) => x[0]); // varias metas a la vista
       let hizo = false;
       for (const [nombre, paso] of orden) {
@@ -1096,6 +1098,7 @@ function crearAbasto(bot, o) {
         if (!r && (bot._abortarPaso || !libre())) { bot._abortarPaso = false; break; }
         const veredicto = hab.registrar(nombre, r, antes, Date.now() - t0);
         diag.estado.habilidades = hab.resumen();
+        diag.estado.auditoria = require('./auditoria').auditar(hab.datos(), nombresVistos);
         if (veredicto === 'dudoso') { diag.log('warn', 'abasto', nombre + ' sin cambio verificable'); if (hab.atascado(nombre)) { r = false; motivo = 'sin cambio verificable 3 veces seguidas'; } }
         if (bot._nnAb) bot._nnAb.fin(nnM, !!r);
         if (!r) { if (bot._premio) bot._premio.evento('paso_fallo', { k: nombre }); marcarFallo(nombre, hab.espera(nombre)); const p = diag.estado.fallosPaso[nombre] || { n: 0 }; diag.estado.fallosPaso[nombre] = { n: p.n + 1, t: Date.now(), motivo }; diag.log('warn', 'abasto', nombre + ' fallo: ' + motivo); console.log('[abasto] fallo:', nombre, '-', motivo); }
