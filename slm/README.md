@@ -103,3 +103,8 @@ Las competencias ya no esquivan al SLM. Intenciones nuevas calculo, ecuacion, ph
 ### sividi toile v3.000.117
 - bloques_rapido tambien acelera busquedas con funcion como criterio: evalua la funcion una vez por estado de bloque y la confirma solo en las celdas candidatas. Tolera funciones que usan b.position (mineflayer falla con ellas).
 - Render: pathfinder thinkTimeout 3000 ms y tickTimeout 10 ms. Con 800 ms las rutas daban timeout con 40-120 nodos y se recalculaban sin parar.
+
+### sividi toile v3.000.118
+- camino.js: irCerca camina en linea recta cuando el destino esta a menos de 14 bloques, al mismo nivel y el trayecto esta libre (suelo solido, aire a pie y cabeza, sin lava ni agua). Si no hay camino directo o se atasca, usa el pathfinder como antes. IA_CAMINO_DIRECTO=0 lo desactiva.
+- start: UV_THREADPOOL_SIZE=1, --single-threaded y --single-threaded-gc para que Node no reparta el 0.1 CPU entre hilos.
+- Render: se apagan los plugins de mineflayer title, boss_bar, book, particle, scoreboard, tablist, team, creative y command_block. IA_PLUGINS_OFF=lista los cambia.

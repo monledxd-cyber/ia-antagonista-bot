@@ -931,6 +931,7 @@ async function crearBot() {
     version: VERSION,
     auth: 'offline', // server cracked / offline-mode
     viewDistance: process.env.IA_VIEW ? (Number(process.env.IA_VIEW) || process.env.IA_VIEW) : (process.env.RENDER ? 2 : 'normal'),
+    plugins: Object.fromEntries((process.env.IA_PLUGINS_OFF !== undefined ? process.env.IA_PLUGINS_OFF : process.env.RENDER ? 'title,boss_bar,book,particle,scoreboard,tablist,team,creative,command_block' : '').split(',').filter(Boolean).map((k) => [k, false])),
     hideErrors: false,
     // El default de la libreria es 30 s sin keep-alive => "timed out" y desconexion. Si
     // Aternos se sobrecarga y se atrasa, el bot se salia solo. Se sube a 180 s.
@@ -1358,7 +1359,9 @@ function irCerca(bot, pos, ms = 12000) {
       resolve(v);
     };
     const t = setTimeout(() => fin(false), ms);
-    bot.pathfinder.goto(new goals.GoalNear(pos.x, pos.y, pos.z, 2)).then(() => fin(true), () => fin(false));
+    const ir = () => bot.pathfinder.goto(new goals.GoalNear(pos.x, pos.y, pos.z, 2)).then(() => fin(true), () => fin(false));
+    if (process.env.IA_CAMINO_DIRECTO === '0') return ir();
+    require('./camino').directo(bot, pos, 2).then((r) => { if (hecho) return; if (r) fin(true); else ir(); }, ir);
   });
 }
 
