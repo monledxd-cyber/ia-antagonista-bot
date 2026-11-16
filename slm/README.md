@@ -119,3 +119,7 @@ Las competencias ya no esquivan al SLM. Intenciones nuevas calculo, ecuacion, ph
 
 ### sividi toile v3.000.121
 - Sala de espera: tras 3 rachas de 12 rutas noPath (zona cerrada, como la sala de Aternos con el servidor apagado) el bot se desconecta y reintenta a los 5, 10 y 15 min, en vez de gastar CPU sin salida. El panel avisa que el servidor parece apagado.
+
+### sividi toile v3.000.122
+- Memoria: el diario cuenta las veces en sala de espera y lo incluye en el resumen de AM.
+- Animo: al detectar la sala de espera sube soledad y atasco en la psique. Al volver a un mundo real con jugadores, a los 25 s dice una frase corta sobre haber estado encerrado, una sola vez.

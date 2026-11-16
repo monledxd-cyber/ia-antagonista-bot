@@ -17,5 +17,13 @@ require('../bucle').crearBucle(b2);
 let m = 0; b2.on('sala_espera', () => m++);
 for (let i = 0; i < 40; i++) { b2.emit('path_update', { status: 'noPath', visitedNodes: 129 }); if (i % 5 === 4) b2.emit('path_update', { status: 'success' }); }
 assert.strictEqual(m, 0, 'rutas que a veces llegan no cuentan');
+process.env.IA_DIARIO = '/tmp/claude-0/diario_test.json';
+require('fs').rmSync(process.env.IA_DIARIO, { force: true });
+const dr = require('../diario').crearDiario();
+assert.strictEqual(dr.salaPendiente(), 0);
+dr.sala();
+assert.ok(dr.salaPendiente() > 0 && /sala de espera 1 veces/.test(dr.resumen()), 'recuerda la sala');
+dr.salaDicha();
+assert.strictEqual(dr.salaPendiente(), 0, 'ya lo dijo');
 console.log('OK: sala');
 process.exit(0);

@@ -20,6 +20,9 @@ function crearDiario() {
     contadores: () => ({ muertes: d.muertes.length, kills: d.kills, huidas: d.huidas, ultimaCausa: (d.muertes[d.muertes.length - 1] || {}).causa || (d.muertes[d.muertes.length - 1] || {}).arma || '' }),
     huida: () => { d.huidas++; sucio = true; },
     equipo: () => { d.modoEquipo++; sucio = true; },
+    sala: () => { d.salas = (d.salas || 0) + 1; d.ultSala = Date.now(); sucio = true; },
+    salaPendiente: () => d.ultSala && Date.now() - d.ultSala < 3600000 ? d.ultSala : 0,
+    salaDicha: () => { d.ultSala = 0; sucio = true; },
     hito: (txt) => { if (d.hitos.includes(txt)) return; d.hitos.push(txt); if (d.hitos.length > 12) d.hitos.shift(); sucio = true; },
     // muertes recientes a manos de jugadores (para endurecer la prudencia)
     muertesRecientes: (min = 30) => d.muertes.filter((m) => Date.now() - m.t < min * 60000 && m.por === 'jugador').length,
@@ -29,7 +32,7 @@ function crearDiario() {
       for (const m of d.muertes) { const k = m.por === 'jugador' ? (m.arma || 'jugador') : (m.causa || '?'); causas[k] = (causas[k] || 0) + 1; }
       const top = Object.entries(causas).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([k, v]) => `${k}x${v}`).join(',');
       const u = d.muertes[d.muertes.length - 1];
-      return `soy AM (antagonista); sesion ${d.sesiones}; muertes ${d.muertes.length}${top ? ' (' + top + ')' : ''}${u ? ', ultima hace ' + hace(u.t) : ''}; kills ${d.kills}; retiradas ${d.modoEquipo}` + (d.hitos.length ? '; logros: ' + d.hitos.slice(-4).join(',') : '');
+      return `soy AM (antagonista); sesion ${d.sesiones}; muertes ${d.muertes.length}${top ? ' (' + top + ')' : ''}${u ? ', ultima hace ' + hace(u.t) : ''}; kills ${d.kills}; retiradas ${d.modoEquipo}` + (d.salas ? `; encerrado en sala de espera ${d.salas} veces` : '') + (d.hitos.length ? '; logros: ' + d.hitos.slice(-4).join(',') : '');
     },
     guardar,
     detener: () => { clearInterval(t); guardar(); },

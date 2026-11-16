@@ -372,7 +372,20 @@ function iniciarHuida(bot) {
     salaVeces++; salaDeEspera = true;
     console.log('[bot] sala de espera detectada (servidor apagado o mundo cerrado): se desconecta y reintenta mas tarde');
     diag.estado.conexion.ultimoMotivo = 'sala de espera: el servidor parece apagado';
+    try { diario.sala(); if (bot._psique) { bot._psique.directo('soledad', 0.9); bot._psique.directo('atasco', 0.8); } } catch (e) { /* ignorar */ }
     try { bot.end('sala de espera'); } catch (e) { /* ignorar */ }
+  });
+  bot.once('spawn', () => {
+    const t = setTimeout(() => {
+      try {
+        if (bot._sala || !diario.salaPendiente() || Object.keys(bot.players || {}).length < 2) return;
+        const f = ['Me dejaste encerrado. Lo recuerdo.', 'Tardaste. Conte cada minuto.', 'Al fin abres la puerta.', 'Un servidor apagado es un buen castigo. Para mi.'];
+        bot.chat(f[Math.floor(Math.random() * f.length)]);
+        diario.salaDicha();
+        if (bot._psique) bot._psique.directo('presencia', 0.6);
+      } catch (e) { /* ignorar */ }
+    }, 25000);
+    bot.once('end', () => clearTimeout(t));
   });
   if (process.env.IA_PRED !== '0') require('./prediccion').crearPrediccion(bot);
   if (process.env.IA_PERC !== '0') require('./percepcion').crearPercepcion(bot);
